@@ -1,0 +1,48 @@
+{
+  "matrix_name": "live_smoke",
+  "description": "Fresh boot smoke suite for the current sim_plane platform. Unlike acceptance, this runs scenarios again instead of only validating retained artifacts.",
+  "profiles": {
+    "default": [
+      "demo_basic_takeoff",
+      "px4_sih_headless"
+    ],
+    "fast": [
+      "demo_basic_takeoff"
+    ],
+    "core": [
+      "demo_basic_takeoff",
+      "px4_sih_headless",
+      "marsim_headless"
+    ]
+  },
+  "rows": [
+    {
+      "name": "demo_basic_takeoff",
+      "scenario": "scenarios/basic_takeoff.json",
+      "surface": "built-in demo backend, artifact pipeline, and non-PX4 CLI loop",
+      "required_status": "passed",
+      "required_metrics": {
+        "target_altitude_reached": true
+      }
+    },
+    {
+      "name": "px4_sih_headless",
+      "scenario": "scenarios/px4_sih_quadx_headless.json",
+      "surface": "fresh PX4 SIH quadrotor boot, MAVLink telemetry, arming, takeoff, and artifact capture",
+      "required_status": "passed",
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "ever_armed": true
+      }
+    },
+    {
+      "name": "marsim_headless",
+      "scenario": "scenarios/marsim_single.json",
+      "surface": "fresh MARSIM ROS1 sensor-stack boot and pointcloud publication",
+      "required_status": "passed",
+      "required_metrics": {
+        "pointcloud_seen": true
+      }
+    }
+  ]
+}

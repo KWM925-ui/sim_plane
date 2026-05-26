@@ -195,6 +195,26 @@ Inspect what is ready on this machine and get the recommended next run path:
 python3 -m sim_plane doctor
 ```
 
+Run a fresh one-command live smoke suite:
+
+```bash
+python3 -m sim_plane live-smoke
+```
+
+For the fastest local sanity check, run only the built-in demo row:
+
+```bash
+python3 -m sim_plane live-smoke --profile fast
+```
+
+`live-smoke` is intentionally different from acceptance: it starts scenarios
+again and writes new artifacts under `runs/`, while acceptance validates retained
+reference/latest artifacts. Live-smoke reports are retained under:
+
+```text
+runs/live_smoke/
+```
+
 Run the repo-local custom algorithm template on PX4 SIH:
 
 ```bash
@@ -273,6 +293,13 @@ Validate the latest matching platform artifacts against the same gate:
 python3 -m sim_plane platform-acceptance --latest --artifact-root runs
 ```
 
+Run fresh boot smoke separately from artifact acceptance:
+
+```bash
+python3 -m sim_plane live-smoke --profile fast
+python3 -m sim_plane live-smoke
+```
+
 Normalize retained manual evidence and prune safe incomplete probe directories:
 
 ```bash
@@ -299,6 +326,15 @@ runs/platform_acceptance/latest_reference_delta.json
 runs/platform_acceptance/latest_latest_delta.json
 runs/platform_acceptance/history_reference.jsonl
 runs/platform_acceptance/history_latest.jsonl
+```
+
+The live smoke stable snapshots are:
+
+```text
+runs/live_smoke/latest_fast.json
+runs/live_smoke/latest_default.json
+runs/live_smoke/history_fast.jsonl
+runs/live_smoke/history_default.jsonl
 ```
 
 The human-follow Stage1 stable snapshots are:

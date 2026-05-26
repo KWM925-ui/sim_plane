@@ -4,6 +4,12 @@
 
 - The current active frontier is back on the generic `sim_plane` platform itself, not on the project-specific `human-follow` branch.
 - The `human-follow` Stage1/Stage2 managed surfaces remain retained evidence and optional integrations, but they are not the product-mainline feature target for this round.
+- Git/GitHub baseline is established on `main` at `KWM925-ui/sim_plane`.
+- The one-command live smoke suite is now landed:
+  - `python3 -m sim_plane live-smoke --profile fast` runs only the built-in demo row for the fastest sanity check;
+  - `python3 -m sim_plane live-smoke` runs the default fresh boot proof over `demo_basic_takeoff` plus headless `PX4 SIH`;
+  - reports are retained under `runs/live_smoke/`;
+  - this is distinct from acceptance because it creates fresh run artifacts instead of only checking retained reference/latest artifacts.
 - The bounded platform onboarding step is now landed:
   - `python3 -m sim_plane doctor` reports which backends and adapters are ready on the current machine;
   - template adapter missing-command messages are shown as notes, not blocking readiness issues;
@@ -14,13 +20,13 @@
   - `python3 -m unittest tests.test_doctor tests.test_artifact_hygiene` passed.
   - `python3 -m sim_plane doctor` reports `12` ready backends and `5` ready adapters.
 - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs` passed at `runs/platform_acceptance/platform_acceptance_baseline_latest_20260526_162128_671607`.
-- `python3 -m sim_plane artifact-hygiene --artifact-root runs --migrate-retained-manual` reports clean with `114` complete artifacts and `7` reserved roots after artifact deduplication.
+- `python3 -m sim_plane artifact-hygiene --artifact-root runs --migrate-retained-manual` reports clean with retained report roots after artifact deduplication.
 - The artifact hygiene reserved-root set now includes the formal Stage1 detector/tracker and Stage2 integrated human-follow acceptance report roots, so those report roots are retained as report roots rather than migrated into `manual_probes`.
+- The artifact hygiene reserved-root set now also includes `live_smoke`.
 - Next mainline options should stay platform-generic:
   - improve the dashboard/replay UX for comparing runs;
   - formalize a stronger user-algorithm scenario authoring guide;
   - add a non-human-follow sample planner/control algorithm that exercises the generic adapters;
-  - or package a one-command platform smoke suite above the existing acceptance commands.
 
 ## Objective
 
@@ -30,7 +36,7 @@
 ## Current Facts
 
 - The repository has been bootstrapped with control and design documents and now includes a runnable Python MVP skeleton.
-- The workspace is not yet a git repository.
+- The workspace is a git repository with a GitHub remote at `KWM925-ui/sim_plane`.
 - Host OS: `Ubuntu 20.04.6 LTS`.
 - CPU threads: `16`.
 - RAM observed on `2026-04-27`: `14 GiB total`, about `7.2 GiB available`.
@@ -257,6 +263,6 @@
   - `visplanner_tracking_20260429_153921`
 - The current objective optimization/frontier after hygiene is platform-generic:
   - improve dashboard/replay comparison UX;
-  - package a one-command smoke/health suite above existing acceptance commands;
   - strengthen custom algorithm authoring around `external_command` and `ros_command`;
   - decide whether to formalize `SUPER` or `visPlanner` as a future optional surface, but not both at once and not inside the strict platform baseline until their noise contracts are explicit.
+- The one-command smoke/health suite is now covered by `python3 -m sim_plane live-smoke`; future work should improve it only if fresh evidence shows a missing smoke surface.

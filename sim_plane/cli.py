@@ -46,6 +46,12 @@ from sim_plane.human_follow_stage2_integrated_acceptance import (
     validate_matrix as validate_hf_stage2_integrated_acceptance_matrix,
     write_report as write_hf_stage2_integrated_acceptance_report,
 )
+from sim_plane.live_smoke import (
+    DEFAULT_LIVE_SMOKE_REPORT_ROOT,
+    DEFAULT_PROFILE as DEFAULT_LIVE_SMOKE_PROFILE,
+    format_live_smoke_report,
+    run_live_smoke_suite,
+)
 from sim_plane.doctor import collect_platform_doctor_report, format_platform_doctor_report
 from sim_plane.runner import ensure_artifact_root, run_scenario, serve_artifact
 from sim_plane.scenario import load_scenario
@@ -387,6 +393,59 @@ def build_parser():
         help="Root name for manual probe directories",
     )
 
+    live_smoke_parser = subparsers.add_parser(
+        "live-smoke",
+        help="Run a fresh lightweight boot smoke suite and write a live-smoke report",
+    )
+    live_smoke_parser.add_argument(
+        "--matrix",
+        help="Path to the live smoke matrix JSON",
+    )
+    live_smoke_parser.add_argument(
+        "--profile",
+        default=DEFAULT_LIVE_SMOKE_PROFILE,
+        help="Live smoke profile to run, for example default, fast, or core",
+    )
+    live_smoke_parser.add_argument(
+        "--artifact-root",
+        default="runs",
+        help="Where fresh run artifacts should be written",
+    )
+    live_smoke_parser.add_argument(
+        "--report-root",
+        default=str(DEFAULT_LIVE_SMOKE_REPORT_ROOT),
+        help="Where live smoke reports should be written",
+    )
+    live_smoke_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print the live smoke report as JSON",
+    )
+    live_smoke_parser.add_argument(
+        "--no-save-report",
+        action="store_true",
+        help="Do not persist the live smoke report under the report root",
+    )
+    live_smoke_parser.add_argument(
+        "--keep-last-reports",
+        type=int,
+        default=10,
+        help="Keep only the newest N timestamped live smoke report directories per profile; 0 disables pruning",
+    )
+    live_smoke_parser.add_argument(
+        "--px4-dir",
+        help="PX4-Autopilot checkout path for PX4-based smoke rows",
+    )
+    live_smoke_parser.add_argument(
+        "--ros-workspace",
+        help="Override the ROS workspace path for ROS-based smoke rows",
+    )
+    live_smoke_parser.add_argument(
+        "--connect-timeout",
+        type=float,
+        help="Override MAVLink heartbeat wait timeout in seconds for PX4-based smoke rows",
+    )
+
     show_parser = subparsers.add_parser("show-scenario", help="Print a normalized scenario")
     show_parser.add_argument("scenario", help="Path to the scenario JSON file")
 
@@ -610,6 +669,28 @@ def main(argv=None):
         else:
             print(format_manual_probe_hygiene_report(report))
         return 0 if report["status"] == "clean" else 1
+
+    if args.command == "live-smoke":
+        try:
+            report = run_live_smoke_suite(
+                matrix_path=args.matrix,
+                profile=args.profile,
+                artifact_root=args.artifact_root,
+                report_root=None if args.no_save_report else args.report_root,
+                keep_last=args.keep_last_reports,
+                runtime_options={
+                    "px4_dir": args.px4_dir,
+                    "ros_workspace_dir": args.ros_workspace,
+                    "connect_timeout_s": args.connect_timeout,
+                },
+            )
+        except ValueError as exc:
+            parser.error(str(exc))
+        if args.json:
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+        else:
+            print(format_live_smoke_report(report))
+        return 0 if report["status"] == "passed" else 1
 
     if args.command == "run":
         ensure_artifact_root(args.artifact_root)

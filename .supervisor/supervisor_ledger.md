@@ -293,8 +293,8 @@
   - current phase: detection and classification first, no cleanup patch until
     evidence separates confirmed issues from harmless historical residue.
 - Inspection facts/hypotheses separation:
-  - locked fact: the repository is not a git repository, so file-change
-    accounting must use explicit scans rather than git diff;
+  - locked fact at that time: the repository was not yet a git repository, so file-change
+    accounting used explicit scans rather than git diff;
   - locked fact: formal platform acceptance passed on latest artifacts at
     `runs/platform_acceptance/platform_acceptance_baseline_latest_20260526_162128_671607`;
   - hypothesis: likely redundant residue includes Python `__pycache__`,
@@ -792,7 +792,7 @@ true:
 - Active frontier is generic `sim_plane` platform hygiene and objective optimization assessment.
 - `/home/coco/follwer_ws` was not modified.
 - No acceptance semantics, thresholds, or scenario behavior were changed.
-- The repository is still not a git repository; change accounting is by explicit scan and command output.
+- At the time of this hygiene closure, the repository was not yet a git repository; change accounting used explicit scan and command output.
 
 ### Newly Locked This Round
 
@@ -848,3 +848,47 @@ true:
 ### Promotion Gate
 
 - Final hygiene, test, and acceptance checks are green on the cleaned artifact root; platform-mainline optimization assessment may proceed without reopening retired branches.
+
+## Live Smoke Suite Frontier 2026-05-27
+
+### Locked Facts
+
+- Git/GitHub baseline is now established on `main` at `KWM925-ui/sim_plane`.
+- Existing platform and planner acceptance commands mostly validate retained artifacts and reference/latest report consistency; they are not a fresh boot proof by themselves.
+- The next platform-mainline gap is a one-command live smoke suite that restarts at least the light platform path and one real PX4 path.
+- Current implementation work is limited to `/home/coco/sim_plane`; `/home/coco/follwer_ws` is out of scope.
+
+### Current Frontier
+
+- Add a repo-local `live-smoke` command with a small formal matrix, JSON/text reports, and retained report root under `runs/live_smoke/`.
+- Default profile must stay lightweight and should not open GUI windows.
+- Wire the existing draft `configs/live_smoke_matrix.json` and `sim_plane/live_smoke.py` into CLI, docs, tests, and artifact hygiene without changing acceptance semantics.
+
+### Forbidden Actions
+
+- No acceptance threshold or semantic changes.
+- No human-follow branch changes.
+- No heavy GUI/default simulator widening in the default smoke command.
+
+### Closure
+
+- Landed `python3 -m sim_plane live-smoke` as the platform-mainline fresh boot suite.
+- Added `configs/live_smoke_matrix.json` with `fast`, `default`, and `core` profiles.
+- Added durable reports under `runs/live_smoke/` and marked that root as artifact-hygiene reserved.
+- Fresh default run passed on `2026-05-26`:
+  - `demo_basic_takeoff`: `passed`, artifact `runs/basic_takeoff_20260526_170606`;
+  - `px4_sih_headless`: `passed`, artifact `runs/px4_sih_quadx_headless_20260526_170611`;
+  - report: `runs/live_smoke/live_smoke_default_20260526_170648_765446/report.json`.
+- Verification:
+  - `python3 -m unittest discover -s tests`: `100` tests passed.
+  - `python3 -m compileall -q sim_plane scripts examples tests`: passed.
+  - `bash -n scripts/*.sh`: passed.
+  - `python3 -m sim_plane doctor --json`: `12` ready backends, `5` ready adapters.
+  - `python3 -m sim_plane live-smoke --profile fast ...`: passed.
+  - `python3 -m sim_plane live-smoke --artifact-root runs --report-root runs/live_smoke`: passed.
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: clean, `8` reserved roots.
+  - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: passed at `runs/platform_acceptance/platform_acceptance_baseline_latest_20260526_170704_481002/report.json`.
+
+### Next Frontier
+
+- Dashboard/replay artifact browsing and trajectory/metric comparison is now the highest-value remaining platform-mainline hardening item.

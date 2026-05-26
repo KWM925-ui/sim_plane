@@ -18,6 +18,7 @@ DEFAULT_RESERVED_ROOT_NAMES = {
     "human_follow_stage1_detector_tracker_acceptance",
     "human_follow_stage2_acceptance",
     "human_follow_stage2_integrated_acceptance",
+    "live_smoke",
     "manual_probes",
     "platform_acceptance",
 }
