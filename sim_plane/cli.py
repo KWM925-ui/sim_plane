@@ -86,8 +86,8 @@ def build_parser():
         help="Exit immediately after the run instead of keeping the dashboard open",
     )
 
-    serve_parser = subparsers.add_parser("serve", help="Replay an existing artifact directory in the dashboard")
-    serve_parser.add_argument("artifact_dir", help="Artifact directory to replay")
+    serve_parser = subparsers.add_parser("serve", help="Replay an artifact or browse an artifact root in the dashboard")
+    serve_parser.add_argument("artifact_dir", help="Artifact directory to replay, or an artifact root such as runs/")
     serve_parser.add_argument("--host", default="127.0.0.1", help="Dashboard bind host")
     serve_parser.add_argument("--port", type=int, default=8765, help="Dashboard bind port")
     serve_parser.add_argument("--open-browser", action="store_true", help="Try to open the dashboard automatically")

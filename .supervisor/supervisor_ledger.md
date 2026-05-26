@@ -892,3 +892,48 @@ true:
 ### Next Frontier
 
 - Dashboard/replay artifact browsing and trajectory/metric comparison is now the highest-value remaining platform-mainline hardening item.
+
+## Dashboard Replay Comparison Frontier 2026-05-27
+
+### Locked Facts
+
+- The existing dashboard is lightweight and static: `sim_plane/web.py` serves `index.html`, `app.js`, `styles.css`, plus live/replay JSON endpoints.
+- Current replay entrypoint can serve exactly one complete artifact directory.
+- Existing artifact schema already has `manifest.json`, `scenario.json`, `result.json`, `telemetry.jsonl`, and `events.jsonl`.
+- Latest platform acceptance reports already contain per-row `artifact_dir`, `reference_artifact_dir`, metrics, reference metrics, and metric regression deltas.
+
+### Current Frontier
+
+- Add artifact browsing and comparison to the existing lightweight dashboard without adding frontend/backend framework dependencies.
+- Preserve existing `python3 -m sim_plane serve runs/<artifact>` behavior.
+- Add a root-browser path for `python3 -m sim_plane serve runs` so the user can inspect retained artifacts from the same UI.
+- Expose latest-vs-reference comparison data from existing acceptance report snapshots instead of changing acceptance semantics.
+
+### Forbidden Actions
+
+- No acceptance threshold or semantic changes.
+- No generated artifact cleanup during this feature unless generated cache files are created by tests.
+- No heavy frontend framework or always-on service.
+
+### Closure
+
+- Landed root artifact browsing through the existing dashboard:
+  - `python3 -m sim_plane serve runs` now opens a dashboard over the artifact root;
+  - `python3 -m sim_plane serve runs/<artifact>` still replays one artifact as before.
+- Added backend JSON endpoints:
+  - `/api/artifacts`
+  - `/api/artifact?name=...`
+  - `/api/compare?left=...&right=...`
+  - `/api/platform-acceptance/latest`
+- Added UI panels for artifact list, two-run comparison, metric deltas, trajectory deltas, and latest platform acceptance deltas.
+- No acceptance gate, scenario behavior, or runtime backend semantics were changed.
+- Verification:
+  - `python3 -m unittest discover -s tests`: `103` tests passed.
+  - `python3 -m compileall -q sim_plane scripts examples tests`: passed.
+  - `bash -n scripts/*.sh`: passed.
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: clean, `8` reserved roots, `112` complete artifacts.
+  - HTTP smoke on `python3 -m sim_plane serve runs --port 8879`: `/`, `/app.js`, `/styles.css`, `/api/meta`, `/api/artifacts?limit=5`, `/api/compare?...`, and `/api/platform-acceptance/latest` all returned successfully.
+
+### Next Frontier
+
+- Strengthen custom algorithm onboarding around `external_command` and `ros_command` with scenario generation and parameter guidance.

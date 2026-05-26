@@ -5,7 +5,7 @@ from sim_plane.artifacts import ArtifactWriter, build_artifact_dir, utc_timestam
 from sim_plane.backends import available_backends
 from sim_plane.backends.base import BackendError
 from sim_plane.scenario import load_scenario
-from sim_plane.web import ArtifactReplay, DashboardServer, LiveRunState
+from sim_plane.web import ArtifactReplay, ArtifactRootBrowser, DashboardServer, LiveRunState, is_complete_artifact_dir
 
 
 class RunSink:
@@ -108,8 +108,11 @@ def run_scenario(
 
 
 def serve_artifact(artifact_dir, host="127.0.0.1", port=8765, open_browser=False):
-    replay = ArtifactReplay(artifact_dir)
-    server = DashboardServer(replay, host=host, port=port)
+    if is_complete_artifact_dir(artifact_dir):
+        data_source = ArtifactReplay(artifact_dir)
+    else:
+        data_source = ArtifactRootBrowser(artifact_dir)
+    server = DashboardServer(data_source, host=host, port=port)
     server.start(open_browser=open_browser)
     print("Serving artifact dashboard at {0}".format(server.url))
     print("Press Ctrl-C to stop the viewer.")

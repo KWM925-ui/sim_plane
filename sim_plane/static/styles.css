@@ -95,6 +95,11 @@ body {
   margin-bottom: 16px;
 }
 
+.browser-panels {
+  grid-template-columns: 1.2fr 1fr 1fr;
+  margin-bottom: 16px;
+}
+
 .secondary-panels {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -171,6 +176,144 @@ body {
   gap: 10px;
 }
 
+.artifact-list {
+  display: grid;
+  gap: 8px;
+  max-height: 300px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.artifact-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.artifact-row.active {
+  border-color: rgba(117, 230, 218, 0.42);
+  background: rgba(117, 230, 218, 0.08);
+}
+
+.artifact-row div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.artifact-row strong,
+.acceptance-row strong {
+  overflow-wrap: anywhere;
+}
+
+.artifact-row span,
+.acceptance-row span,
+.compare-summary span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.artifact-status {
+  color: var(--warn);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+}
+
+.artifact-status[data-status="passed"] {
+  color: var(--good);
+}
+
+.artifact-status[data-status="failed"] {
+  color: #ff8f8f;
+}
+
+.compare-controls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.compare-controls label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.compare-controls select,
+.compare-controls button {
+  width: 100%;
+  border: 1px solid rgba(150, 210, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(4, 16, 26, 0.9);
+  color: var(--text);
+  padding: 10px 12px;
+}
+
+.compare-controls button {
+  cursor: pointer;
+  background: linear-gradient(135deg, rgba(117, 230, 218, 0.22), rgba(255, 159, 104, 0.18));
+}
+
+.compare-summary {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0 0;
+}
+
+.acceptance-rows {
+  display: grid;
+  gap: 8px;
+}
+
+.acceptance-row {
+  display: grid;
+  gap: 3px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.delta-table {
+  overflow: auto;
+}
+
+.delta-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.delta-table th,
+.delta-table td {
+  padding: 8px 7px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  vertical-align: top;
+}
+
+.delta-table th {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  font-size: 11px;
+}
+
+.delta-pos {
+  color: var(--good);
+}
+
+.delta-neg {
+  color: #ff8f8f;
+}
+
 .event-row {
   display: grid;
   grid-template-columns: 70px 1fr;
@@ -198,6 +341,7 @@ body {
 
 @media (max-width: 980px) {
   .metrics,
+  .browser-panels,
   .main-panels,
   .secondary-panels {
     grid-template-columns: 1fr;

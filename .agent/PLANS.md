@@ -24,9 +24,12 @@
 - The artifact hygiene reserved-root set now includes the formal Stage1 detector/tracker and Stage2 integrated human-follow acceptance report roots, so those report roots are retained as report roots rather than migrated into `manual_probes`.
 - The artifact hygiene reserved-root set now also includes `live_smoke`.
 - Next mainline options should stay platform-generic:
-  - improve the dashboard/replay UX for comparing runs;
   - formalize a stronger user-algorithm scenario authoring guide;
   - add a non-human-follow sample planner/control algorithm that exercises the generic adapters;
+- Dashboard/replay comparison UX is now landed:
+  - `python3 -m sim_plane serve runs` opens the artifact browser;
+  - the dashboard can compare two artifacts by metrics and trajectory;
+  - it can show the latest platform acceptance delta snapshot.
 
 ## Objective
 
@@ -262,7 +265,7 @@
   - `super_benchmark_dense_20260429_153853`
   - `visplanner_tracking_20260429_153921`
 - The current objective optimization/frontier after hygiene is platform-generic:
-  - improve dashboard/replay comparison UX;
   - strengthen custom algorithm authoring around `external_command` and `ros_command`;
   - decide whether to formalize `SUPER` or `visPlanner` as a future optional surface, but not both at once and not inside the strict platform baseline until their noise contracts are explicit.
 - The one-command smoke/health suite is now covered by `python3 -m sim_plane live-smoke`; future work should improve it only if fresh evidence shows a missing smoke surface.
+- Dashboard/replay comparison is now covered by `python3 -m sim_plane serve runs`; future work should refine visualization only after the adapter onboarding gap is reduced.

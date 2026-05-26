@@ -177,6 +177,12 @@ Replay a finished run later:
 python3 -m sim_plane serve runs/<artifact_dir>
 ```
 
+Browse retained artifacts and compare two runs in the dashboard:
+
+```bash
+python3 -m sim_plane serve runs
+```
+
 List backends:
 
 ```bash

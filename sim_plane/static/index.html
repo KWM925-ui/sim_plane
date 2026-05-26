@@ -36,6 +36,44 @@
         </article>
       </section>
 
+      <section class="grid browser-panels">
+        <article class="card">
+          <div class="card-header">
+            <h3>Artifact Browser</h3>
+            <p class="subtle" id="artifact-dir">-</p>
+          </div>
+          <div id="artifact-list" class="artifact-list"></div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h3>Run Compare</h3>
+            <p class="subtle">trajectory + metrics</p>
+          </div>
+          <div class="compare-controls">
+            <label>
+              <span>Left</span>
+              <select id="left-artifact"></select>
+            </label>
+            <label>
+              <span>Right</span>
+              <select id="right-artifact"></select>
+            </label>
+            <button id="compare-button" type="button">Compare</button>
+          </div>
+          <p id="compare-summary" class="compare-summary">Choose two artifacts to compare.</p>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h3>Latest Acceptance</h3>
+            <p class="subtle">platform latest-vs-reference</p>
+          </div>
+          <p id="acceptance-summary" class="compare-summary">Loading acceptance snapshot...</p>
+          <div id="acceptance-rows" class="acceptance-rows"></div>
+        </article>
+      </section>
+
       <section class="grid main-panels">
         <article class="card canvas-card">
           <div class="card-header">
@@ -67,6 +105,20 @@
             <div><dt>Heading</dt><dd id="heading-value">-</dd></div>
             <div><dt>Samples</dt><dd id="samples-value">0</dd></div>
           </dl>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h3>Metric Delta</h3>
+          </div>
+          <div id="metric-delta-table" class="delta-table">No comparison selected.</div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h3>Trajectory Delta</h3>
+          </div>
+          <div id="trajectory-delta-table" class="delta-table">No comparison selected.</div>
         </article>
 
         <article class="card">
