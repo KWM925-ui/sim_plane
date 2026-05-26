@@ -1,0 +1,17 @@
+{
+  "name": "basic_takeoff",
+  "description": "Demo multirotor takeoff, square mission, and landing for platform bring-up.",
+  "backend": "demo",
+  "vehicle": "quadrotor",
+  "duration_s": 18.0,
+  "update_hz": 5.0,
+  "target_altitude_m": 18.0,
+  "realtime_factor": 4.0,
+  "waypoints": [
+    { "x": 0.0, "y": 0.0 },
+    { "x": 20.0, "y": 0.0 },
+    { "x": 20.0, "y": 20.0 },
+    { "x": 0.0, "y": 20.0 },
+    { "x": 0.0, "y": 0.0 }
+  ]
+}

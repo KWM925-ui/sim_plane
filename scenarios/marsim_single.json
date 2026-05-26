@@ -1,0 +1,14 @@
+{
+  "name": "marsim_single",
+  "description": "Single-drone MARSIM run in the dedicated ROS1 workspace without RViz for a lighter sensor-stack probe.",
+  "backend": "marsim",
+  "vehicle": "quadrotor",
+  "duration_s": 18.0,
+  "update_hz": 5.0,
+  "target_altitude_m": 1.0,
+  "backend_options": {
+    "launch_rviz": false,
+    "use_gpu": false,
+    "success_criteria": "sensor_stack"
+  }
+}

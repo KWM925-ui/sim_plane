@@ -1,0 +1,51 @@
+{
+  "name": "px4_sih_quadx_human_follow_case_person_depart_follow",
+  "description": "PX4 SIH Stage1 behavior validation case for target departing farther away and vehicle follow-forward response on the project human-follow chain.",
+  "backend": "px4_sih",
+  "vehicle": "quadrotor",
+  "duration_s": 22.0,
+  "update_hz": 5.0,
+  "target_altitude_m": 0.0,
+  "algorithm_adapter": {
+    "type": "human_follow_ros_stage1",
+    "ros_workspace_dir": "/home/coco/sim_plane_ws/workspaces/ros1_human_follow_stage1",
+    "ros_master_port": 11366,
+    "fcu_url": "udp://:14540@127.0.0.1:14557",
+    "gcs_url": "",
+    "publish_external_odom": false,
+    "request_mode": "OFFBOARD",
+    "request_arm": true,
+    "require_estimator_valid": true,
+    "setpoint_warmup_count": 25,
+    "master_timeout_s": 20.0,
+    "wait_connected_timeout_s": 20.0,
+    "wait_command_timeout_s": 20.0,
+    "ready_timeout_s": 20.0,
+    "mode_timeout_s": 10.0,
+    "arm_timeout_s": 10.0,
+    "cleanup_mode": "OFFBOARD",
+    "cleanup_mode_timeout_s": 3.0,
+    "post_success_keepalive_s": 0.0,
+    "join_timeout_s": 3.0,
+    "follow_launch": "stage1_truth_fusion_controller_regression.launch",
+    "follow_launch_args": {
+      "motion_mode": "person_depart_follow",
+      "enable_monitor": false,
+      "enable_case_validation": true,
+      "validation_case": "person_depart_follow",
+      "case_max_duration_sec": 12.0,
+      "monitor_required": true
+    },
+    "expect_follow_launch_exit": true,
+    "follow_launch_exit_timeout_s": 24.0
+  },
+  "backend_options": {
+    "model": "sihsim_quadx",
+    "mavlink_endpoint": "udpin:127.0.0.1:14550",
+    "launch_qgc": false,
+    "launch_jmavsim": false,
+    "speed_factor": 1.0,
+    "success_criteria": "adapter_completed",
+    "allow_early_stop_on_adapter_success": true
+  }
+}

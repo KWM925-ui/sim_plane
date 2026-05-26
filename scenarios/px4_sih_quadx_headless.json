@@ -1,0 +1,25 @@
+{
+  "name": "px4_sih_quadx_headless",
+  "description": "Real PX4 SIH quadrotor run with local dashboard telemetry only, no auxiliary GUI viewers.",
+  "backend": "px4_sih",
+  "vehicle": "quadrotor",
+  "duration_s": 20.0,
+  "update_hz": 5.0,
+  "target_altitude_m": 5.0,
+  "backend_options": {
+    "model": "sihsim_quadx",
+    "mavlink_endpoint": "udpin:127.0.0.1:14540",
+    "launch_qgc": false,
+    "launch_jmavsim": false,
+    "speed_factor": 1.0,
+    "shell_command_delay_s": 5.0,
+    "shell_command_interval_s": 2.0,
+    "shell_commands": [
+      "param set MIS_TAKEOFF_ALT 5",
+      "commander takeoff",
+      "commander takeoff",
+      "commander takeoff"
+    ],
+    "success_criteria": "takeoff"
+  }
+}

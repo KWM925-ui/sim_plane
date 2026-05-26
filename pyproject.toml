@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sim-plane"
+version = "0.1.0"
+description = "Lightweight UAV algorithm simulation platform with a local visualization dashboard."
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "mavsdk>=2.8.4,<3",
+    "pymavlink>=2.4",
+]
+
+[project.scripts]
+sim-plane = "sim_plane.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["sim_plane*"]
+
+[tool.setuptools.package-data]
+sim_plane = ["static/*"]

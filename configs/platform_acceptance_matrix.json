@@ -1,0 +1,668 @@
+{
+  "matrix_name": "platform_acceptance_baseline",
+  "required_event_levels": [
+    "info"
+  ],
+  "metric_regression_budgets": {
+    "telemetry_count": {
+      "max_drop": 10
+    },
+    "mode_changes": {
+      "max_drop": 0
+    }
+  },
+  "planner_acceptance_matrix": "configs/planner_acceptance_matrix.json",
+  "rows": [
+    {
+      "name": "ego_planner_single",
+      "backend": "ego_planner",
+      "surface": "legacy upstream single-run planner",
+      "scenario_name": "ego_planner_single",
+      "reference_artifact": "runs/ego_planner_single_20260428_142011",
+      "required_metrics": {
+        "pointcloud_seen": true,
+        "target_altitude_reached": true,
+        "position_cmd_seen": true,
+        "goal_reached": true,
+        "launch_rviz": false
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "min_goal_distance_m": {
+          "max": 0.6
+        }
+      },
+      "notes_must_contain": [
+        "bounded /move_base_simple/goal",
+        "/pcl_render_node/cloud"
+      ]
+    },
+    {
+      "name": "ego_planner_single_visual",
+      "backend": "ego_planner",
+      "surface": "legacy upstream single-run planner with RViz",
+      "scenario_name": "ego_planner_single_visual",
+      "reference_artifact": "runs/ego_planner_single_visual_20260428_142039",
+      "required_metrics": {
+        "pointcloud_seen": true,
+        "target_altitude_reached": true,
+        "position_cmd_seen": true,
+        "goal_reached": true,
+        "launch_rviz": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "min_goal_distance_m": {
+          "max": 0.6
+        }
+      },
+      "notes_must_contain": [
+        "bounded /move_base_simple/goal",
+        "RViz was requested as the auxiliary 3D viewer for the legacy planner stack."
+      ]
+    },
+    {
+      "name": "ego_planner_swarm_single",
+      "backend": "ego_planner_swarm",
+      "surface": "swarm upstream single-run planner",
+      "scenario_name": "ego_planner_swarm_single",
+      "reference_artifact": "runs/ego_planner_swarm_single_20260428_141841",
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "position_cmd_seen": true,
+        "launch_rviz": false
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "/drone_0_visual_slam/odom"
+      ]
+    },
+    {
+      "name": "ego_planner_swarm_single_visual",
+      "backend": "ego_planner_swarm",
+      "surface": "swarm upstream single-run planner with RViz",
+      "scenario_name": "ego_planner_swarm_single_visual",
+      "reference_artifact": "runs/ego_planner_swarm_single_visual_20260428_141921",
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "position_cmd_seen": true,
+        "launch_rviz": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "RViz was requested as the auxiliary viewer for the ROS lab stack."
+      ]
+    },
+    {
+      "name": "px4_sih_headless",
+      "backend": "px4_sih",
+      "surface": "light closed-loop PX4 takeoff",
+      "scenario_name": "px4_sih_quadx_headless",
+      "reference_artifact": "runs/px4_sih_quadx_headless_20260428_130601",
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "ever_armed": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "pymavlink"
+      ]
+    },
+    {
+      "name": "px4_sih_3d",
+      "backend": "px4_sih",
+      "surface": "SIH plus QGroundControl plus jMAVSim viewer",
+      "scenario_name": "px4_sih_quadx_3d",
+      "reference_artifact": "runs/px4_sih_quadx_3d_20260428_130651",
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "ever_armed": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "QGroundControl was requested as an auxiliary viewer.",
+        "jMAVSim was requested as the 3D display-only viewer for SIH."
+      ]
+    },
+    {
+      "name": "px4_sih_mavsdk_action",
+      "backend": "px4_sih",
+      "surface": "SIH quadrotor driven by the repo-local MAVSDK action adapter",
+      "scenario_name": "px4_sih_quadx_mavsdk_action",
+      "reference_artifact": "runs/px4_sih_quadx_mavsdk_action_20260428_160345",
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "ever_armed": true,
+        "algorithm_adapter_name": "mavsdk_action_takeoff",
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_completed_successfully": true,
+        "algorithm_adapter_target_altitude_reached": true,
+        "algorithm_adapter_land_commanded": true,
+        "algorithm_adapter_landed": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "A repo-local MAVSDK action adapter commanded arm, takeoff, and land through PX4's onboard MAVLink UDP listener.",
+        "The local MAVSDK path on this host connects to PX4's onboard UDP listener on 14580 while the telemetry collector"
+      ]
+    },
+    {
+      "name": "px4_sih_human_follow_stage1",
+      "backend": "px4_sih",
+      "surface": "SIH disarmed OFFBOARD cut-in driven by the repo-local Stage1 follower ROS adapter",
+      "scenario_name": "px4_sih_quadx_human_follow_stage1",
+      "reference_artifact": "runs/px4_sih_quadx_human_follow_stage1_20260428_164845",
+      "required_metrics": {
+        "ever_armed": false,
+        "algorithm_adapter_name": "human_follow_ros_stage1",
+        "algorithm_adapter_completed_successfully": true,
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_offboard_requested": true,
+        "algorithm_adapter_offboard_mode_reached": true,
+        "algorithm_adapter_cleanup_mode": "AUTO.LOITER",
+        "algorithm_adapter_cleanup_mode_requested": true,
+        "algorithm_adapter_cleanup_mode_reached": true,
+        "algorithm_adapter_arm_requested": false,
+        "algorithm_adapter_arm_command_sent": false,
+        "algorithm_adapter_armed": false,
+        "algorithm_adapter_estimator_valid": true,
+        "algorithm_adapter_follow_valid_command_seen": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        },
+        "max_altitude_m": {
+          "max": 0.2
+        },
+        "max_speed_mps": {
+          "max": 0.2
+        },
+        "algorithm_adapter_follow_non_hold_count": {
+          "min": 1
+        },
+        "algorithm_adapter_setpoint_count": {
+          "min": 1
+        },
+        "algorithm_adapter_nonzero_setpoint_count": {
+          "min": 1
+        }
+      },
+      "metric_regression_budgets": {
+        "max_altitude_m": {
+          "max_increase": 0.05
+        },
+        "max_speed_mps": {
+          "max_increase": 0.1
+        }
+      },
+      "notes_must_contain": [
+        "Stage1 synthetic follower chain from /home/coco/sim_plane_ws/workspaces/ros1_human_follow_stage1",
+        "optional adapter boundary rather than a new core backend"
+      ]
+    },
+    {
+      "name": "px4_sih_human_follow_stage1_armed",
+      "backend": "px4_sih",
+      "surface": "SIH armed OFFBOARD handoff driven by the repo-local Stage1 follower ROS adapter",
+      "scenario_name": "px4_sih_quadx_human_follow_stage1_armed",
+      "reference_artifact": "runs/px4_sih_quadx_human_follow_stage1_armed_20260428_164920",
+      "required_metrics": {
+        "ever_armed": true,
+        "algorithm_adapter_name": "human_follow_ros_stage1",
+        "algorithm_adapter_completed_successfully": true,
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_offboard_requested": true,
+        "algorithm_adapter_offboard_mode_reached": true,
+        "algorithm_adapter_cleanup_mode": "AUTO.LOITER",
+        "algorithm_adapter_cleanup_mode_requested": true,
+        "algorithm_adapter_cleanup_mode_reached": true,
+        "algorithm_adapter_arm_requested": true,
+        "algorithm_adapter_arm_command_sent": true,
+        "algorithm_adapter_armed": true,
+        "algorithm_adapter_estimator_valid": true,
+        "algorithm_adapter_follow_valid_command_seen": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        },
+        "max_altitude_m": {
+          "max": 0.5
+        },
+        "max_speed_mps": {
+          "max": 1.0
+        },
+        "algorithm_adapter_follow_non_hold_count": {
+          "min": 1
+        },
+        "algorithm_adapter_setpoint_count": {
+          "min": 1
+        },
+        "algorithm_adapter_nonzero_setpoint_count": {
+          "min": 1
+        }
+      },
+      "metric_regression_budgets": {
+        "max_altitude_m": {
+          "max_increase": 0.1
+        },
+        "max_speed_mps": {
+          "max_increase": 0.2
+        }
+      },
+      "notes_must_contain": [
+        "Stage1 synthetic follower chain from /home/coco/sim_plane_ws/workspaces/ros1_human_follow_stage1",
+        "optional adapter boundary rather than a new core backend"
+      ]
+    },
+    {
+      "name": "px4_jsbsim_headless",
+      "backend": "px4_jsbsim",
+      "surface": "JSBSim quadrotor dynamics",
+      "scenario_name": "px4_jsbsim_quadx_headless",
+      "reference_artifact": "runs/px4_jsbsim_quadx_headless_20260428_130736",
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "ever_armed": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "validated in headless mode"
+      ]
+    },
+    {
+      "name": "px4_jsbsim_mavsdk_action",
+      "backend": "px4_jsbsim",
+      "surface": "JSBSim quadrotor dynamics driven by the repo-local MAVSDK action adapter",
+      "scenario_name": "px4_jsbsim_quadx_mavsdk_action",
+      "reference_artifact": "runs/px4_jsbsim_quadx_mavsdk_action_20260428_161256",
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "ever_armed": true,
+        "algorithm_adapter_name": "mavsdk_action_takeoff",
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_completed_successfully": true,
+        "algorithm_adapter_target_altitude_reached": true,
+        "algorithm_adapter_land_commanded": true,
+        "algorithm_adapter_landed": true,
+        "headless": true,
+        "flightgear_viewer": false
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "This JSBSim path is validated in headless mode and in FlightGear visual mode; this run used the lighter headless path.",
+        "A repo-local MAVSDK action adapter commanded arm, takeoff, and land through PX4's onboard MAVLink UDP listener.",
+        "The local MAVSDK path on this host connects to PX4's onboard UDP listener on 14580 while the telemetry collector"
+      ]
+    },
+    {
+      "name": "px4_jsbsim_mavsdk_action_visual",
+      "backend": "px4_jsbsim",
+      "surface": "JSBSim quadrotor dynamics with FlightGear viewer driven by the repo-local MAVSDK action adapter",
+      "scenario_name": "px4_jsbsim_quadx_mavsdk_action_visual",
+      "reference_artifact": "runs/px4_jsbsim_quadx_mavsdk_action_visual_20260428_170517",
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "ever_armed": true,
+        "algorithm_adapter_name": "mavsdk_action_takeoff",
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_completed_successfully": true,
+        "algorithm_adapter_target_altitude_reached": true,
+        "algorithm_adapter_land_commanded": true,
+        "algorithm_adapter_landed": true,
+        "headless": false,
+        "flightgear_viewer": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "FlightGear was requested as the 3D viewer for this JSBSim run.",
+        "A repo-local MAVSDK action adapter commanded arm, takeoff, and land through PX4's onboard MAVLink UDP listener.",
+        "The local MAVSDK path on this host connects to PX4's onboard UDP listener on 14580 while the telemetry collector"
+      ]
+    },
+    {
+      "name": "px4_jsbsim_visual",
+      "backend": "px4_jsbsim",
+      "surface": "JSBSim quadrotor dynamics with FlightGear viewer",
+      "scenario_name": "px4_jsbsim_quadx_visual",
+      "reference_artifact": "runs/px4_jsbsim_quadx_visual_20260428_145759",
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "ever_armed": true,
+        "headless": false,
+        "flightgear_viewer": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "FlightGear was requested as the 3D viewer for this JSBSim run."
+      ]
+    },
+    {
+      "name": "marsim_headless",
+      "backend": "marsim",
+      "surface": "scene-backed sensor stack headless",
+      "scenario_name": "marsim_single",
+      "reference_artifact": "runs/marsim_single_20260428_130820",
+      "required_metrics": {
+        "pointcloud_seen": true,
+        "target_altitude_reached": true,
+        "launch_rviz": false
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "/quad_0/lidar_slam/odom",
+        "RViz was disabled for a lighter headless sensor-stack probe."
+      ]
+    },
+    {
+      "name": "marsim_visual",
+      "backend": "marsim",
+      "surface": "scene-backed sensor stack with RViz",
+      "scenario_name": "marsim_single_visual",
+      "reference_artifact": "runs/marsim_single_visual_20260428_130846",
+      "required_metrics": {
+        "pointcloud_seen": true,
+        "target_altitude_reached": true,
+        "launch_rviz": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "RViz was requested through MARSIM's built-in 3D launch path."
+      ]
+    },
+    {
+      "name": "marsim_gpu_headless",
+      "backend": "marsim",
+      "surface": "scene-backed GPU sensor stack headless",
+      "scenario_name": "marsim_single_gpu",
+      "reference_artifact": "runs/marsim_single_gpu_20260428_143322",
+      "required_metrics": {
+        "pointcloud_seen": true,
+        "target_altitude_reached": true,
+        "launch_rviz": false,
+        "use_gpu": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "RViz was disabled for a lighter headless sensor-stack probe.",
+        "The GPU local sensing path was requested for this MARSIM run."
+      ]
+    },
+    {
+      "name": "marsim_gpu_visual",
+      "backend": "marsim",
+      "surface": "scene-backed GPU sensor stack with RViz",
+      "scenario_name": "marsim_single_gpu_visual",
+      "reference_artifact": "runs/marsim_single_gpu_visual_20260428_143543",
+      "required_metrics": {
+        "pointcloud_seen": true,
+        "target_altitude_reached": true,
+        "launch_rviz": true,
+        "use_gpu": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "RViz was requested through MARSIM's built-in 3D launch path.",
+        "The GPU local sensing path was requested for this MARSIM run."
+      ]
+    },
+    {
+      "name": "px4_gazebo_classic_headless",
+      "backend": "px4_gazebo_classic",
+      "surface": "Gazebo Classic scene-backed PX4 takeoff headless",
+      "scenario_name": "px4_gazebo_classic_iris_headless",
+      "reference_artifact": "runs/px4_gazebo_classic_iris_headless_20260428_152015",
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "ever_armed": true,
+        "headless": true,
+        "gazebo_gui": false,
+        "world": "empty",
+        "model": "iris"
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "The selected Gazebo Classic world was empty.",
+        "Gazebo Classic was requested in headless mode for a lighter scene-backed PX4 probe."
+      ]
+    },
+    {
+      "name": "px4_gazebo_classic_visual",
+      "backend": "px4_gazebo_classic",
+      "surface": "Gazebo Classic scene-backed PX4 takeoff with native GUI",
+      "scenario_name": "px4_gazebo_classic_iris_visual",
+      "reference_artifact": "runs/px4_gazebo_classic_iris_visual_20260428_152300",
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "ever_armed": true,
+        "headless": false,
+        "gazebo_gui": true,
+        "world": "warehouse",
+        "model": "iris"
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "The selected Gazebo Classic world was warehouse.",
+        "Gazebo Classic GUI was requested as the native 3D viewer for this PX4 run."
+      ]
+    },
+    {
+      "name": "px4_gazebo_classic_mavsdk_action",
+      "backend": "px4_gazebo_classic",
+      "surface": "Gazebo Classic scene-backed PX4 takeoff driven by the repo-local MAVSDK action adapter",
+      "scenario_name": "px4_gazebo_classic_iris_mavsdk_action",
+      "reference_artifact": "runs/px4_gazebo_classic_iris_mavsdk_action_20260428_172653",
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "ever_armed": true,
+        "algorithm_adapter_name": "mavsdk_action_takeoff",
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_completed_successfully": true,
+        "algorithm_adapter_target_altitude_reached": true,
+        "algorithm_adapter_land_commanded": true,
+        "algorithm_adapter_landed": true,
+        "headless": true,
+        "gazebo_gui": false,
+        "world": "empty",
+        "model": "iris"
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "Each px4_gazebo_classic run uses a dedicated local GAZEBO_MASTER_URI",
+        "Gazebo Classic was requested in headless mode for a lighter scene-backed PX4 probe.",
+        "A repo-local MAVSDK action adapter commanded arm, takeoff, and land through PX4's onboard MAVLink UDP listener.",
+        "The local MAVSDK path on this host connects to PX4's onboard UDP listener on 14580 while the telemetry collector"
+      ]
+    },
+    {
+      "name": "px4_gazebo_classic_mavsdk_action_visual",
+      "backend": "px4_gazebo_classic",
+      "surface": "Gazebo Classic scene-backed PX4 takeoff with native GUI driven by the repo-local MAVSDK action adapter",
+      "scenario_name": "px4_gazebo_classic_iris_mavsdk_action_visual",
+      "reference_artifact": "runs/px4_gazebo_classic_iris_mavsdk_action_visual_20260428_172755",
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "ever_armed": true,
+        "algorithm_adapter_name": "mavsdk_action_takeoff",
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_completed_successfully": true,
+        "algorithm_adapter_target_altitude_reached": true,
+        "algorithm_adapter_land_commanded": true,
+        "algorithm_adapter_landed": true,
+        "headless": false,
+        "gazebo_gui": true,
+        "world": "warehouse",
+        "model": "iris"
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "Each px4_gazebo_classic run uses a dedicated local GAZEBO_MASTER_URI",
+        "Gazebo Classic GUI was requested as the native 3D viewer for this PX4 run.",
+        "A repo-local MAVSDK action adapter commanded arm, takeoff, and land through PX4's onboard MAVLink UDP listener.",
+        "The local MAVSDK path on this host connects to PX4's onboard UDP listener on 14580 while the telemetry collector"
+      ]
+    },
+    {
+      "name": "fast_lio_marsim_headless",
+      "backend": "fast_lio_marsim",
+      "surface": "estimation stack headless",
+      "scenario_name": "fast_lio_marsim",
+      "reference_artifact": "runs/fast_lio_marsim_20260428_130913",
+      "required_metrics": {
+        "odometry_seen": true,
+        "pointcloud_seen": true,
+        "target_altitude_reached": false,
+        "launch_rviz": false,
+        "fast_lio_launch_rviz": false,
+        "marsim_launch_rviz": false,
+        "pcd_save_disabled": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "default shutdown-time PCD dump",
+        "All RViz viewers were disabled for a lighter headless estimation-stack probe."
+      ]
+    },
+    {
+      "name": "fast_lio_marsim_visual",
+      "backend": "fast_lio_marsim",
+      "surface": "estimation stack with FAST_LIO RViz",
+      "scenario_name": "fast_lio_marsim_visual",
+      "reference_artifact": "runs/fast_lio_marsim_visual_20260428_131215",
+      "required_metrics": {
+        "odometry_seen": true,
+        "pointcloud_seen": true,
+        "target_altitude_reached": false,
+        "launch_rviz": true,
+        "fast_lio_launch_rviz": true,
+        "marsim_launch_rviz": false,
+        "pcd_save_disabled": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "A viewer was requested for this estimation-stack probe.",
+        "FAST_LIO's estimator RViz path was enabled."
+      ]
+    }
+  ]
+}

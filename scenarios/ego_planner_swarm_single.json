@@ -1,0 +1,13 @@
+{
+  "name": "ego_planner_swarm_single",
+  "description": "Single-drone EGO-Planner-Swarm run inside the dedicated ROS1 workspace.",
+  "backend": "ego_planner_swarm",
+  "vehicle": "quadrotor",
+  "duration_s": 18.0,
+  "update_hz": 5.0,
+  "target_altitude_m": 1.0,
+  "backend_options": {
+    "launch_rviz": false,
+    "success_criteria": "trajectory"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "fast_lio_marsim_visual",
+  "description": "Single-drone FAST_LIO plus MARSIM estimation-stack run with FAST_LIO RViz plus the local sim_plane dashboard.",
+  "backend": "fast_lio_marsim",
+  "vehicle": "quadrotor",
+  "duration_s": 20.0,
+  "update_hz": 5.0,
+  "target_altitude_m": 1.0,
+  "backend_options": {
+    "launch_rviz": true,
+    "marsim_launch_rviz": false,
+    "use_gpu": false,
+    "success_criteria": "estimation"
+  }
+}

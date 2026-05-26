@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>sim_plane Dashboard</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">sim_plane</p>
+          <h1 id="scenario-name">Loading scenario...</h1>
+          <p id="scenario-description" class="subtle"></p>
+        </div>
+        <div class="status-pill" id="status-pill">starting</div>
+      </section>
+
+      <section class="grid metrics">
+        <article class="card">
+          <p class="card-label">Backend</p>
+          <h2 id="backend-name">-</h2>
+        </article>
+        <article class="card">
+          <p class="card-label">Vehicle</p>
+          <h2 id="vehicle-name">-</h2>
+        </article>
+        <article class="card">
+          <p class="card-label">Altitude</p>
+          <h2 id="altitude-value">0.0 m</h2>
+        </article>
+        <article class="card">
+          <p class="card-label">Speed</p>
+          <h2 id="speed-value">0.0 m/s</h2>
+        </article>
+      </section>
+
+      <section class="grid main-panels">
+        <article class="card canvas-card">
+          <div class="card-header">
+            <h3>Top-Down Track</h3>
+            <p class="subtle">Lightweight local trajectory view</p>
+          </div>
+          <canvas id="track-canvas" width="720" height="360"></canvas>
+        </article>
+
+        <article class="card canvas-card">
+          <div class="card-header">
+            <h3>Altitude Timeline</h3>
+            <p class="subtle">Mission progress over simulation time</p>
+          </div>
+          <canvas id="altitude-canvas" width="720" height="360"></canvas>
+        </article>
+      </section>
+
+      <section class="grid secondary-panels">
+        <article class="card">
+          <div class="card-header">
+            <h3>Current State</h3>
+          </div>
+          <dl class="kv-list">
+            <div><dt>Mode</dt><dd id="mode-value">-</dd></div>
+            <div><dt>Phase</dt><dd id="phase-value">-</dd></div>
+            <div><dt>Armed</dt><dd id="armed-value">-</dd></div>
+            <div><dt>Battery</dt><dd id="battery-value">-</dd></div>
+            <div><dt>Heading</dt><dd id="heading-value">-</dd></div>
+            <div><dt>Samples</dt><dd id="samples-value">0</dd></div>
+          </dl>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h3>Run Result</h3>
+          </div>
+          <pre id="result-box" class="result-box">Waiting for result...</pre>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h3>Events</h3>
+          </div>
+          <div id="events-box" class="events-box"></div>
+        </article>
+      </section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>

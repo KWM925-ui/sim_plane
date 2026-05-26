@@ -1,0 +1,21 @@
+{
+  "name": "ego_planner_single",
+  "description": "Legacy EGO-Planner single-drone run with an auto-published bounded nav goal.",
+  "backend": "ego_planner",
+  "vehicle": "quadrotor",
+  "duration_s": 18.0,
+  "update_hz": 5.0,
+  "target_altitude_m": 1.0,
+  "mission": {
+    "type": "manual_goal",
+    "goal": {
+      "x": 2.5,
+      "y": 0.0,
+      "z": 1.0
+    }
+  },
+  "backend_options": {
+    "launch_rviz": false,
+    "success_criteria": "trajectory"
+  }
+}

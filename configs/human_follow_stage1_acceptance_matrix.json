@@ -1,0 +1,318 @@
+{
+  "matrix_name": "human_follow_stage1_acceptance",
+  "required_event_levels": [
+    "info",
+    "warning"
+  ],
+  "metric_regression_budgets": {
+    "max_altitude_m": {
+      "max_increase": 0.15
+    },
+    "max_speed_mps": {
+      "max_increase": 0.2
+    }
+  },
+  "rows": [
+    {
+      "name": "hf_stage1_acquire_center",
+      "backend": "px4_sih",
+      "surface": "project Stage1 target acquisition and stable center follow",
+      "scenario_name": "px4_sih_quadx_human_follow_case_acquire_center",
+      "reference_artifact": "runs/px4_sih_quadx_human_follow_case_acquire_center_20260505_143654",
+      "required_metrics": {
+        "ever_armed": true,
+        "algorithm_adapter_name": "human_follow_ros_stage1",
+        "algorithm_adapter_completed_successfully": true,
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_offboard_requested": true,
+        "algorithm_adapter_offboard_mode_reached": true,
+        "algorithm_adapter_arm_requested": true,
+        "algorithm_adapter_arm_command_sent": true,
+        "algorithm_adapter_armed": true,
+        "algorithm_adapter_estimator_valid": true,
+        "algorithm_adapter_follow_valid_command_seen": true,
+        "algorithm_adapter_motion_mode": "acquire_center",
+        "algorithm_adapter_validation_case": "acquire_center"
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        },
+        "max_altitude_m": {
+          "max": 0.5
+        },
+        "max_speed_mps": {
+          "max": 0.5
+        },
+        "algorithm_adapter_follow_non_hold_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "stage1_truth_fusion_controller_regression.launch",
+        "optional adapter boundary rather than a new core backend"
+      ]
+    },
+    {
+      "name": "hf_stage1_search_reacquire_right",
+      "backend": "px4_sih",
+      "surface": "project Stage1 right-side loss, search, and reacquisition",
+      "scenario_name": "px4_sih_quadx_human_follow_case_search_reacquire_right",
+      "reference_artifact": "runs/px4_sih_quadx_human_follow_case_search_reacquire_right_20260505_143802",
+      "required_metrics": {
+        "ever_armed": true,
+        "algorithm_adapter_name": "human_follow_ros_stage1",
+        "algorithm_adapter_completed_successfully": true,
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_offboard_requested": true,
+        "algorithm_adapter_offboard_mode_reached": true,
+        "algorithm_adapter_arm_requested": true,
+        "algorithm_adapter_arm_command_sent": true,
+        "algorithm_adapter_armed": true,
+        "algorithm_adapter_estimator_valid": true,
+        "algorithm_adapter_follow_valid_command_seen": true,
+        "algorithm_adapter_motion_mode": "search_reacquire_right",
+        "algorithm_adapter_validation_case": "search_reacquire_right"
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        },
+        "max_altitude_m": {
+          "max": 0.6
+        },
+        "max_speed_mps": {
+          "max": 0.8
+        },
+        "algorithm_adapter_follow_non_hold_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "stage1_truth_fusion_controller_regression.launch",
+        "optional adapter boundary rather than a new core backend"
+      ]
+    },
+    {
+      "name": "hf_stage1_search_reacquire_left",
+      "backend": "px4_sih",
+      "surface": "project Stage1 left-side loss, search, and reacquisition",
+      "scenario_name": "px4_sih_quadx_human_follow_case_search_reacquire_left",
+      "reference_artifact": "runs/px4_sih_quadx_human_follow_case_search_reacquire_left_20260505_143831",
+      "required_metrics": {
+        "ever_armed": true,
+        "algorithm_adapter_name": "human_follow_ros_stage1",
+        "algorithm_adapter_completed_successfully": true,
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_offboard_requested": true,
+        "algorithm_adapter_offboard_mode_reached": true,
+        "algorithm_adapter_arm_requested": true,
+        "algorithm_adapter_arm_command_sent": true,
+        "algorithm_adapter_armed": true,
+        "algorithm_adapter_estimator_valid": true,
+        "algorithm_adapter_follow_valid_command_seen": true,
+        "algorithm_adapter_motion_mode": "search_reacquire_left",
+        "algorithm_adapter_validation_case": "search_reacquire_left"
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        },
+        "max_altitude_m": {
+          "max": 0.6
+        },
+        "max_speed_mps": {
+          "max": 0.8
+        },
+        "algorithm_adapter_follow_non_hold_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "stage1_truth_fusion_controller_regression.launch",
+        "optional adapter boundary rather than a new core backend"
+      ]
+    },
+    {
+      "name": "hf_stage1_person_approach_retreat",
+      "backend": "px4_sih",
+      "surface": "project Stage1 close-person backoff behavior",
+      "scenario_name": "px4_sih_quadx_human_follow_case_person_approach_retreat",
+      "reference_artifact": "runs/px4_sih_quadx_human_follow_case_person_approach_retreat_20260505_143859",
+      "required_metrics": {
+        "ever_armed": true,
+        "algorithm_adapter_name": "human_follow_ros_stage1",
+        "algorithm_adapter_completed_successfully": true,
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_offboard_requested": true,
+        "algorithm_adapter_offboard_mode_reached": true,
+        "algorithm_adapter_arm_requested": true,
+        "algorithm_adapter_arm_command_sent": true,
+        "algorithm_adapter_armed": true,
+        "algorithm_adapter_estimator_valid": true,
+        "algorithm_adapter_follow_valid_command_seen": true,
+        "algorithm_adapter_motion_mode": "person_approach_retreat",
+        "algorithm_adapter_validation_case": "person_approach_retreat"
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        },
+        "max_altitude_m": {
+          "max": 0.6
+        },
+        "max_speed_mps": {
+          "max": 0.8
+        },
+        "algorithm_adapter_follow_non_hold_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "stage1_truth_fusion_controller_regression.launch",
+        "optional adapter boundary rather than a new core backend"
+      ]
+    },
+    {
+      "name": "hf_stage1_person_depart_follow",
+      "backend": "px4_sih",
+      "surface": "project Stage1 depart-and-follow behavior",
+      "scenario_name": "px4_sih_quadx_human_follow_case_person_depart_follow",
+      "reference_artifact": "runs/px4_sih_quadx_human_follow_case_person_depart_follow_20260505_143926",
+      "required_metrics": {
+        "ever_armed": true,
+        "algorithm_adapter_name": "human_follow_ros_stage1",
+        "algorithm_adapter_completed_successfully": true,
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_offboard_requested": true,
+        "algorithm_adapter_offboard_mode_reached": true,
+        "algorithm_adapter_arm_requested": true,
+        "algorithm_adapter_arm_command_sent": true,
+        "algorithm_adapter_armed": true,
+        "algorithm_adapter_estimator_valid": true,
+        "algorithm_adapter_follow_valid_command_seen": true,
+        "algorithm_adapter_motion_mode": "person_depart_follow",
+        "algorithm_adapter_validation_case": "person_depart_follow"
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        },
+        "max_altitude_m": {
+          "max": 0.6
+        },
+        "max_speed_mps": {
+          "max": 0.8
+        },
+        "algorithm_adapter_follow_non_hold_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "stage1_truth_fusion_controller_regression.launch",
+        "optional adapter boundary rather than a new core backend"
+      ]
+    },
+    {
+      "name": "hf_stage1_lateral_left_track",
+      "backend": "px4_sih",
+      "surface": "project Stage1 left lateral tracking behavior",
+      "scenario_name": "px4_sih_quadx_human_follow_case_lateral_left_track",
+      "reference_artifact": "runs/px4_sih_quadx_human_follow_case_lateral_left_track_20260509_161647",
+      "required_metrics": {
+        "ever_armed": true,
+        "algorithm_adapter_name": "human_follow_ros_stage1",
+        "algorithm_adapter_completed_successfully": true,
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_offboard_requested": true,
+        "algorithm_adapter_offboard_mode_reached": true,
+        "algorithm_adapter_arm_requested": true,
+        "algorithm_adapter_arm_command_sent": true,
+        "algorithm_adapter_armed": true,
+        "algorithm_adapter_estimator_valid": true,
+        "algorithm_adapter_follow_valid_command_seen": true,
+        "algorithm_adapter_motion_mode": "lateral_left_track",
+        "algorithm_adapter_validation_case": "lateral_left_track"
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        },
+        "max_altitude_m": {
+          "max": 0.4
+        },
+        "max_speed_mps": {
+          "max": 0.6
+        },
+        "algorithm_adapter_follow_non_hold_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "stage1_truth_fusion_controller_regression.launch",
+        "optional adapter boundary rather than a new core backend"
+      ]
+    },
+    {
+      "name": "hf_stage1_lateral_right_track",
+      "backend": "px4_sih",
+      "surface": "project Stage1 right lateral tracking behavior",
+      "scenario_name": "px4_sih_quadx_human_follow_case_lateral_right_track",
+      "reference_artifact": "runs/px4_sih_quadx_human_follow_case_lateral_right_track_20260505_144019",
+      "required_metrics": {
+        "ever_armed": true,
+        "algorithm_adapter_name": "human_follow_ros_stage1",
+        "algorithm_adapter_completed_successfully": true,
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_offboard_requested": true,
+        "algorithm_adapter_offboard_mode_reached": true,
+        "algorithm_adapter_arm_requested": true,
+        "algorithm_adapter_arm_command_sent": true,
+        "algorithm_adapter_armed": true,
+        "algorithm_adapter_estimator_valid": true,
+        "algorithm_adapter_follow_valid_command_seen": true,
+        "algorithm_adapter_motion_mode": "lateral_right_track",
+        "algorithm_adapter_validation_case": "lateral_right_track"
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        },
+        "max_altitude_m": {
+          "max": 0.5
+        },
+        "max_speed_mps": {
+          "max": 0.6
+        },
+        "algorithm_adapter_follow_non_hold_count": {
+          "min": 1
+        }
+      },
+      "notes_must_contain": [
+        "stage1_truth_fusion_controller_regression.launch",
+        "optional adapter boundary rather than a new core backend"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "ego_planner_swarm_marsim",
+  "description": "Single-drone EGO-Planner-Swarm on the stable MARSIM scene path without RViz.",
+  "backend": "ego_planner_swarm_marsim",
+  "vehicle": "quadrotor",
+  "duration_s": 20.0,
+  "update_hz": 5.0,
+  "target_altitude_m": 1.0,
+  "mission": {
+    "type": "goal",
+    "goal": {
+      "x": 2.5,
+      "y": 0.0,
+      "z": 1.0
+    }
+  },
+  "backend_options": {
+    "launch_rviz": false,
+    "marsim_launch_rviz": false,
+    "use_gpu": false,
+    "success_criteria": "trajectory"
+  }
+}

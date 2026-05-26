@@ -1,0 +1,25 @@
+{
+  "name": "px4_gazebo_classic_iris_headless",
+  "description": "Real PX4 plus Gazebo Classic iris quadrotor run in a lighter headless scene-backed mode with local dashboard telemetry.",
+  "backend": "px4_gazebo_classic",
+  "vehicle": "quadrotor",
+  "duration_s": 20.0,
+  "update_hz": 5.0,
+  "target_altitude_m": 5.0,
+  "backend_options": {
+    "model": "iris",
+    "world": "empty",
+    "headless": true,
+    "mavlink_endpoint": "udpin:127.0.0.1:14540",
+    "launch_qgc": false,
+    "speed_factor": 1.0,
+    "process_start_grace_s": 8.0,
+    "shell_command_delay_s": 8.0,
+    "shell_command_interval_s": 2.0,
+    "shell_commands": [
+      "param set MIS_TAKEOFF_ALT 5",
+      "commander takeoff"
+    ],
+    "success_criteria": "takeoff"
+  }
+}

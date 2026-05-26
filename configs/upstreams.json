@@ -1,0 +1,173 @@
+{
+  "workspace_root": "/home/coco/sim_plane_ws",
+  "entries": [
+    {
+      "name": "PX4-Autopilot",
+      "group": "core",
+      "lab": "PX4",
+      "url": "https://github.com/PX4/PX4-Autopilot.git",
+      "branch": "main",
+      "path": "src/core/PX4-Autopilot",
+      "recursive": true,
+      "depth": 1,
+      "priority": "P0",
+      "role": "flight_stack"
+    },
+    {
+      "name": "ego-planner",
+      "group": "labs",
+      "lab": "ZJU FAST Lab",
+      "url": "https://github.com/ZJU-FAST-Lab/ego-planner.git",
+      "branch": "master",
+      "path": "src/labs/ZJU_FAST_Lab/ego-planner",
+      "recursive": false,
+      "depth": 1,
+      "priority": "P1",
+      "role": "local_planner"
+    },
+    {
+      "name": "ego-planner-swarm",
+      "group": "labs",
+      "lab": "ZJU FAST Lab",
+      "url": "https://github.com/ZJU-FAST-Lab/ego-planner-swarm.git",
+      "branch": "master",
+      "path": "src/labs/ZJU_FAST_Lab/ego-planner-swarm",
+      "recursive": false,
+      "depth": 1,
+      "priority": "P1",
+      "role": "swarm_planner"
+    },
+    {
+      "name": "Fast-Planner",
+      "group": "references",
+      "lab": "HKUST Aerial Robotics",
+      "url": "https://github.com/HKUST-Aerial-Robotics/Fast-Planner.git",
+      "branch": "master",
+      "path": "src/references/HKUST_Aerial_Robotics/Fast-Planner",
+      "recursive": false,
+      "depth": 1,
+      "priority": "P1",
+      "role": "planner_reference"
+    },
+    {
+      "name": "TopoTraj",
+      "group": "references",
+      "lab": "HKUST Aerial Robotics",
+      "url": "https://github.com/HKUST-Aerial-Robotics/TopoTraj.git",
+      "branch": "master",
+      "path": "src/references/HKUST_Aerial_Robotics/TopoTraj",
+      "recursive": false,
+      "depth": 1,
+      "priority": "P2",
+      "role": "planner_reference"
+    },
+    {
+      "name": "MARSIM",
+      "group": "labs",
+      "lab": "HKU MARS Lab",
+      "url": "https://github.com/hku-mars/MARSIM.git",
+      "branch": "ubuntu20",
+      "path": "src/labs/HKU_MARS_Lab/MARSIM",
+      "recursive": false,
+      "depth": 1,
+      "priority": "P1",
+      "role": "simulator_reference"
+    },
+    {
+      "name": "FAST_LIO",
+      "group": "labs",
+      "lab": "HKU MARS Lab",
+      "url": "https://github.com/hku-mars/FAST_LIO.git",
+      "branch": "main",
+      "path": "src/labs/HKU_MARS_Lab/FAST_LIO",
+      "recursive": true,
+      "depth": 1,
+      "priority": "P2",
+      "role": "state_estimation_reference"
+    },
+    {
+      "name": "SUPER",
+      "group": "labs",
+      "lab": "HKU MARS Lab",
+      "url": "https://github.com/hku-mars/SUPER.git",
+      "branch": "master",
+      "path": "src/labs/HKU_MARS_Lab/SUPER",
+      "recursive": false,
+      "depth": 1,
+      "priority": "P2",
+      "role": "navigation_stack"
+    },
+    {
+      "name": "livox_ros_driver",
+      "group": "deps",
+      "lab": "Livox SDK",
+      "url": "https://github.com/Livox-SDK/livox_ros_driver.git",
+      "branch": "master",
+      "path": "src/deps/Livox_SDK/livox_ros_driver",
+      "recursive": false,
+      "depth": 1,
+      "priority": "P2",
+      "role": "sensor_driver_dependency"
+    },
+    {
+      "name": "flightmare",
+      "group": "references",
+      "lab": "UZH RPG",
+      "url": "https://github.com/uzh-rpg/flightmare.git",
+      "branch": "master",
+      "path": "src/references/UZH_RPG/flightmare",
+      "recursive": true,
+      "depth": 1,
+      "priority": "P2",
+      "role": "simulator_reference"
+    },
+    {
+      "name": "visPlanner",
+      "group": "labs",
+      "lab": "ZJU FAST Lab",
+      "url": "https://github.com/ZJU-FAST-Lab/visPlanner.git",
+      "branch": "main",
+      "path": "src/labs/ZJU_FAST_Lab/visPlanner",
+      "recursive": false,
+      "depth": 1,
+      "priority": "P2",
+      "role": "tracking_planner"
+    },
+    {
+      "name": "gym-pybullet-drones",
+      "group": "references",
+      "lab": "UTIAS DSL",
+      "url": "https://github.com/utiasDSL/gym-pybullet-drones.git",
+      "branch": "main",
+      "path": "src/references/UTIAS_DSL/gym-pybullet-drones",
+      "recursive": false,
+      "depth": 1,
+      "priority": "P3",
+      "role": "lightweight_reference"
+    },
+    {
+      "name": "rotors_simulator",
+      "group": "references",
+      "lab": "ETH ASL",
+      "url": "https://github.com/ethz-asl/rotors_simulator.git",
+      "branch": "master",
+      "path": "src/references/ETH_ASL/rotors_simulator",
+      "recursive": false,
+      "depth": 1,
+      "priority": "P3",
+      "role": "simulator_reference"
+    },
+    {
+      "name": "PegasusSimulator",
+      "group": "references",
+      "lab": "Pegasus Simulator",
+      "url": "https://github.com/PegasusSimulator/PegasusSimulator.git",
+      "branch": "main",
+      "path": "src/references/PegasusSimulator/PegasusSimulator",
+      "recursive": true,
+      "depth": 1,
+      "priority": "P3",
+      "role": "simulator_reference"
+    }
+  ]
+}

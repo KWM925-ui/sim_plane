@@ -1,0 +1,30 @@
+{
+  "name": "px4_jsbsim_quadx_mavsdk_action_visual",
+  "description": "Real PX4 plus JSBSim quadrotor run with FlightGear 3D viewer and the repo-local MAVSDK action adapter, while dashboard telemetry stays on the Normal-mode port.",
+  "backend": "px4_jsbsim",
+  "vehicle": "quadrotor",
+  "duration_s": 46.0,
+  "update_hz": 5.0,
+  "target_altitude_m": 4.0,
+  "algorithm_adapter": {
+    "type": "mavsdk_action_takeoff",
+    "system_address": "udp://127.0.0.1:14580",
+    "target_altitude_m": 4.0,
+    "takeoff_reach_timeout_s": 18.0,
+    "hold_after_takeoff_s": 2.0,
+    "land_at_end": true,
+    "connect_timeout_s": 15.0,
+    "armable_timeout_s": 20.0,
+    "land_timeout_s": 24.0,
+    "join_timeout_s": 3.0
+  },
+  "backend_options": {
+    "model": "quadrotor_x",
+    "world": "LSZH",
+    "headless": false,
+    "mavlink_endpoint": "udpin:127.0.0.1:14550",
+    "launch_qgc": false,
+    "speed_factor": 1.0,
+    "success_criteria": "adapter_takeoff"
+  }
+}

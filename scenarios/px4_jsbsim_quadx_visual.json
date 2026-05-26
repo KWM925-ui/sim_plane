@@ -1,0 +1,25 @@
+{
+  "name": "px4_jsbsim_quadx_visual",
+  "description": "Real PX4 plus JSBSim quadrotor run with FlightGear 3D viewer and local dashboard telemetry.",
+  "backend": "px4_jsbsim",
+  "vehicle": "quadrotor",
+  "duration_s": 20.0,
+  "update_hz": 5.0,
+  "target_altitude_m": 5.0,
+  "backend_options": {
+    "model": "quadrotor_x",
+    "world": "LSZH",
+    "headless": false,
+    "mavlink_endpoint": "udpin:127.0.0.1:14540",
+    "launch_qgc": false,
+    "speed_factor": 1.0,
+    "process_start_grace_s": 6.0,
+    "shell_command_delay_s": 6.0,
+    "shell_command_interval_s": 2.0,
+    "shell_commands": [
+      "param set MIS_TAKEOFF_ALT 5",
+      "commander takeoff"
+    ],
+    "success_criteria": "takeoff"
+  }
+}

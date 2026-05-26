@@ -1,0 +1,33 @@
+{
+  "name": "marsim_ros_command_template",
+  "description": "Generic ROS planner/perception ingress on top of MARSIM. The repo-local sample node subscribes odom/cloud/map and publishes PositionCommand into the native MARSIM control chain.",
+  "backend": "marsim",
+  "vehicle": "quadrotor",
+  "duration_s": 18.0,
+  "update_hz": 5.0,
+  "target_altitude_m": 1.0,
+  "algorithm_adapter": {
+    "type": "ros_command",
+    "command": [
+      "python3",
+      "examples/user_algorithms/ros_position_command_template.py"
+    ],
+    "required_subscribed_topics": [
+      "/quad_0/lidar_slam/odom",
+      "/quad0_pcl_render_node/cloud",
+      "/map_generator/global_cloud"
+    ],
+    "required_published_topics": [
+      "/quad_0/planning/pos_cmd"
+    ],
+    "ready_timeout_s": 12.0,
+    "join_timeout_s": 10.0
+  },
+  "backend_options": {
+    "launch_rviz": false,
+    "use_gpu": false,
+    "command_topic": "/quad_0/planning/pos_cmd",
+    "map_topic": "/map_generator/global_cloud",
+    "success_criteria": "sensor_stack_with_commands"
+  }
+}

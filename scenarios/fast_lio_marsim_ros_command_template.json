@@ -1,0 +1,34 @@
+{
+  "name": "fast_lio_marsim_ros_command_template",
+  "description": "Generic ROS planner/perception ingress on top of FAST_LIO plus MARSIM. The repo-local sample node subscribes estimator odom plus clouds and publishes PositionCommand into the shared MARSIM control chain.",
+  "backend": "fast_lio_marsim",
+  "vehicle": "quadrotor",
+  "duration_s": 20.0,
+  "update_hz": 5.0,
+  "target_altitude_m": 1.0,
+  "algorithm_adapter": {
+    "type": "ros_command",
+    "command": [
+      "python3",
+      "examples/user_algorithms/ros_position_command_template.py"
+    ],
+    "required_subscribed_topics": [
+      "/Odometry",
+      "/quad0_pcl_render_node/sensor_cloud",
+      "/map_generator/global_cloud"
+    ],
+    "required_published_topics": [
+      "/quad_0/planning/pos_cmd"
+    ],
+    "ready_timeout_s": 14.0,
+    "join_timeout_s": 10.0
+  },
+  "backend_options": {
+    "launch_rviz": false,
+    "marsim_launch_rviz": false,
+    "use_gpu": false,
+    "command_topic": "/quad_0/planning/pos_cmd",
+    "map_topic": "/map_generator/global_cloud",
+    "success_criteria": "estimation_with_commands"
+  }
+}

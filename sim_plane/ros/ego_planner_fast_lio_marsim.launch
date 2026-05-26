@@ -1,0 +1,62 @@
+<launch>
+  <arg name="map_size_x" default="40.0" />
+  <arg name="map_size_y" default="40.0" />
+  <arg name="map_size_z" default="3.0" />
+
+  <arg name="odom_topic" default="/sim_plane/fast_lio_world_odom" />
+  <arg name="camera_pose_topic" default="/sim_plane/unused_camera_pose" />
+  <arg name="depth_topic" default="/sim_plane/unused_depth" />
+  <arg name="cloud_topic" default="/quad0_pcl_render_node/cloud" />
+  <arg name="command_topic" default="/quad_0/planning/pos_cmd" />
+
+  <include file="$(find ego_planner)/launch/advanced_param.xml">
+    <arg name="map_size_x_" value="$(arg map_size_x)" />
+    <arg name="map_size_y_" value="$(arg map_size_y)" />
+    <arg name="map_size_z_" value="$(arg map_size_z)" />
+    <arg name="odometry_topic" value="$(arg odom_topic)" />
+    <arg name="camera_pose_topic" value="$(arg camera_pose_topic)" />
+    <arg name="depth_topic" value="$(arg depth_topic)" />
+    <arg name="cloud_topic" value="$(arg cloud_topic)" />
+    <arg name="cx" value="321.04638671875" />
+    <arg name="cy" value="243.44969177246094" />
+    <arg name="fx" value="387.229248046875" />
+    <arg name="fy" value="387.229248046875" />
+    <arg name="max_vel" value="2.0" />
+    <arg name="max_acc" value="3.0" />
+    <arg name="planning_horizon" value="7.5" />
+    <arg name="flight_type" value="1" />
+    <arg name="point_num" value="5" />
+    <arg name="point0_x" value="-15.0" />
+    <arg name="point0_y" value="0.0" />
+    <arg name="point0_z" value="1.0" />
+    <arg name="point1_x" value="0.0" />
+    <arg name="point1_y" value="15.0" />
+    <arg name="point1_z" value="1.0" />
+    <arg name="point2_x" value="15.0" />
+    <arg name="point2_y" value="0.0" />
+    <arg name="point2_z" value="1.0" />
+    <arg name="point3_x" value="0.0" />
+    <arg name="point3_y" value="-15.0" />
+    <arg name="point3_z" value="1.0" />
+    <arg name="point4_x" value="-15.0" />
+    <arg name="point4_y" value="0.0" />
+    <arg name="point4_z" value="1.0" />
+  </include>
+
+  <!-- Keep the first estimator-planner adapter narrow:
+       use FAST_LIO odometry but preserve the already validated MARSIM world cloud. -->
+  <param name="ego_planner_node/grid_map/use_depth_filter" value="false" />
+
+  <node pkg="ego_planner" name="traj_server" type="traj_server" output="screen">
+    <remap from="/position_cmd" to="$(arg command_topic)" />
+    <remap from="/odom_world" to="$(arg odom_topic)" />
+    <param name="traj_server/time_forward" value="1.0" type="double" />
+  </node>
+
+  <node pkg="waypoint_generator" name="waypoint_generator" type="waypoint_generator" output="screen">
+    <remap from="~odom" to="$(arg odom_topic)" />
+    <remap from="~goal" to="/move_base_simple/goal" />
+    <remap from="~traj_start_trigger" to="/traj_start_trigger" />
+    <param name="waypoint_type" value="manual-lonely-waypoint" />
+  </node>
+</launch>
