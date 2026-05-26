@@ -55,6 +55,11 @@ from sim_plane.live_smoke import (
 from sim_plane.doctor import collect_platform_doctor_report, format_platform_doctor_report
 from sim_plane.runner import ensure_artifact_root, run_scenario, serve_artifact
 from sim_plane.scenario import load_scenario
+from sim_plane.scenario_generator import (
+    build_custom_algorithm_scenario,
+    format_generated_scenario_help,
+    write_scenario_file,
+)
 
 
 def build_parser():
@@ -449,6 +454,82 @@ def build_parser():
     show_parser = subparsers.add_parser("show-scenario", help="Print a normalized scenario")
     show_parser.add_argument("scenario", help="Path to the scenario JSON file")
 
+    generate_parser = subparsers.add_parser(
+        "generate-scenario",
+        help="Generate a custom algorithm scenario for external_command or ros_command",
+    )
+    generate_parser.add_argument(
+        "--adapter",
+        choices=["external_command", "ros_command"],
+        required=True,
+        help="Algorithm adapter family to generate",
+    )
+    generate_parser.add_argument(
+        "--command",
+        dest="user_command",
+        required=True,
+        help="Command that starts the user algorithm. Quote it as one shell string.",
+    )
+    generate_parser.add_argument(
+        "--name",
+        help="Scenario name. Defaults to a backend-specific custom name.",
+    )
+    generate_parser.add_argument(
+        "--output",
+        help="Output scenario JSON path. Defaults to scenarios/<name>.json",
+    )
+    generate_parser.add_argument(
+        "--backend",
+        help="Backend to use. external_command: px4_sih/px4_jsbsim/px4_gazebo_classic; ros_command: marsim/fast_lio_marsim",
+    )
+    generate_parser.add_argument(
+        "--workdir",
+        help="Working directory for the user algorithm command",
+    )
+    generate_parser.add_argument(
+        "--shell",
+        action="store_true",
+        help="Keep --command as a shell string instead of splitting it into argv",
+    )
+    generate_parser.add_argument(
+        "--duration-s",
+        type=float,
+        help="Scenario duration in seconds",
+    )
+    generate_parser.add_argument(
+        "--target-altitude-m",
+        type=float,
+        help="Target altitude used by the scenario/backend",
+    )
+    generate_parser.add_argument(
+        "--rviz",
+        action="store_true",
+        help="Enable RViz for ROS-command generated scenarios",
+    )
+    generate_parser.add_argument(
+        "--gpu",
+        action="store_true",
+        help="Enable GPU sensing where supported by the ROS backend",
+    )
+    generate_parser.add_argument(
+        "--required-subscribed-topics",
+        help="Comma-separated ROS topics your algorithm must subscribe before the adapter marks it ready",
+    )
+    generate_parser.add_argument(
+        "--required-published-topics",
+        help="Comma-separated ROS topics your algorithm must publish before the adapter marks it ready",
+    )
+    generate_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print the generated scenario JSON without writing it",
+    )
+    generate_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite the output scenario if it already exists",
+    )
+
     return parser
 
 
@@ -487,6 +568,32 @@ def main(argv=None):
     if args.command == "show-scenario":
         scenario = load_scenario(args.scenario)
         print(json.dumps(scenario, indent=2, ensure_ascii=False))
+        return 0
+
+    if args.command == "generate-scenario":
+        try:
+            scenario, output_path = build_custom_algorithm_scenario(
+                adapter=args.adapter,
+                command=args.user_command,
+                name=args.name,
+                output=args.output,
+                backend=args.backend,
+                workdir=args.workdir,
+                shell=args.shell,
+                duration_s=args.duration_s,
+                target_altitude_m=args.target_altitude_m,
+                launch_rviz=args.rviz if args.rviz else None,
+                use_gpu=args.gpu if args.gpu else None,
+                required_subscribed_topics=args.required_subscribed_topics,
+                required_published_topics=args.required_published_topics,
+            )
+            if args.dry_run:
+                print(json.dumps(scenario, indent=2, ensure_ascii=False))
+                return 0
+            written_path = write_scenario_file(scenario, output_path, force=args.force)
+        except (ValueError, FileExistsError) as exc:
+            parser.error(str(exc))
+        print(format_generated_scenario_help(scenario, written_path))
         return 0
 
     if args.command == "planner-acceptance":

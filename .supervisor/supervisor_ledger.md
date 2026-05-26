@@ -937,3 +937,46 @@ true:
 ### Next Frontier
 
 - Strengthen custom algorithm onboarding around `external_command` and `ros_command` with scenario generation and parameter guidance.
+
+## Custom Algorithm Onboarding Frontier 2026-05-27
+
+### Locked Facts
+
+- Existing generic user ingress is already functional through:
+  - `external_command` on PX4-family backends;
+  - `ros_command` on `marsim` and `fast_lio_marsim`.
+- Current examples require manually copying and editing JSON scenario files.
+- The platform should lower first-use friction without changing adapter runtime semantics.
+
+### Current Frontier
+
+- Add a CLI scenario generator/parameter guide for `external_command` and `ros_command`.
+- Keep generated scenario files explicit JSON under `scenarios/` or a user-specified output path.
+- Do not change the existing template scenarios or adapter contracts except through additive documentation.
+
+### Forbidden Actions
+
+- No runtime adapter semantic changes unless tests expose a generator-only defect.
+- No acceptance matrix changes.
+- No `/home/coco/follwer_ws` changes.
+
+### Closure
+
+- Landed `python3 -m sim_plane generate-scenario`.
+- Supported generator paths:
+  - `--adapter external_command` for PX4-side control/decision algorithms on `px4_sih`, `px4_jsbsim`, and `px4_gazebo_classic`;
+  - `--adapter ros_command` for ROS planner/perception algorithms on `marsim` and `fast_lio_marsim`.
+- Added dry-run JSON preview, explicit output path, force overwrite, shell command mode, backend selection, workdir, duration/altitude overrides, RViz/GPU toggles, and ROS ready-topic overrides.
+- Updated README and Chinese custom algorithm guide with generator-first workflows.
+- No adapter runtime semantics, acceptance matrices, or project-specific human-follow files were changed.
+- Verification:
+  - `python3 -m unittest discover -s tests`: `108` tests passed.
+  - `python3 -m compileall -q sim_plane scripts examples tests`: passed.
+  - `bash -n scripts/*.sh`: passed.
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: clean, `8` reserved roots, `112` complete artifacts.
+  - `generate-scenario --adapter external_command --dry-run` piped through `json.tool` and `show-scenario`: passed.
+  - `generate-scenario --adapter ros_command --output /tmp/...` followed by `show-scenario`: passed.
+
+### Next Frontier
+
+- Long-term migration planning for ROS1 Noetic and Gazebo Classic EOL should be documented as a roadmap, not implemented immediately on the current Ubuntu 20.04 baseline.

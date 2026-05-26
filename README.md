@@ -227,10 +227,29 @@ Run the repo-local custom algorithm template on PX4 SIH:
 python3 -m sim_plane run scenarios/px4_sih_quadx_external_command_template.json --visualize --no-hold-open
 ```
 
+Generate a scenario for your own PX4-side control algorithm:
+
+```bash
+python3 -m sim_plane generate-scenario \
+  --adapter external_command \
+  --command "python3 /path/to/my_controller.py" \
+  --name my_px4_controller
+```
+
 Run the repo-local ROS planner/perception template on top of MARSIM:
 
 ```bash
 python3 -m sim_plane run scenarios/marsim_ros_command_template.json --rviz --visualize --no-hold-open
+```
+
+Generate a scenario for your own ROS planner/perception algorithm:
+
+```bash
+python3 -m sim_plane generate-scenario \
+  --adapter ros_command \
+  --backend marsim \
+  --command "roslaunch my_pkg planner.launch" \
+  --name my_ros_planner
 ```
 
 Run the same ROS planner/perception template on top of FAST_LIO + MARSIM:

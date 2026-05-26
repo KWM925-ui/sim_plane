@@ -42,6 +42,21 @@
 
 那么优先走 `external_command`。
 
+推荐先用生成器创建你自己的场景，不要手抄 JSON：
+
+```bash
+python3 -m sim_plane generate-scenario \
+  --adapter external_command \
+  --command "python3 /path/to/my_controller.py" \
+  --name my_px4_controller
+```
+
+生成后直接跑：
+
+```bash
+python3 -m sim_plane run scenarios/my_px4_controller.json --visualize --no-hold-open
+```
+
 现成模板场景：
 
 - [px4_sih_quadx_external_command_template.json](/home/coco/sim_plane/scenarios/px4_sih_quadx_external_command_template.json)
@@ -72,6 +87,28 @@ python3 -m sim_plane run scenarios/px4_sih_quadx_external_command_template.json 
 - 需要 `rosrun` 或 `roslaunch` 直接拉起
 
 那么现在优先走 `ros_command`。
+
+推荐先用生成器创建你自己的 ROS 场景：
+
+```bash
+python3 -m sim_plane generate-scenario \
+  --adapter ros_command \
+  --backend marsim \
+  --command "roslaunch my_pkg planner.launch" \
+  --name my_ros_planner
+```
+
+如果你的算法需要自己指定 ready 检查 topic，可以显式写：
+
+```bash
+python3 -m sim_plane generate-scenario \
+  --adapter ros_command \
+  --backend fast_lio_marsim \
+  --command "roslaunch my_pkg planner.launch" \
+  --name my_fast_lio_planner \
+  --required-subscribed-topics "/Odometry,/quad0_pcl_render_node/sensor_cloud,/map_generator/global_cloud" \
+  --required-published-topics "/quad_0/planning/pos_cmd"
+```
 
 现成模板场景：
 
