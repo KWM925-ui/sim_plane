@@ -1014,10 +1014,10 @@ true:
 
 ### Newly Locked This Round
 
-- The reverted ROS2/Gazebo roadmap file is absent, and active docs contain no
-  runnable link to it.
-- `.agent/PLANS.md` no longer exposes the old human-follow branch as a current
-  `Next Bounded Action`; it is explicitly retained only as historical context.
+- The reverted ROS2/Gazebo roadmap file remains absent, and active docs contain
+  no runnable link to it.
+- `.agent/PLANS.md` does not expose the old human-follow branch as current
+  `Next Bounded Action`; it is retained only as historical context.
 - Scenario registry consistency passed:
   - `48` scenarios;
   - all scenario names unique;
@@ -1032,7 +1032,6 @@ true:
 - Source hygiene passed:
   - JSON parse passed for all `scenarios/*.json` and `configs/*.json`;
   - Python AST parse passed for `sim_plane`, `scripts`, `examples`, and `tests`;
-  - no untracked non-ignored files after cleanup;
   - no generated `__pycache__` / `*.pyc` residue after cleanup;
   - no secret-token pattern hit outside ignored `runs/` artifacts;
   - no oversized source-tree files above `20M` outside `.git` and `runs`.
@@ -1049,7 +1048,7 @@ true:
 - `bash -n scripts/*.sh`: passed.
 - `python3 -m sim_plane doctor --json`: `12` ready backends, `5` ready adapters.
 - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: clean,
-  `reserved_root_count=8`, `complete_artifact_count=113`,
+  `reserved_root_count=8`, `complete_artifact_count=114`,
   `attention_count=0`.
 - `python3 -m sim_plane manual-probe-hygiene --artifact-root runs --json`:
   clean, `retained_manual_probe_count=3`, `attention_count=0`.
@@ -1058,7 +1057,7 @@ true:
 - `python3 -m sim_plane planner-acceptance --latest --artifact-root runs --json`:
   `status=passed`.
 - `python3 -m sim_plane live-smoke --profile fast --artifact-root runs --report-root runs/live_smoke --json`:
-  `status=passed`.
+  `status=passed`, artifact `runs/basic_takeoff_20260527_133452`.
 
 ### Current Conclusion
 
@@ -1069,8 +1068,8 @@ true:
 
 ### Only Question Next Round
 
-- If the user agrees, choose the next functional simulation capability to widen;
-  do not continue structural cleanup unless fresh evidence shows a new defect.
+- Choose the next functional simulation capability to widen; do not continue
+  structural cleanup unless fresh evidence shows a new defect.
 
 ### Forbidden Next Round
 
