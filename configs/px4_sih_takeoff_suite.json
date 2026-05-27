@@ -1,0 +1,53 @@
+{
+  "name": "px4_sih_takeoff_suite",
+  "description": "Functional real-flight-stack suite for repeated PX4 SIH quadrotor takeoff variants. This is not a synthetic wind test; it proves the suite surface on the real PX4 SIH path.",
+  "variants": [
+    {
+      "name": "takeoff_3m",
+      "overrides": {
+        "duration_s": 16.0,
+        "target_altitude_m": 3.0,
+        "backend_options": {
+          "shell_commands": [
+            "param set MIS_TAKEOFF_ALT 3",
+            "commander takeoff",
+            "commander takeoff"
+          ]
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "ever_armed": true
+      },
+      "metric_thresholds": {
+        "max_altitude_m": {
+          "min": 2.85
+        }
+      }
+    },
+    {
+      "name": "takeoff_5m",
+      "overrides": {
+        "duration_s": 20.0,
+        "target_altitude_m": 5.0,
+        "backend_options": {
+          "shell_commands": [
+            "param set MIS_TAKEOFF_ALT 5",
+            "commander takeoff",
+            "commander takeoff",
+            "commander takeoff"
+          ]
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "ever_armed": true
+      },
+      "metric_thresholds": {
+        "max_altitude_m": {
+          "min": 4.75
+        }
+      }
+    }
+  ]
+}

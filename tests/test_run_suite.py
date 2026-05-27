@@ -105,6 +105,83 @@ class RunSuiteTest(unittest.TestCase):
             self.assertEqual(payload["status"], "passed")
             self.assertEqual(len(payload["rows"]), 3)
 
+    def test_variant_required_metric_and_threshold_failures_are_reported(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            scenario_path = root / "scenario.json"
+            suite_path = root / "suite.json"
+            write_base_scenario(scenario_path)
+            suite_path.write_text(
+                json.dumps(
+                    {
+                        "name": "strict_suite",
+                        "variants": [
+                            {
+                                "name": "too_strict",
+                                "overrides": {},
+                                "required_metrics": {
+                                    "target_altitude_reached": True
+                                },
+                                "metric_thresholds": {
+                                    "max_altitude_m": {
+                                        "min": 50.0
+                                    }
+                                },
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            report = run_suite(
+                scenario_path=scenario_path,
+                suite_path=suite_path,
+                artifact_root=root / "runs",
+                report_root=None,
+            )
+
+            self.assertEqual(report["status"], "failed")
+            self.assertIn("below min", report["issues"][0])
+
+    def test_invalid_metric_threshold_shape_fails_before_running(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            scenario_path = root / "scenario.json"
+            suite_path = root / "suite.json"
+            write_base_scenario(scenario_path)
+            suite_path.write_text(
+                json.dumps(
+                    {
+                        "name": "bad_suite",
+                        "variants": [
+                            {
+                                "name": "bad_threshold",
+                                "overrides": {},
+                                "metric_thresholds": {
+                                    "max_altitude_m": {
+                                        "minimum": 3.0
+                                    }
+                                },
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "unsupported key minimum"):
+                run_suite(
+                    scenario_path=scenario_path,
+                    suite_path=suite_path,
+                    artifact_root=root / "runs",
+                    report_root=None,
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

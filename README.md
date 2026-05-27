@@ -214,6 +214,13 @@ python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
   --suite configs/demo_disturbance_suite.json
 ```
 
+Run the same suite surface on the real PX4 SIH flight-stack path:
+
+```bash
+python3 -m sim_plane run-suite scenarios/px4_sih_quadx_headless.json \
+  --suite configs/px4_sih_takeoff_suite.json
+```
+
 `run-suite` creates fresh artifacts for each deterministic variant and writes a
 suite report under:
 

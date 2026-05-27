@@ -299,7 +299,23 @@
   - `python3 -m sim_plane run-suite` for batch variant execution;
   - `configs/demo_disturbance_suite.json` as the first reproducible wind/noise/
     initial-offset suite;
+  - `configs/px4_sih_takeoff_suite.json` as the first real PX4 SIH suite using
+    repeated takeoff variants and metric gates;
   - reports retained under `runs/suites/`.
+- `run-suite` now supports per-variant `required_metrics` and
+  `metric_thresholds` so a batch can fail for a real metric miss instead of only
+  a raw scenario status miss.
 - This intentionally starts on the light backend so the schema, artifact shape,
   and comparison workflow can stabilize before mapping similar factors into PX4
   or MARSIM.
+- PX4 SIH does not currently expose a direct SIH wind-field injection in the
+  managed path; do not label PX4 SIH suite variants as wind tests unless a real
+  PX4-side wind injection contract is added.
+- Fresh evidence:
+  - demo disturbance suite PASS at
+    `runs/suites/demo_disturbance_suite_20260527_150819_289292/report.json`;
+  - PX4 SIH takeoff suite PASS at
+    `runs/suites/px4_sih_takeoff_suite_20260527_150949_000816/report.json`;
+  - final full validation PASS: `112` tests, compileall, shell syntax,
+    `doctor --json`, artifact hygiene, latest planner acceptance, latest
+    platform acceptance, and fast live smoke.

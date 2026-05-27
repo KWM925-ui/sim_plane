@@ -1128,50 +1128,47 @@ true:
   - deterministic `seed`.
 - Added `python3 -m sim_plane run-suite`.
 - Added `configs/demo_disturbance_suite.json`.
+- Added `configs/px4_sih_takeoff_suite.json` for the first real PX4 SIH
+  suite surface.
 - Added suite report root `runs/suites/` to artifact hygiene reserved roots.
+- Added per-variant `required_metrics` and `metric_thresholds` gates to
+  `run-suite`, including configuration-shape validation for unsupported or
+  non-numeric threshold fields.
 - No existing acceptance semantics or thresholds were changed.
+- Local PX4 source inspection did not find a direct SIH wind-field injection
+  contract in the managed `px4_sih` path; PX4-side suite variants are therefore
+  takeoff/metric variants, not fake wind variants.
 
 ### Fresh Evidence
 
-- `python3 -m sim_plane run-suite scenarios/basic_takeoff.json --suite configs/demo_disturbance_suite.json --artifact-root runs --report-root runs/suites --json` passed.
+- `python3 -m sim_plane run-suite scenarios/basic_takeoff.json --suite configs/demo_disturbance_suite.json --artifact-root runs --report-root runs/suites --json` passed at `runs/suites/demo_disturbance_suite_20260527_150819_289292/report.json`.
 - Suite variants passed:
   - `baseline`: `max_horizontal_error_m=0.0`, `max_altitude_error_m=0.0`;
   - `crosswind_light`: `max_horizontal_error_m=4.025`;
   - `sensor_noise_light`: `max_horizontal_error_m=0.192`, `max_altitude_error_m=0.071`;
   - `initial_offset`: `max_altitude_error_m=0.2`.
-- Report saved at `runs/suites/demo_disturbance_suite_20260527_140242_613529/report.json`.
+- `python3 -m sim_plane run-suite scenarios/px4_sih_quadx_headless.json --suite configs/px4_sih_takeoff_suite.json --artifact-root runs --report-root runs/suites --json` passed at `runs/suites/px4_sih_takeoff_suite_20260527_150949_000816/report.json`.
+- PX4 SIH suite variants passed:
+  - `takeoff_3m`: artifact `runs/px4_sih_quadx_headless_takeoff_3m_20260527_150840`, `max_altitude_m=3.107`, `target_altitude_reached=true`, `ever_armed=true`;
+  - `takeoff_5m`: artifact `runs/px4_sih_quadx_headless_takeoff_5m_20260527_150911`, `max_altitude_m=5.963`, `target_altitude_reached=true`, `ever_armed=true`.
 - Validation:
-  - `python3 -m unittest discover -s tests`: `110` tests passed.
+  - `python3 -m unittest tests.test_run_suite tests.test_px4_sih_backend`: `13` tests passed.
+  - `python3 -m unittest discover -s tests`: `112` tests passed.
   - `python3 -m compileall -q sim_plane scripts examples tests`: passed.
   - `bash -n scripts/*.sh`: passed.
   - `python3 -m sim_plane doctor --json`: `12` ready backends, `5` ready adapters.
-  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: clean, `reserved_root_count=9`, `attention_count=0`.
-  - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: `status=passed`.
-  - `python3 -m sim_plane planner-acceptance --latest --artifact-root runs --json`: `status=passed`.
-  - `python3 -m sim_plane live-smoke --profile fast --artifact-root runs --report-root runs/live_smoke --json`: `status=passed`.
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: clean, `reserved_root_count=9`, `complete_artifact_count=139`, `attention_count=0`.
+  - `python3 -m sim_plane planner-acceptance --latest --artifact-root runs --json`: `status=passed`, report `/home/coco/sim_plane/runs/acceptance/planner_acceptance_baseline_latest_20260527_151020_994778/report.json`.
+  - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: `status=passed`, report `/home/coco/sim_plane/runs/platform_acceptance/platform_acceptance_baseline_latest_20260527_151021_091399/report.json`.
+  - `python3 -m sim_plane live-smoke --profile fast --artifact-root runs --report-root runs/live_smoke --json`: `status=passed`, artifact `runs/basic_takeoff_20260527_150955`, report `runs/live_smoke/live_smoke_fast_20260527_151000_216105/report.json`.
+  - Stale simulator-process check found no lingering PX4/Gazebo/ROS/RViz/QGC/FlightGear/jMAVSim/MAVROS processes beyond the check command itself.
 
 ### Current Conclusion
 
-- First functional simulation capability widening is complete on the lightweight path.
-- The platform now has a repeatable disturbance-suite surface for wind, sensor noise, and initial offset.
-- The next functional step should map this suite concept to a real flight-stack backend, preferably `PX4 SIH`, without changing the strict acceptance baseline.
-
-### Final Verification After Cleanup
-
-- Final suite rerun passed with artifacts:
-  - `runs/basic_takeoff_baseline_20260527_140602`
-  - `runs/basic_takeoff_crosswind_light_20260527_140602`
-  - `runs/basic_takeoff_sensor_noise_light_20260527_140602`
-  - `runs/basic_takeoff_initial_offset_20260527_140602`
-- Final `metric_summary` shows disturbance spread:
-  - `max_horizontal_error_m.spread=4.025`
-  - `max_altitude_error_m.spread=0.2`
-- Final validation:
-  - `python3 -m unittest discover -s tests`: `110` tests passed.
-  - `python3 -m compileall -q sim_plane scripts examples tests`: passed.
-  - `bash -n scripts/*.sh`: passed.
-  - `python3 -m sim_plane doctor --json`: `12` ready backends, `5` ready adapters.
-  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: clean, `reserved_root_count=9`, `complete_artifact_count=121`, `attention_count=0`.
-  - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: `status=passed`.
-  - `python3 -m sim_plane planner-acceptance --latest --artifact-root runs --json`: `status=passed`.
-  - `python3 -m sim_plane live-smoke --profile fast --artifact-root runs --report-root runs/live_smoke --json`: `status=passed`, artifact `runs/basic_takeoff_20260527_140633`.
+- First functional simulation capability widening is complete on both the
+  lightweight `demo` path and the real `PX4 SIH` flight-stack path.
+- The platform now has a repeatable suite surface for controlled experiment
+  batches, per-variant metric gates, durable reports, and metric spread
+  summaries.
+- PX4 SIH coverage is intentionally takeoff/metric-variant coverage, not fake
+  wind coverage.

@@ -85,14 +85,63 @@ def load_suite_definition(path=None):
     suite_path = Path(path)
     payload = json.loads(suite_path.read_text(encoding="utf-8"))
     variants = payload.get("variants")
-    if not variants:
+    if not isinstance(variants, list) or not variants:
         raise ValueError("suite must contain at least one variant")
-    for variant in variants:
+    for index, variant in enumerate(variants):
+        if not isinstance(variant, dict):
+            raise ValueError("suite variant #{0} must be an object".format(index + 1))
         if "name" not in variant:
             raise ValueError("each suite variant must have a name")
+        if not isinstance(variant["name"], str) or not variant["name"].strip():
+            raise ValueError("suite variant #{0} name must be a non-empty string".format(index + 1))
         variant.setdefault("overrides", {})
+        if not isinstance(variant["overrides"], dict):
+            raise ValueError("suite variant {0} overrides must be an object".format(variant["name"]))
+        validate_optional_mapping(variant, "required_metrics")
+        validate_metric_thresholds(variant)
     payload.setdefault("name", suite_path.stem)
     return payload
+
+
+def validate_optional_mapping(variant, field_name):
+    value = variant.get(field_name)
+    if value is not None and not isinstance(value, dict):
+        raise ValueError("suite variant {0} {1} must be an object".format(variant["name"], field_name))
+
+
+def validate_metric_thresholds(variant):
+    thresholds = variant.get("metric_thresholds")
+    if thresholds is None:
+        return
+    if not isinstance(thresholds, dict):
+        raise ValueError("suite variant {0} metric_thresholds must be an object".format(variant["name"]))
+    for metric_name, threshold in thresholds.items():
+        if not isinstance(threshold, dict):
+            raise ValueError(
+                "suite variant {0} metric_thresholds.{1} must be an object".format(
+                    variant["name"],
+                    metric_name,
+                )
+            )
+        for key in threshold:
+            if key not in ("min", "max"):
+                raise ValueError(
+                    "suite variant {0} metric_thresholds.{1} uses unsupported key {2}".format(
+                        variant["name"],
+                        metric_name,
+                        key,
+                    )
+                )
+        for key in ("min", "max"):
+            value = threshold.get(key)
+            if value is not None and (not isinstance(value, (int, float)) or isinstance(value, bool)):
+                raise ValueError(
+                    "suite variant {0} metric_thresholds.{1}.{2} must be a number".format(
+                        variant["name"],
+                        metric_name,
+                        key,
+                    )
+                )
 
 
 def build_variant_scenario(base_scenario, variant):
@@ -138,13 +187,57 @@ def run_scenario_data(scenario, artifact_root, runtime_options):
 def build_variant_report(variant, outcome):
     result = outcome.get("result", {})
     issues = []
-    if result.get("status") != "passed":
-        issues.append("variant {0} status is {1}".format(variant["name"], result.get("status")))
+    expected_status = variant.get("required_status", "passed")
+    if result.get("status") != expected_status:
+        issues.append(
+            "variant {0} status mismatch: expected {1}, got {2}".format(
+                variant["name"],
+                expected_status,
+                result.get("status"),
+            )
+        )
+    metrics = result.get("metrics", {})
+    for metric_name, expected_value in variant.get("required_metrics", {}).items():
+        actual_value = metrics.get(metric_name)
+        if actual_value != expected_value:
+            issues.append(
+                "variant {0} metric {1} mismatch: expected {2}, got {3}".format(
+                    variant["name"],
+                    metric_name,
+                    expected_value,
+                    actual_value,
+                )
+            )
+    for metric_name, threshold in variant.get("metric_thresholds", {}).items():
+        actual_value = metrics.get(metric_name)
+        if actual_value is None:
+            issues.append("variant {0} metric {1} missing".format(variant["name"], metric_name))
+            continue
+        min_value = threshold.get("min")
+        max_value = threshold.get("max")
+        if min_value is not None and actual_value < min_value:
+            issues.append(
+                "variant {0} metric {1} value {2} is below min {3}".format(
+                    variant["name"],
+                    metric_name,
+                    actual_value,
+                    min_value,
+                )
+            )
+        if max_value is not None and actual_value > max_value:
+            issues.append(
+                "variant {0} metric {1} value {2} exceeds max {3}".format(
+                    variant["name"],
+                    metric_name,
+                    actual_value,
+                    max_value,
+                )
+            )
     return {
         "name": variant["name"],
         "status": "passed" if not issues else "failed",
         "artifact_dir": outcome.get("artifact_dir"),
-        "metrics": result.get("metrics", {}),
+        "metrics": metrics,
         "issues": issues,
     }
 
