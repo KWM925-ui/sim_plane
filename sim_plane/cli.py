@@ -60,6 +60,11 @@ from sim_plane.scenario_generator import (
     format_generated_scenario_help,
     write_scenario_file,
 )
+from sim_plane.run_suite import (
+    DEFAULT_SUITE_REPORT_ROOT,
+    format_suite_report,
+    run_suite,
+)
 
 
 def build_parser():
@@ -451,6 +456,55 @@ def build_parser():
         help="Override MAVLink heartbeat wait timeout in seconds for PX4-based smoke rows",
     )
 
+    suite_parser = subparsers.add_parser(
+        "run-suite",
+        help="Run one scenario through a suite of deterministic simulation variants",
+    )
+    suite_parser.add_argument("scenario", help="Base scenario JSON file")
+    suite_parser.add_argument(
+        "--suite",
+        help="Suite JSON file. If omitted, a built-in demo disturbance suite is used.",
+    )
+    suite_parser.add_argument(
+        "--artifact-root",
+        default="runs",
+        help="Where fresh variant artifacts should be written",
+    )
+    suite_parser.add_argument(
+        "--report-root",
+        default=str(DEFAULT_SUITE_REPORT_ROOT),
+        help="Where suite reports should be written",
+    )
+    suite_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print the suite report as JSON",
+    )
+    suite_parser.add_argument(
+        "--no-save-report",
+        action="store_true",
+        help="Do not persist the suite report under the report root",
+    )
+    suite_parser.add_argument(
+        "--keep-last-reports",
+        type=int,
+        default=10,
+        help="Keep only the newest N timestamped suite report directories; 0 disables pruning",
+    )
+    suite_parser.add_argument(
+        "--px4-dir",
+        help="PX4-Autopilot checkout path for PX4-based suite variants",
+    )
+    suite_parser.add_argument(
+        "--ros-workspace",
+        help="Override the ROS workspace path for ROS-based suite variants",
+    )
+    suite_parser.add_argument(
+        "--connect-timeout",
+        type=float,
+        help="Override MAVLink heartbeat wait timeout in seconds for PX4-based suite variants",
+    )
+
     show_parser = subparsers.add_parser("show-scenario", help="Print a normalized scenario")
     show_parser.add_argument("scenario", help="Path to the scenario JSON file")
 
@@ -797,6 +851,28 @@ def main(argv=None):
             print(json.dumps(report, indent=2, ensure_ascii=False))
         else:
             print(format_live_smoke_report(report))
+        return 0 if report["status"] == "passed" else 1
+
+    if args.command == "run-suite":
+        try:
+            report = run_suite(
+                scenario_path=args.scenario,
+                suite_path=args.suite,
+                artifact_root=args.artifact_root,
+                report_root=None if args.no_save_report else args.report_root,
+                keep_last=args.keep_last_reports,
+                runtime_options={
+                    "px4_dir": args.px4_dir,
+                    "ros_workspace_dir": args.ros_workspace,
+                    "connect_timeout_s": args.connect_timeout,
+                },
+            )
+        except ValueError as exc:
+            parser.error(str(exc))
+        if args.json:
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+        else:
+            print(format_suite_report(report))
         return 0 if report["status"] == "passed" else 1
 
     if args.command == "run":

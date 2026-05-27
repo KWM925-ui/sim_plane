@@ -290,3 +290,16 @@
   - `planner-acceptance --latest`;
   - artifact hygiene;
   - no stale frontier text that points to a reverted or user-rejected task.
+
+## Functional Disturbance Suite Frontier 2026-05-27
+
+- First functional widening after structural cleanup:
+  - deterministic disturbance-aware scenario fields on the lightweight `demo`
+    backend;
+  - `python3 -m sim_plane run-suite` for batch variant execution;
+  - `configs/demo_disturbance_suite.json` as the first reproducible wind/noise/
+    initial-offset suite;
+  - reports retained under `runs/suites/`.
+- This intentionally starts on the light backend so the schema, artifact shape,
+  and comparison workflow can stabilize before mapping similar factors into PX4
+  or MARSIM.

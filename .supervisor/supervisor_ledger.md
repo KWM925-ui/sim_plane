@@ -1087,3 +1087,91 @@ true:
   project-specific branch.
 - Do not change acceptance semantics or thresholds without a fresh, narrowly
   scoped defect.
+
+## Functional Simulation Capability Frontier 2026-05-27
+
+### Locked Facts
+
+- Structural/small-issue gate is clean and pushed at commit `5ca5090`.
+- Current branch is the generic `sim_plane` platform mainline.
+- `/home/coco/follwer_ws` is out of scope unless explicitly reopened.
+- Current scenario execution is mostly one scenario per run; the platform lacks a first-class experiment surface for running controlled variants and comparing metrics.
+- The built-in `demo` backend is the safest first backend for adding deterministic environmental factors because it is lightweight, fast, and covered by unit tests.
+
+### Current Frontier
+
+- Add the first functional simulation capability after structural cleanup: deterministic disturbance-aware scenarios plus a batch experiment runner/report surface.
+- Start with the `demo` backend for zero-heavy-dependency proof, then keep the schema generic so later PX4/MARSIM mappings can reuse it.
+
+### Hypotheses
+
+- A small `disturbances` schema with wind, measurement noise, and initial offset can materially improve scenario expressiveness without touching heavy backends.
+- A `run-suite` command over scenario variants will be more useful for algorithm validation than another single hard-coded scenario.
+
+### Forbidden Actions
+
+- Do not change existing acceptance thresholds or semantics.
+- Do not touch `/home/coco/follwer_ws`.
+- Do not add a heavy simulator or dependency for this first functional widening.
+- Do not make ROS mandatory for the core platform.
+
+### Promotion Gate
+
+- New capability must have tests, docs, a runnable sample suite, artifact/report output, and no regression in the structural gate.
+
+### Implementation Locked
+
+- Added deterministic `disturbances` handling to the `demo` backend:
+  - `wind`;
+  - `measurement_noise`;
+  - `initial_offset`;
+  - deterministic `seed`.
+- Added `python3 -m sim_plane run-suite`.
+- Added `configs/demo_disturbance_suite.json`.
+- Added suite report root `runs/suites/` to artifact hygiene reserved roots.
+- No existing acceptance semantics or thresholds were changed.
+
+### Fresh Evidence
+
+- `python3 -m sim_plane run-suite scenarios/basic_takeoff.json --suite configs/demo_disturbance_suite.json --artifact-root runs --report-root runs/suites --json` passed.
+- Suite variants passed:
+  - `baseline`: `max_horizontal_error_m=0.0`, `max_altitude_error_m=0.0`;
+  - `crosswind_light`: `max_horizontal_error_m=4.025`;
+  - `sensor_noise_light`: `max_horizontal_error_m=0.192`, `max_altitude_error_m=0.071`;
+  - `initial_offset`: `max_altitude_error_m=0.2`.
+- Report saved at `runs/suites/demo_disturbance_suite_20260527_140242_613529/report.json`.
+- Validation:
+  - `python3 -m unittest discover -s tests`: `110` tests passed.
+  - `python3 -m compileall -q sim_plane scripts examples tests`: passed.
+  - `bash -n scripts/*.sh`: passed.
+  - `python3 -m sim_plane doctor --json`: `12` ready backends, `5` ready adapters.
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: clean, `reserved_root_count=9`, `attention_count=0`.
+  - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: `status=passed`.
+  - `python3 -m sim_plane planner-acceptance --latest --artifact-root runs --json`: `status=passed`.
+  - `python3 -m sim_plane live-smoke --profile fast --artifact-root runs --report-root runs/live_smoke --json`: `status=passed`.
+
+### Current Conclusion
+
+- First functional simulation capability widening is complete on the lightweight path.
+- The platform now has a repeatable disturbance-suite surface for wind, sensor noise, and initial offset.
+- The next functional step should map this suite concept to a real flight-stack backend, preferably `PX4 SIH`, without changing the strict acceptance baseline.
+
+### Final Verification After Cleanup
+
+- Final suite rerun passed with artifacts:
+  - `runs/basic_takeoff_baseline_20260527_140602`
+  - `runs/basic_takeoff_crosswind_light_20260527_140602`
+  - `runs/basic_takeoff_sensor_noise_light_20260527_140602`
+  - `runs/basic_takeoff_initial_offset_20260527_140602`
+- Final `metric_summary` shows disturbance spread:
+  - `max_horizontal_error_m.spread=4.025`
+  - `max_altitude_error_m.spread=0.2`
+- Final validation:
+  - `python3 -m unittest discover -s tests`: `110` tests passed.
+  - `python3 -m compileall -q sim_plane scripts examples tests`: passed.
+  - `bash -n scripts/*.sh`: passed.
+  - `python3 -m sim_plane doctor --json`: `12` ready backends, `5` ready adapters.
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: clean, `reserved_root_count=9`, `complete_artifact_count=121`, `attention_count=0`.
+  - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: `status=passed`.
+  - `python3 -m sim_plane planner-acceptance --latest --artifact-root runs --json`: `status=passed`.
+  - `python3 -m sim_plane live-smoke --profile fast --artifact-root runs --report-root runs/live_smoke --json`: `status=passed`, artifact `runs/basic_takeoff_20260527_140633`.

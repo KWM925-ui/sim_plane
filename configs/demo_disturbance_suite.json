@@ -1,0 +1,52 @@
+{
+  "name": "demo_disturbance_suite",
+  "description": "Functional simulation suite for deterministic wind, initial-offset, and measurement-noise variants on the lightweight demo backend.",
+  "variants": [
+    {
+      "name": "baseline",
+      "overrides": {
+        "realtime_factor": 0.0
+      }
+    },
+    {
+      "name": "crosswind_light",
+      "overrides": {
+        "realtime_factor": 0.0,
+        "disturbances": {
+          "seed": 7,
+          "wind": {
+            "x_mps": 0.2,
+            "y_mps": -0.1
+          }
+        }
+      }
+    },
+    {
+      "name": "sensor_noise_light",
+      "overrides": {
+        "realtime_factor": 0.0,
+        "disturbances": {
+          "seed": 11,
+          "measurement_noise": {
+            "position_std_m": 0.05,
+            "altitude_std_m": 0.03
+          }
+        }
+      }
+    },
+    {
+      "name": "initial_offset",
+      "overrides": {
+        "realtime_factor": 0.0,
+        "disturbances": {
+          "seed": 13,
+          "initial_offset": {
+            "x_m": 1.0,
+            "y_m": -0.5,
+            "z_m": 0.2
+          }
+        }
+      }
+    }
+  ]
+}

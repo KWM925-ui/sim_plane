@@ -207,6 +207,20 @@ Run a fresh one-command live smoke suite:
 python3 -m sim_plane live-smoke
 ```
 
+Run the first functional disturbance suite over the lightweight demo backend:
+
+```bash
+python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
+  --suite configs/demo_disturbance_suite.json
+```
+
+`run-suite` creates fresh artifacts for each deterministic variant and writes a
+suite report under:
+
+```text
+runs/suites/
+```
+
 For the fastest local sanity check, run only the built-in demo row:
 
 ```bash

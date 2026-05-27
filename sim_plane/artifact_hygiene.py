@@ -21,6 +21,7 @@ DEFAULT_RESERVED_ROOT_NAMES = {
     "live_smoke",
     "manual_probes",
     "platform_acceptance",
+    "suites",
 }
 DEFAULT_MANUAL_PROBE_ROOT_NAME = "manual_probes"
 REQUIRED_ARTIFACT_FILES = (
