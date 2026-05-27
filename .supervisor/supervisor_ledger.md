@@ -1011,3 +1011,71 @@ true:
 - Git working tree is clean except for the intentional structural-doc cleanup before commit.
 - Unit tests, doctor, and artifact hygiene are green.
 - Generated Python cache residue is removed.
+
+### Newly Locked This Round
+
+- The reverted ROS2/Gazebo roadmap file is absent, and active docs contain no
+  runnable link to it.
+- `.agent/PLANS.md` no longer exposes the old human-follow branch as a current
+  `Next Bounded Action`; it is explicitly retained only as historical context.
+- Scenario registry consistency passed:
+  - `48` scenarios;
+  - all scenario names unique;
+  - no unknown backend references;
+  - no unknown adapter references.
+- Documentation link consistency passed:
+  - no missing local markdown links in README, AGENTS, or `docs/*.md`;
+  - no local markdown links using renderer-specific `:line` path suffixes.
+- Script hygiene passed:
+  - all shebang scripts under `scripts/` are executable;
+  - `bash -n scripts/*.sh` passed.
+- Source hygiene passed:
+  - JSON parse passed for all `scenarios/*.json` and `configs/*.json`;
+  - Python AST parse passed for `sim_plane`, `scripts`, `examples`, and `tests`;
+  - no untracked non-ignored files after cleanup;
+  - no generated `__pycache__` / `*.pyc` residue after cleanup;
+  - no secret-token pattern hit outside ignored `runs/` artifacts;
+  - no oversized source-tree files above `20M` outside `.git` and `runs`.
+- Runtime residue check passed:
+  - no lingering PX4/Gazebo/ROS/RViz/QGroundControl/FlightGear/jMAVSim process
+    residue found after checks;
+  - common ports `11311`, `11351`, `14540`, `14550`, `14580`, `8765`, `8876`,
+    `8877`, and `8879` were closed as TCP listeners.
+
+### Final Verification This Round
+
+- `python3 -m unittest discover -s tests`: `108` tests passed.
+- `python3 -m compileall -q sim_plane scripts examples tests`: passed.
+- `bash -n scripts/*.sh`: passed.
+- `python3 -m sim_plane doctor --json`: `12` ready backends, `5` ready adapters.
+- `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: clean,
+  `reserved_root_count=8`, `complete_artifact_count=113`,
+  `attention_count=0`.
+- `python3 -m sim_plane manual-probe-hygiene --artifact-root runs --json`:
+  clean, `retained_manual_probe_count=3`, `attention_count=0`.
+- `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`:
+  `status=passed`.
+- `python3 -m sim_plane planner-acceptance --latest --artifact-root runs --json`:
+  `status=passed`.
+- `python3 -m sim_plane live-smoke --profile fast --artifact-root runs --report-root runs/live_smoke --json`:
+  `status=passed`.
+
+### Current Conclusion
+
+- The structural/small-issue gate is clean based on the checked surfaces above.
+- No functional simulation widening was performed in this round.
+- Absolute absence of unknown future defects is not provable, but no current
+  blocker was found that should prevent moving to functional work next.
+
+### Only Question Next Round
+
+- If the user agrees, choose the next functional simulation capability to widen;
+  do not continue structural cleanup unless fresh evidence shows a new defect.
+
+### Forbidden Next Round
+
+- Do not reopen the ROS2/Gazebo roadmap document unless explicitly requested.
+- Do not touch `/home/coco/follwer_ws` unless the user explicitly reopens that
+  project-specific branch.
+- Do not change acceptance semantics or thresholds without a fresh, narrowly
+  scoped defect.

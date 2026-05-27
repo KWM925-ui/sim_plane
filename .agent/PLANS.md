@@ -236,18 +236,25 @@
 - The current visual-showcase blocker is retired: the repo now has fresh all-green serial showcase evidence plus a clean post-showcase artifact root, and the `SUPER` / `visPlanner` results remain retained `manual_probes` evidence rather than strict platform rows.
 - There is no active blocker on the new custom-algorithm ingress surfaces: the generic `external_command` adapter is landed and locally proven on `px4_sih`, and the generic `ros_command` adapter is landed and locally proven on both `marsim` and `fast_lio_marsim`.
 
-## Next Bounded Action
+## Historical Human-Follow Notes
 
-- The current sim-side follower frontier changed: before any new widening, sync the minimum current follower file surface from `/home/coco/follwer_ws/src/human_follow_*` into the managed workspace at `/home/coco/sim_plane_ws/workspaces/ros1_human_follow_stage1`, explicitly preserve the sim-specific `stage1_px4_mavros.launch` plus `config/mavros_px4_pluginlists_sitl.yaml` contract, rebuild the managed workspace, then add exactly one new `PX4 SIH` follower scenario that proves the newer truth-driven/current-structure chain separately from the frozen older `stage1_sitl_synthetic_follow.launch` rows.
-- The human-follow simulation branch now also has an explicit cross-session coordination surface at `/home/coco/sim_plane/.supervisor/human_follow_collab_ledger.md`; use that file to keep project-side versus sim-side ownership, locked facts, and open questions synchronized instead of relying on chat memory.
-- The human-follow simulation branch ordering is now explicit: first complete the tracking/search Stage1 simulation branch, then only if the project later reopens that path integrate the project's own EGO route, then prove the complete integrated system simulation; do not treat the separately validated `sim_plane` `ego_planner*` baselines as if they had any direct relation to this project branch.
-- For the current Stage1 human-follow branch, the truth-driven baseline and the detector/tracker-in-loop acceptance surface now coexist and should remain separate; do not widen one by editing the other's matrix or report root.
-- Keep `python3 -m sim_plane platform-acceptance --latest --artifact-root runs` as the default top-level pre-widening gate, read `runs/platform_acceptance/latest_latest_delta.json` first, then `latest_latest.json` / `history_latest.jsonl`, run `python3 -m sim_plane artifact-hygiene --artifact-root runs` before trusting the artifact root, and only reopen widening after a new candidate surface preserves both the strict twenty-three-row quadrotor platform baseline and the nested four-row planner baseline without reopening the retired dual-input `depth + cloud`, direct-`/Odometry`, or upstream simulator branches.
-- Do not reopen the freshly frozen `px4_sih_quadx_human_follow_stage1` or `px4_sih_quadx_human_follow_stage1_armed` rows unless fresh contradictory evidence breaks their clean `info`-only acceptance contract; the next widening target should be a different still-unlanded capability surface.
-- If these frontier probes are widened further, formalize exactly one of `SUPER` or `visPlanner` next; do not widen both into repo-runner surfaces in the same round, and keep them outside the strict platform acceptance matrix until their noise contract is explicit.
-- The visual-showcase request is already satisfied historically; do not rerun it by default unless fresh contradictory evidence appears or the user explicitly asks for another live demo.
-- If the user brings a new control/decision algorithm next, default to the new `external_command` ingress on `px4_sih` first and only widen to heavier backends after the algorithm's I/O contract is clear and the light path is proven.
-- If the user brings a new ROS planner/perception algorithm next, default to the new `ros_command` ingress on `marsim` first, then widen to `fast_lio_marsim` only when estimator-side coupling is actually required.
+- This section is retained as historical context only; it is not the current
+  `sim_plane` platform frontier.
+- The human-follow branch must not be reopened from this plan unless the user
+  explicitly asks to return to that project-specific integration.
+- The former human-follow synchronization and Stage1/Stage2 acceptance notes
+  are superseded by the current generic platform hygiene gate below.
+- For any future platform widening, keep
+  `python3 -m sim_plane platform-acceptance --latest --artifact-root runs` and
+  `python3 -m sim_plane artifact-hygiene --artifact-root runs` as the default
+  pre-widening checks.
+- If the user brings a new control/decision algorithm next, default to the new
+  `external_command` ingress on `px4_sih` first and only widen to heavier
+  backends after the algorithm's I/O contract is clear and the light path is
+  proven.
+- If the user brings a new ROS planner/perception algorithm next, default to the
+  new `ros_command` ingress on `marsim` first, then widen to `fast_lio_marsim`
+  only when estimator-side coupling is actually required.
 
 ## Platform Hygiene Closure 2026-05-27
 
@@ -276,6 +283,10 @@
 - Before any functional widening, re-run the structural gate:
   - clean git status;
   - unit tests;
+  - compileall and shell syntax;
   - `doctor --json`;
+  - `live-smoke --profile fast`;
+  - `platform-acceptance --latest`;
+  - `planner-acceptance --latest`;
   - artifact hygiene;
   - no stale frontier text that points to a reverted or user-rejected task.
