@@ -272,3 +272,34 @@
 - The one-command smoke/health suite is now covered by `python3 -m sim_plane live-smoke`; future work should improve it only if fresh evidence shows a missing smoke surface.
 - Dashboard/replay comparison is now covered by `python3 -m sim_plane serve runs`; future work should refine visualization only after the adapter onboarding gap is reduced.
 - The adapter onboarding gap is reduced by `generate-scenario`; next platform-mainline work should document the ROS2/Gazebo migration roadmap rather than immediately replacing the stable Ubuntu 20.04 runtime.
+
+## ROS2 / Gazebo Migration Roadmap Frontier 2026-05-27
+
+- Current active frontier remains the generic `sim_plane` platform.
+- This round is documentation-only by design:
+  - no runtime backend change;
+  - no scenario behavior change;
+  - no acceptance semantic or threshold change;
+  - no `/home/coco/follwer_ws` change.
+- Locked facts:
+  - ROS1 Noetic reached EOL on `2025-05-31`;
+  - Gazebo Classic reached EOL in `2025-01`;
+  - Gazebo Harmonic binary support is centered on Ubuntu `22.04` and `24.04`, not the current Ubuntu `20.04` mainline;
+  - the current validated platform still depends heavily on the Ubuntu 20.04 / ROS1 / Gazebo Classic / MARSIM family of paths.
+- Landed roadmap:
+  - `docs/ros2_gazebo_migration_roadmap_zh.md`
+  - README repo-doc link added.
+- Roadmap conclusion:
+  - keep Ubuntu 20.04 and the current validated backends as the active stable line;
+  - treat ROS2 / Gazebo Harmonic as a future parallel backend/adaptor migration, not an in-place replacement;
+  - require isolated Ubuntu 22.04 or 24.04 test environment, fresh smoke evidence, independent acceptance surface, and rollback path before any default-route switch.
+- Verification:
+  - `python3 -m unittest discover -s tests`: `108` tests passed.
+  - `python3 -m compileall -q sim_plane scripts examples tests`: passed.
+  - `bash -n scripts/*.sh`: passed.
+  - `python3 -m sim_plane doctor --json`: `12` ready backends, `5` ready adapters.
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: clean, `attention_count=0`.
+- Next platform-mainline work should be chosen from fresh user need:
+  - improve live smoke coverage only if a new boot-risk appears;
+  - improve dashboard/replay only if the current artifact comparison UX becomes limiting;
+  - widen a new backend/algorithm only behind a separate scenario and acceptance surface.

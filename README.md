@@ -133,6 +133,7 @@ Use a layered approach instead of forcing one heavy simulator to do everything:
 - [前沿算法探针说明（中文）](<docs/前沿算法探针说明_zh.md>)
 - [算法复现手册（中文）](<docs/算法复现手册_zh.md>)
 - [自定义算法接入指南（中文）](<docs/自定义算法接入指南_zh.md>)
+- [ROS2 / Gazebo 迁移路线图（中文）](docs/ros2_gazebo_migration_roadmap_zh.md)
 - [Platform validation matrix](docs/platform_validation_matrix.md)
 - [Platform acceptance matrix config](configs/platform_acceptance_matrix.json)
 - [Planner validation matrix](docs/planner_validation_matrix.md)
