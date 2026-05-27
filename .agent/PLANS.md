@@ -271,4 +271,11 @@
   - decide whether to formalize `SUPER` or `visPlanner` as a future optional surface, but not both at once and not inside the strict platform baseline until their noise contracts are explicit.
 - The one-command smoke/health suite is now covered by `python3 -m sim_plane live-smoke`; future work should improve it only if fresh evidence shows a missing smoke surface.
 - Dashboard/replay comparison is now covered by `python3 -m sim_plane serve runs`; future work should refine visualization only after the adapter onboarding gap is reduced.
-- The adapter onboarding gap is reduced by `generate-scenario`; next platform-mainline work should document the ROS2/Gazebo migration roadmap rather than immediately replacing the stable Ubuntu 20.04 runtime.
+- The adapter onboarding gap is reduced by `generate-scenario`.
+- Per user direction, do not keep a ROS2/Gazebo migration roadmap as a landed document now; treat ROS1 Noetic and Gazebo Classic EOL as a known long-term risk to revisit only when a concrete migration target is explicitly reopened.
+- Before any functional widening, re-run the structural gate:
+  - clean git status;
+  - unit tests;
+  - `doctor --json`;
+  - artifact hygiene;
+  - no stale frontier text that points to a reverted or user-rejected task.

@@ -979,4 +979,35 @@ true:
 
 ### Next Frontier
 
-- Long-term migration planning for ROS1 Noetic and Gazebo Classic EOL should be documented as a roadmap, not implemented immediately on the current Ubuntu 20.04 baseline.
+- User rejected retaining the ROS2/Gazebo migration roadmap document.
+- The roadmap document was reverted in commit `0b4046a`.
+- The current frontier is not functional widening yet; first decide whether structural/small-issue hardening is objectively complete enough to permit functional work.
+
+## Structural Gate Refresh 2026-05-27
+
+### Locked Facts
+
+- Active frontier is generic `sim_plane`, not human-follow.
+- `/home/coco/follwer_ws` remains out of scope.
+- Git/GitHub, `live-smoke`, dashboard artifact comparison, and `generate-scenario` are landed.
+- The user does not want the ROS2/Gazebo migration roadmap retained now.
+- A stale control-doc frontier still pointed to the rejected roadmap after the revert; this was a structural documentation defect, not a runtime defect.
+- Test execution can regenerate Python `__pycache__`; those generated files must be removed before reporting a clean structural gate.
+
+### Current Frontier
+
+- Close the remaining structural/small-issue gate before any functional simulation widening.
+
+### Forbidden Actions
+
+- No functional widening until the structural gate is clean.
+- No acceptance semantic or threshold changes.
+- No `/home/coco/follwer_ws` changes.
+- No re-adding the ROS2/Gazebo roadmap document unless explicitly requested.
+
+### Closure Criteria
+
+- No stale rejected-roadmap frontier references remain in active control docs.
+- Git working tree is clean except for the intentional structural-doc cleanup before commit.
+- Unit tests, doctor, and artifact hygiene are green.
+- Generated Python cache residue is removed.
