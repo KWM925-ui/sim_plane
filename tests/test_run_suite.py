@@ -6,7 +6,7 @@ from io import StringIO
 from pathlib import Path
 
 from sim_plane.cli import main
-from sim_plane.run_suite import run_suite
+from sim_plane.run_suite import load_suite_definition, run_suite
 
 
 def write_base_scenario(path):
@@ -181,6 +181,142 @@ class RunSuiteTest(unittest.TestCase):
                     artifact_root=root / "runs",
                     report_root=None,
                 )
+
+    def test_sweep_suite_expands_axes_and_runs_variants(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            scenario_path = root / "scenario.json"
+            suite_path = root / "suite.json"
+            write_base_scenario(scenario_path)
+            suite_path.write_text(
+                json.dumps(
+                    {
+                        "name": "sweep_suite",
+                        "base_overrides": {
+                            "realtime_factor": 0.0,
+                            "disturbances": {
+                                "seed": 17
+                            },
+                        },
+                        "sweep": {
+                            "axes": [
+                                {
+                                    "name": "alt",
+                                    "path": "target_altitude_m",
+                                    "values": [3.0, 4.0],
+                                },
+                                {
+                                    "name": "wind_y",
+                                    "path": "disturbances.wind.y_mps",
+                                    "values": [0.0, -0.1],
+                                },
+                            ]
+                        },
+                        "required_metrics": {
+                            "target_altitude_reached": True
+                        },
+                        "metric_thresholds": {
+                            "max_altitude_m": {
+                                "min": 2.8
+                            }
+                        },
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            report = run_suite(
+                scenario_path=scenario_path,
+                suite_path=suite_path,
+                artifact_root=root / "runs",
+                report_root=None,
+            )
+
+            self.assertEqual(report["status"], "passed")
+            self.assertEqual(
+                [row["name"] for row in report["rows"]],
+                [
+                    "alt_3_0_wind_y_0_0",
+                    "alt_3_0_wind_y_-0_1",
+                    "alt_4_0_wind_y_0_0",
+                    "alt_4_0_wind_y_-0_1",
+                ],
+            )
+            self.assertIn("max_horizontal_error_m", report["metric_summary"])
+
+    def test_sweep_suite_rejects_variants_and_sweep_together(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            suite_path = root / "suite.json"
+            suite_path.write_text(
+                json.dumps(
+                    {
+                        "name": "bad_mix",
+                        "variants": [{"name": "baseline", "overrides": {}}],
+                        "sweep": {
+                            "axes": [
+                                {
+                                    "name": "alt",
+                                    "path": "target_altitude_m",
+                                    "values": [3.0],
+                                }
+                            ]
+                        },
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "either variants or sweep"):
+                load_suite_definition(suite_path)
+
+    def test_suite_rejects_duplicate_variant_names(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            suite_path = root / "suite.json"
+            suite_path.write_text(
+                json.dumps(
+                    {
+                        "name": "duplicate_suite",
+                        "variants": [
+                            {"name": "same", "overrides": {}},
+                            {"name": "same", "overrides": {}},
+                        ],
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "duplicated"):
+                load_suite_definition(suite_path)
+
+    def test_suite_rejects_sanitized_variant_name_collisions(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            suite_path = root / "suite.json"
+            suite_path.write_text(
+                json.dumps(
+                    {
+                        "name": "collision_suite",
+                        "variants": [
+                            {"name": "a b", "overrides": {}},
+                            {"name": "a_b", "overrides": {}},
+                        ],
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "collides after sanitizing"):
+                load_suite_definition(suite_path)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,33 @@
+{
+  "name": "demo_parameter_sweep_suite",
+  "description": "Functional parameter sweep over demo target altitude and wind. This proves automatic matrix expansion without hand-writing each variant.",
+  "base_overrides": {
+    "duration_s": 10.0,
+    "realtime_factor": 0.0,
+    "disturbances": {
+      "seed": 23
+    }
+  },
+  "sweep": {
+    "axes": [
+      {
+        "name": "alt",
+        "path": "target_altitude_m",
+        "values": [4.0, 6.0]
+      },
+      {
+        "name": "wind_y",
+        "path": "disturbances.wind.y_mps",
+        "values": [0.0, -0.2]
+      }
+    ]
+  },
+  "required_metrics": {
+    "target_altitude_reached": true
+  },
+  "metric_thresholds": {
+    "max_altitude_m": {
+      "min": 3.8
+    }
+  }
+}

@@ -214,6 +214,13 @@ python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
   --suite configs/demo_disturbance_suite.json
 ```
 
+Run an automatic parameter sweep without hand-writing every variant:
+
+```bash
+python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
+  --suite configs/demo_parameter_sweep_suite.json
+```
+
 Run the same suite surface on the real PX4 SIH flight-stack path:
 
 ```bash

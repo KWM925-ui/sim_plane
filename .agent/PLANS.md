@@ -319,3 +319,36 @@
   - final full validation PASS: `112` tests, compileall, shell syntax,
     `doctor --json`, artifact hygiene, latest planner acceptance, latest
     platform acceptance, and fast live smoke.
+
+## Functional Parameter Sweep Frontier 2026-05-27
+
+- Next functional widening: add a lightweight parameter-sweep layer on top of
+  `run-suite`.
+- Goal: let users define experiment axes once and auto-generate variant
+  combinations instead of hand-writing repetitive suite rows.
+- Scope boundaries:
+  - keep the core dependency-free and backend-agnostic;
+  - start with the fast `demo` backend for proof;
+  - do not change existing acceptance semantics or thresholds;
+  - do not touch `/home/coco/follwer_ws`;
+  - do not fake PX4 SIH wind or other unsupported physics contracts.
+- Promotion gate:
+  - tests for matrix expansion, variant naming, metric gates, and invalid config;
+  - a runnable sample sweep config;
+  - fresh suite report under `runs/suites/`;
+  - no regression in unit tests, compileall, doctor, artifact hygiene, and latest
+    acceptance.
+- Landed shape:
+  - `run-suite` accepts either hand-written `variants` or generated `sweep`;
+  - sweep axes use dotted JSON paths and auto-expand to deterministic variant
+    combinations;
+  - suite-level `required_metrics` and `metric_thresholds` are inherited by
+    generated variants;
+  - duplicate variant names and artifact-safe name collisions are rejected
+    before running.
+- Fresh evidence:
+  - parameter sweep PASS at
+    `runs/suites/demo_parameter_sweep_suite_20260527_153012_415445/report.json`;
+  - final full validation PASS: `116` tests, compileall, shell syntax,
+    `doctor --json`, artifact hygiene, latest planner acceptance, latest
+    platform acceptance, and fast live smoke.

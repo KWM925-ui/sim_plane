@@ -1,4 +1,5 @@
 import copy
+import itertools
 import json
 from datetime import datetime
 from pathlib import Path
@@ -84,8 +85,8 @@ def load_suite_definition(path=None):
         }
     suite_path = Path(path)
     payload = json.loads(suite_path.read_text(encoding="utf-8"))
-    variants = payload.get("variants")
-    if not isinstance(variants, list) or not variants:
+    variants = expand_suite_variants(payload)
+    if not variants:
         raise ValueError("suite must contain at least one variant")
     for index, variant in enumerate(variants):
         if not isinstance(variant, dict):
@@ -99,8 +100,85 @@ def load_suite_definition(path=None):
             raise ValueError("suite variant {0} overrides must be an object".format(variant["name"]))
         validate_optional_mapping(variant, "required_metrics")
         validate_metric_thresholds(variant)
+    validate_unique_variant_names(variants)
     payload.setdefault("name", suite_path.stem)
+    payload["variants"] = variants
     return payload
+
+
+def expand_suite_variants(payload):
+    variants = payload.get("variants")
+    sweep = payload.get("sweep")
+    if variants is not None and sweep is not None:
+        raise ValueError("suite must use either variants or sweep, not both")
+    if sweep is None:
+        if not isinstance(variants, list):
+            raise ValueError("suite must contain at least one variant")
+        return variants
+    return build_sweep_variants(payload, sweep)
+
+
+def build_sweep_variants(payload, sweep):
+    if not isinstance(sweep, dict):
+        raise ValueError("suite sweep must be an object")
+    axes = sweep.get("axes")
+    if not isinstance(axes, list) or not axes:
+        raise ValueError("suite sweep must contain at least one axis")
+
+    normalized_axes = []
+    for index, axis in enumerate(axes):
+        if not isinstance(axis, dict):
+            raise ValueError("suite sweep axis #{0} must be an object".format(index + 1))
+        axis_name = axis.get("name")
+        if not isinstance(axis_name, str) or not axis_name.strip():
+            raise ValueError("suite sweep axis #{0} name must be a non-empty string".format(index + 1))
+        path = axis.get("path")
+        if not isinstance(path, str) or not path.strip():
+            raise ValueError("suite sweep axis {0} path must be a non-empty string".format(axis_name))
+        values = axis.get("values")
+        if not isinstance(values, list) or not values:
+            raise ValueError("suite sweep axis {0} must contain at least one value".format(axis_name))
+        normalized_axes.append({"name": axis_name.strip(), "path": path.strip(), "values": values})
+
+    base_overrides = payload.get("base_overrides", {})
+    if not isinstance(base_overrides, dict):
+        raise ValueError("suite base_overrides must be an object")
+    required_metrics = payload.get("required_metrics")
+    metric_thresholds = payload.get("metric_thresholds")
+
+    variants = []
+    for values in itertools.product(*[axis["values"] for axis in normalized_axes]):
+        overrides = copy.deepcopy(base_overrides)
+        name_parts = []
+        for axis, value in zip(normalized_axes, values):
+            set_path_value(overrides, axis["path"], value)
+            name_parts.append("{0}_{1}".format(axis["name"], sanitize_variant_name(value)))
+        variant = {
+            "name": "_".join(name_parts),
+            "overrides": overrides,
+        }
+        if required_metrics is not None:
+            variant["required_metrics"] = copy.deepcopy(required_metrics)
+        if metric_thresholds is not None:
+            variant["metric_thresholds"] = copy.deepcopy(metric_thresholds)
+        variants.append(variant)
+    return variants
+
+
+def set_path_value(target, dotted_path, value):
+    parts = [part for part in dotted_path.split(".") if part]
+    if not parts:
+        raise ValueError("suite sweep path must not be empty")
+    current = target
+    for part in parts[:-1]:
+        existing = current.get(part)
+        if existing is None:
+            existing = {}
+            current[part] = existing
+        if not isinstance(existing, dict):
+            raise ValueError("suite sweep path {0} conflicts with non-object value".format(dotted_path))
+        current = existing
+    current[parts[-1]] = copy.deepcopy(value)
 
 
 def validate_optional_mapping(variant, field_name):
@@ -142,6 +220,20 @@ def validate_metric_thresholds(variant):
                         key,
                     )
                 )
+
+
+def validate_unique_variant_names(variants):
+    seen_names = set()
+    seen_safe_names = set()
+    for variant in variants:
+        name = variant["name"]
+        safe_name = sanitize_variant_name(name)
+        if name in seen_names:
+            raise ValueError("suite variant name {0} is duplicated".format(name))
+        if safe_name in seen_safe_names:
+            raise ValueError("suite variant name {0} collides after sanitizing".format(name))
+        seen_names.add(name)
+        seen_safe_names.add(safe_name)
 
 
 def build_variant_scenario(base_scenario, variant):

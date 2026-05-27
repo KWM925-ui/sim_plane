@@ -1172,3 +1172,84 @@ true:
   summaries.
 - PX4 SIH coverage is intentionally takeoff/metric-variant coverage, not fake
   wind coverage.
+
+## Functional Parameter Sweep Frontier 2026-05-27
+
+### Locked Facts
+
+- The generic `run-suite` surface is landed and pushed at commit `334227f`.
+- Existing suite configs still require hand-written variants.
+- `/home/coco/follwer_ws` remains out of scope.
+- PX4 SIH does not currently have a managed direct wind-field injection
+  contract; do not represent PX4 SIH sweeps as real wind tests unless that
+  contract is added later.
+
+### Current Frontier
+
+- Add a backend-agnostic parameter-sweep layer to `run-suite` so a suite can
+  define axes and generate deterministic variant combinations automatically.
+- Prove it first on the lightweight `demo` backend.
+
+### Forbidden Actions
+
+- Do not change existing acceptance semantics or thresholds.
+- Do not add a new heavy simulator, middleware dependency, or ROS requirement.
+- Do not touch `/home/coco/follwer_ws`.
+- Do not fake unsupported PX4 physics.
+
+### Promotion Gate
+
+- Tests cover matrix expansion, variant naming, metric gates, and invalid
+  sweep config.
+- A runnable sample sweep config exists.
+- Fresh local evidence includes the sample sweep report plus the normal
+  regression checks.
+
+### Implementation Locked
+
+- `run-suite` now accepts either hand-written `variants` or generated `sweep`,
+  never both in the same suite.
+- Sweep suites support:
+  - `base_overrides`;
+  - `sweep.axes[].name`;
+  - `sweep.axes[].path`;
+  - `sweep.axes[].values`;
+  - inherited suite-level `required_metrics`;
+  - inherited suite-level `metric_thresholds`.
+- Sweep axis paths use dotted JSON paths such as
+  `disturbances.wind.y_mps`.
+- Duplicate generated or hand-written variant names now fail before running.
+- Variant names that collide after artifact-safe sanitizing now also fail before
+  running.
+- Added sample config `configs/demo_parameter_sweep_suite.json`.
+
+### Fresh Evidence
+
+- `python3 -m sim_plane run-suite scenarios/basic_takeoff.json --suite configs/demo_parameter_sweep_suite.json --artifact-root runs --report-root runs/suites --json` passed at `runs/suites/demo_parameter_sweep_suite_20260527_153012_415445/report.json`.
+- Generated variants passed:
+  - `alt_4_0_wind_y_0_0`;
+  - `alt_4_0_wind_y_-0_2`;
+  - `alt_6_0_wind_y_0_0`;
+  - `alt_6_0_wind_y_-0_2`.
+- Sweep metric summary:
+  - `max_altitude_m.spread=2.0`;
+  - `max_horizontal_error_m.spread=2.0`.
+- Validation:
+  - `python3 -m unittest tests.test_run_suite`: `8` tests passed.
+  - `python3 -m unittest discover -s tests`: `116` tests passed.
+  - `python3 -m compileall -q sim_plane scripts examples tests`: passed.
+  - `bash -n scripts/*.sh`: passed.
+  - `python3 -m sim_plane doctor --json`: `12` ready backends, `5` ready adapters.
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: clean, `reserved_root_count=9`, `complete_artifact_count=153`, `attention_count=0`.
+  - `python3 -m sim_plane planner-acceptance --latest --artifact-root runs --json`: `status=passed`, report `/home/coco/sim_plane/runs/acceptance/planner_acceptance_baseline_latest_20260527_153059_935091/report.json`.
+  - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: `status=passed`, report `/home/coco/sim_plane/runs/platform_acceptance/platform_acceptance_baseline_latest_20260527_153100_044647/report.json`.
+  - `python3 -m sim_plane live-smoke --profile fast --artifact-root runs --report-root runs/live_smoke --json`: `status=passed`, artifact `runs/basic_takeoff_20260527_153108`, report `runs/live_smoke/live_smoke_fast_20260527_153113_509793/report.json`.
+  - Narrow simulator-process check found no sim_plane-owned PX4/Gazebo/ROS/RViz/QGC/FlightGear/jMAVSim/MAVROS process left running.
+
+### Current Conclusion
+
+- The platform now has a first-class parameter sweep surface for automatically
+  expanding controlled experiment matrices.
+- This materially reduces manual scenario duplication when testing algorithms
+  across altitude, disturbance, timeout, controller, or adapter-parameter
+  variants.
