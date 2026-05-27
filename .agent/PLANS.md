@@ -352,3 +352,34 @@
   - final full validation PASS: `116` tests, compileall, shell syntax,
     `doctor --json`, artifact hygiene, latest planner acceptance, latest
     platform acceptance, and fast live smoke.
+
+## Functional Suite Analysis Frontier 2026-05-27
+
+- Next functional widening: make suite reports explain parameter effects, not
+  only list rows.
+- Goal: after a sweep, report grouped metric summaries per factor value so the
+  user can see which parameter is driving altitude, error, speed, or telemetry
+  changes.
+- Scope boundaries:
+  - keep analysis local to `run-suite` reports;
+  - no new dependencies;
+  - no acceptance threshold changes;
+  - do not touch `/home/coco/follwer_ws`;
+  - do not add heavy visualization before the machine-readable analysis exists.
+- Promotion gate:
+  - generated sweep rows carry factor metadata;
+  - reports include per-factor grouped metrics and metric effect ranges;
+  - hand-written variants keep existing behavior;
+  - tests and normal validation pass.
+- Landed shape:
+  - generated sweep rows include `factors`;
+  - reports include `factor_analysis` grouped by factor value;
+  - reports include sorted `top_metric_effects`.
+- Fresh evidence:
+  - suite analysis PASS at
+    `runs/suites/demo_parameter_sweep_suite_20260527_154528_204275/report.json`;
+  - top effects include `alt -> max_altitude_m` and
+    `wind_y -> max_horizontal_error_m`, both with `mean_spread=2.0`;
+  - final validation PASS: `116` tests, compileall, shell syntax,
+    `doctor --json`, artifact hygiene, latest planner acceptance, latest
+    platform acceptance, and fast live smoke.

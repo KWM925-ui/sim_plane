@@ -1253,3 +1253,71 @@ true:
 - This materially reduces manual scenario duplication when testing algorithms
   across altitude, disturbance, timeout, controller, or adapter-parameter
   variants.
+
+## Functional Suite Analysis Frontier 2026-05-27
+
+### Locked Facts
+
+- `run-suite` already writes per-row metrics and global metric spreads.
+- Generated sweep variants currently do not preserve machine-readable factor
+  metadata in the report.
+- Without factor metadata, a user still needs manual inspection to know which
+  axis value caused a metric change.
+
+### Current Frontier
+
+- Add suite-level factor analysis for generated sweeps:
+  - preserve factor names, paths, and values per generated row;
+  - group numeric metrics by each factor value;
+  - compute per-factor metric spread/effect ranges.
+
+### Forbidden Actions
+
+- Do not change existing acceptance semantics or thresholds.
+- Do not add new runtime dependencies.
+- Do not touch `/home/coco/follwer_ws`.
+- Do not build dashboard UI before the machine-readable report surface exists.
+
+### Promotion Gate
+
+- Tests prove factor metadata and grouped metric analysis.
+- Existing hand-written suite behavior remains compatible.
+- Fresh sample sweep report and normal regression checks pass.
+
+### Implementation Locked
+
+- Generated sweep variants now carry per-row `factors` metadata with:
+  - factor `name`;
+  - dotted `path`;
+  - concrete `value`.
+- Suite reports now include `factor_analysis`, grouped by factor and value.
+- `factor_analysis` computes numeric metric `count`, `min`, `max`, `mean`, and
+  `spread` for each factor value.
+- Suite reports now include `top_metric_effects`, sorted by factor-driven metric
+  mean spread so the strongest parameter/metric relationships are visible
+  without manually reading all rows.
+- Hand-written non-sweep suites keep `factor_analysis={}`.
+
+### Fresh Evidence
+
+- `python3 -m sim_plane run-suite scenarios/basic_takeoff.json --suite configs/demo_parameter_sweep_suite.json --artifact-root runs --report-root runs/suites --json` passed at `runs/suites/demo_parameter_sweep_suite_20260527_154528_204275/report.json`.
+- `top_metric_effects` in that report identified:
+  - `alt -> max_altitude_m`, `mean_spread=2.0`;
+  - `wind_y -> max_horizontal_error_m`, `mean_spread=2.0`.
+- Validation:
+  - `python3 -m unittest tests.test_run_suite`: `8` tests passed.
+  - `python3 -m unittest discover -s tests`: `116` tests passed.
+  - `python3 -m compileall -q sim_plane scripts examples tests`: passed.
+  - `bash -n scripts/*.sh`: passed.
+  - `python3 -m sim_plane doctor --json`: `12` ready backends, `5` ready adapters.
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: clean, `reserved_root_count=9`, `complete_artifact_count=161`, `attention_count=0`.
+  - `python3 -m sim_plane planner-acceptance --latest --artifact-root runs --json`: `status=passed`, report `/home/coco/sim_plane/runs/acceptance/planner_acceptance_baseline_latest_20260527_154611_659916/report.json`.
+  - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: `status=passed`, report `/home/coco/sim_plane/runs/platform_acceptance/platform_acceptance_baseline_latest_20260527_154611_784826/report.json`.
+  - `python3 -m sim_plane live-smoke --profile fast --artifact-root runs --report-root runs/live_smoke --json`: `status=passed`, artifact `runs/basic_takeoff_20260527_154628`, report `runs/live_smoke/live_smoke_fast_20260527_154633_575043/report.json`.
+
+### Current Conclusion
+
+- Suite/sweep output is now diagnostic, not just archival: it can show which
+  swept parameter value is associated with metric movement.
+- This is the minimum machine-readable basis for future dashboard-side
+  parameter-effect visualization.

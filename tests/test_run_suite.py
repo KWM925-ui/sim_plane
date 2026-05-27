@@ -78,6 +78,7 @@ class RunSuiteTest(unittest.TestCase):
             self.assertTrue(wind_row["metrics"]["disturbance_enabled"])
             self.assertGreater(wind_row["metrics"]["max_horizontal_error_m"], 0.0)
             self.assertIn("max_horizontal_error_m", report["metric_summary"])
+            self.assertEqual(report["factor_analysis"], {})
             self.assertTrue(Path(report["saved_report"]["report_json"]).exists())
 
     def test_cli_run_suite_returns_success(self):
@@ -245,6 +246,27 @@ class RunSuiteTest(unittest.TestCase):
                 ],
             )
             self.assertIn("max_horizontal_error_m", report["metric_summary"])
+            self.assertEqual(report["rows"][0]["factors"][0]["name"], "alt")
+            self.assertEqual(report["rows"][0]["factors"][1]["name"], "wind_y")
+            self.assertEqual(
+                report["factor_analysis"]["alt"]["metric_effects"]["max_altitude_m"]["mean_spread"],
+                1.0,
+            )
+            self.assertGreater(
+                report["factor_analysis"]["wind_y"]["metric_effects"]["max_horizontal_error_m"]["mean_spread"],
+                0.0,
+            )
+            self.assertIn(
+                {
+                    "factor": "wind_y",
+                    "path": "disturbances.wind.y_mps",
+                    "metric": "max_horizontal_error_m",
+                    "mean_spread": 0.7,
+                    "mean_min": 0.0,
+                    "mean_max": 0.7,
+                },
+                report["top_metric_effects"],
+            )
 
     def test_sweep_suite_rejects_variants_and_sweep_together(self):
         with tempfile.TemporaryDirectory() as tmpdir:

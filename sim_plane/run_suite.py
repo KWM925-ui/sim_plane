@@ -45,6 +45,8 @@ def run_suite(
         "rows": rows,
         "metric_summary": summarize_metrics(rows),
     }
+    report["factor_analysis"] = analyze_factors(rows)
+    report["top_metric_effects"] = summarize_top_metric_effects(report["factor_analysis"])
     if report_root is not None:
         report["saved_report"] = write_suite_report(
             report,
@@ -153,9 +155,18 @@ def build_sweep_variants(payload, sweep):
         for axis, value in zip(normalized_axes, values):
             set_path_value(overrides, axis["path"], value)
             name_parts.append("{0}_{1}".format(axis["name"], sanitize_variant_name(value)))
+        factors = [
+            {
+                "name": axis["name"],
+                "path": axis["path"],
+                "value": copy.deepcopy(value),
+            }
+            for axis, value in zip(normalized_axes, values)
+        ]
         variant = {
             "name": "_".join(name_parts),
             "overrides": overrides,
+            "factors": factors,
         }
         if required_metrics is not None:
             variant["required_metrics"] = copy.deepcopy(required_metrics)
@@ -330,6 +341,7 @@ def build_variant_report(variant, outcome):
         "status": "passed" if not issues else "failed",
         "artifact_dir": outcome.get("artifact_dir"),
         "metrics": metrics,
+        "factors": copy.deepcopy(variant.get("factors", [])),
         "issues": issues,
     }
 
@@ -359,6 +371,105 @@ def summarize_metrics(rows):
             "spread": max(values) - min(values),
         }
     return summary
+
+
+def analyze_factors(rows):
+    analysis = {}
+    for row in rows:
+        metrics = row.get("metrics", {})
+        numeric_metrics = {
+            name: value
+            for name, value in metrics.items()
+            if isinstance(value, (int, float)) and not isinstance(value, bool)
+        }
+        for factor in row.get("factors", []):
+            factor_name = factor.get("name")
+            if not factor_name:
+                continue
+            factor_entry = analysis.setdefault(
+                factor_name,
+                {
+                    "path": factor.get("path", ""),
+                    "values": {},
+                    "metric_effects": {},
+                },
+            )
+            value_key = json.dumps(factor.get("value"), ensure_ascii=False, sort_keys=True)
+            value_entry = factor_entry["values"].setdefault(
+                value_key,
+                {
+                    "value": factor.get("value"),
+                    "row_count": 0,
+                    "metrics": {},
+                },
+            )
+            value_entry["row_count"] += 1
+            for metric_name, metric_value in numeric_metrics.items():
+                metric_entry = value_entry["metrics"].setdefault(metric_name, {"values": []})
+                metric_entry["values"].append(metric_value)
+
+    for factor_entry in analysis.values():
+        for value_entry in factor_entry["values"].values():
+            for metric_name, metric_entry in list(value_entry["metrics"].items()):
+                values = metric_entry.pop("values")
+                metric_entry.update(summarize_numeric_values(values))
+        factor_entry["metric_effects"] = summarize_factor_effects(factor_entry["values"])
+    return analysis
+
+
+def summarize_numeric_values(values):
+    return {
+        "count": len(values),
+        "min": min(values),
+        "max": max(values),
+        "mean": round(sum(values) / len(values), 6),
+        "spread": max(values) - min(values),
+    }
+
+
+def summarize_factor_effects(value_entries):
+    metric_names = sorted(
+        {
+            metric_name
+            for value_entry in value_entries.values()
+            for metric_name in value_entry.get("metrics", {})
+        }
+    )
+    effects = {}
+    for metric_name in metric_names:
+        means = [
+            value_entry["metrics"][metric_name]["mean"]
+            for value_entry in value_entries.values()
+            if metric_name in value_entry.get("metrics", {})
+        ]
+        if len(means) < 2:
+            continue
+        effects[metric_name] = {
+            "mean_min": min(means),
+            "mean_max": max(means),
+            "mean_spread": round(max(means) - min(means), 6),
+        }
+    return effects
+
+
+def summarize_top_metric_effects(factor_analysis):
+    effects = []
+    for factor_name, factor_entry in factor_analysis.items():
+        for metric_name, metric_effect in factor_entry.get("metric_effects", {}).items():
+            mean_spread = metric_effect.get("mean_spread")
+            if not isinstance(mean_spread, (int, float)) or mean_spread <= 0:
+                continue
+            effects.append(
+                {
+                    "factor": factor_name,
+                    "path": factor_entry.get("path", ""),
+                    "metric": metric_name,
+                    "mean_spread": mean_spread,
+                    "mean_min": metric_effect.get("mean_min"),
+                    "mean_max": metric_effect.get("mean_max"),
+                }
+            )
+    return sorted(effects, key=lambda item: (-item["mean_spread"], item["factor"], item["metric"]))
 
 
 def write_suite_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST):
@@ -430,6 +541,12 @@ def format_suite_report(report):
     if report.get("metric_summary"):
         lines.append("")
         lines.append("metric_summary={0}".format(json.dumps(report["metric_summary"], ensure_ascii=False, sort_keys=True)))
+    if report.get("factor_analysis"):
+        lines.append("")
+        lines.append("factor_analysis={0}".format(json.dumps(report["factor_analysis"], ensure_ascii=False, sort_keys=True)))
+    if report.get("top_metric_effects"):
+        lines.append("")
+        lines.append("top_metric_effects={0}".format(json.dumps(report["top_metric_effects"], ensure_ascii=False, sort_keys=True)))
     saved = report.get("saved_report")
     if saved:
         lines.append("")
