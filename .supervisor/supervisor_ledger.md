@@ -1058,6 +1058,15 @@ true:
   `status=passed`.
 - `python3 -m sim_plane live-smoke --profile fast --artifact-root runs --report-root runs/live_smoke --json`:
   `status=passed`, artifact `runs/basic_takeoff_20260527_133452`.
+- `python3 -m sim_plane live-smoke --artifact-root runs --report-root runs/live_smoke --json`:
+  `status=passed`, artifacts `runs/basic_takeoff_20260527_133755` and
+  `runs/px4_sih_quadx_headless_20260527_133800`.
+- `python3 -m sim_plane platform-acceptance --artifact-root runs --json`:
+  `status=passed`.
+- `python3 -m sim_plane planner-acceptance --artifact-root runs --json`:
+  `status=passed`.
+- Post-default-smoke artifact hygiene remained clean with
+  `complete_artifact_count=116` and `attention_count=0`.
 
 ### Current Conclusion
 
