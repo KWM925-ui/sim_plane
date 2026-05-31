@@ -120,6 +120,12 @@ class ArtifactReplay:
     def platform_acceptance_latest(self):
         return load_platform_acceptance_latest(self.artifact_root)
 
+    def list_suite_reports(self, limit=20):
+        return list_suite_reports(self.artifact_root, limit=limit)
+
+    def list_test_surface_reports(self, limit=20):
+        return list_test_surface_reports(self.artifact_root, limit=limit)
+
 
 class ArtifactRootBrowser:
     def __init__(self, artifact_root):
@@ -187,6 +193,12 @@ class ArtifactRootBrowser:
 
     def platform_acceptance_latest(self):
         return load_platform_acceptance_latest(self.artifact_root)
+
+    def list_suite_reports(self, limit=20):
+        return list_suite_reports(self.artifact_root, limit=limit)
+
+    def list_test_surface_reports(self, limit=20):
+        return list_test_surface_reports(self.artifact_root, limit=limit)
 
 
 def load_json(path):
@@ -394,6 +406,197 @@ def load_platform_acceptance_latest(artifact_root):
     }
 
 
+def list_suite_reports(artifact_root, limit=20):
+    root = Path(artifact_root) / "suites"
+    if not root.exists():
+        return {
+            "available": False,
+            "suite_root": str(root),
+            "items": [],
+        }
+    reports = []
+    for path in sorted(root.glob("latest_*.json"), key=lambda item: item.name):
+        try:
+            report = load_json(path)
+        except (OSError, json.JSONDecodeError):
+            continue
+        reports.append(summarize_suite_report(report, path))
+    reports.sort(key=lambda row: row.get("latest_artifact_created_at_utc") or row["latest_json"], reverse=True)
+    return {
+        "available": True,
+        "suite_root": str(root),
+        "items": reports[: max(int(limit), 0)],
+    }
+
+
+def list_test_surface_reports(artifact_root, limit=20):
+    root = Path(artifact_root)
+    surface_specs = [
+        ("PX4 failure", root / "px4_failure_injection_acceptance", "latest_latest.json"),
+        ("flight log", root / "flight_log_analysis", "latest_artifact.json"),
+        ("ULog", root / "flight_log_analysis", "latest_ulog.json"),
+        ("scenario fuzz", root / "scenario_fuzz", "latest_*.json"),
+        ("autotest", root / "autotest", "latest_*.json"),
+    ]
+    items = []
+    for label, report_root, pattern in surface_specs:
+        if not report_root.exists():
+            continue
+        paths = sorted(report_root.glob(pattern), key=lambda item: item.name, reverse=True)
+        for path in paths:
+            try:
+                report = load_json(path)
+            except (OSError, json.JSONDecodeError):
+                continue
+            items.append(summarize_test_surface_report(label, report, path))
+    items.sort(key=lambda row: row.get("latest_json", ""), reverse=True)
+    return {
+        "available": bool(items),
+        "artifact_root": str(root),
+        "items": items[: max(int(limit), 0)],
+    }
+
+
+def summarize_test_surface_report(label, report, path):
+    metrics = report.get("metrics", {}) if isinstance(report.get("metrics"), dict) else {}
+    rows = report.get("rows", []) if isinstance(report.get("rows"), list) else []
+    steps = report.get("steps", []) if isinstance(report.get("steps"), list) else []
+    return {
+        "surface": label,
+        "name": (
+            report.get("matrix_name")
+            or report.get("fuzz_name")
+            or report.get("pack_name")
+            or report.get("source_type")
+            or label
+        ),
+        "status": report.get("status"),
+        "latest_json": str(path),
+        "report_json": (report.get("saved_report") or {}).get("report_json"),
+        "source": report.get("source"),
+        "profile": report.get("profile"),
+        "seed": report.get("seed"),
+        "row_count": len(rows),
+        "passed_row_count": len([row for row in rows if row.get("status") == "passed"]),
+        "step_count": len(steps),
+        "passed_step_count": len([step for step in steps if step.get("status") == "passed"]),
+        "key_metrics": {
+            key: metrics.get(key)
+            for key in (
+                "telemetry_count",
+                "duration_s",
+                "max_altitude_m",
+                "max_speed_mps",
+                "mode_change_count",
+                "armed_transition_count",
+                "anomaly_event_count",
+                "ulog_dropout_count",
+                "ulog_warning_message_count",
+            )
+            if key in metrics
+        },
+        "worst_cases": list(report.get("worst_cases", []))[:4],
+        "issues": list(report.get("issues", []))[:4],
+    }
+
+
+def summarize_suite_report(report, report_path):
+    rows = report.get("rows", []) if isinstance(report.get("rows"), list) else []
+    passed_rows = [row for row in rows if row.get("status") == "passed"]
+    failed_rows = [row for row in rows if row.get("status") != "passed"]
+    key_metrics = []
+    for row in rows:
+        metrics = row.get("metrics", {}) if isinstance(row.get("metrics"), dict) else {}
+        key_metrics.append(
+            {
+                "name": row.get("name"),
+                "status": row.get("status"),
+                "artifact_dir": row.get("artifact_dir"),
+                "kpi_sensor_dropout_ratio": metrics.get("kpi_sensor_dropout_ratio"),
+                "kpi_mission_path_error_max_m": metrics.get("kpi_mission_path_error_max_m"),
+                "kpi_mission_altitude_mae_m": metrics.get("kpi_mission_altitude_mae_m"),
+                "kpi_measurement_horizontal_error_max_m": metrics.get("kpi_measurement_horizontal_error_max_m"),
+                "kpi_measurement_vertical_error_max_m": metrics.get("kpi_measurement_vertical_error_max_m"),
+            }
+        )
+    return {
+        "suite_name": report.get("suite_name"),
+        "status": report.get("status"),
+        "base_scenario": report.get("base_scenario"),
+        "row_count": len(rows),
+        "passed_row_count": len(passed_rows),
+        "failed_row_count": len(failed_rows),
+        "issues": report.get("issues", []),
+        "latest_json": str(report_path),
+        "report_json": (report.get("saved_report") or {}).get("report_json"),
+        "top_metric_effects": list(report.get("top_metric_effects", []))[:8],
+        "kpi_rankings": summarize_suite_kpi_rankings(report.get("kpi_rankings", {})),
+        "key_metrics": key_metrics[:12],
+        "latest_artifact_created_at_utc": newest_artifact_created_at(rows),
+    }
+
+
+def summarize_suite_kpi_rankings(kpi_rankings, limit=5):
+    if not isinstance(kpi_rankings, dict):
+        return []
+    preferred_metrics = [
+        "kpi_mission_path_error_max_m",
+        "kpi_measurement_horizontal_error_max_m",
+        "kpi_sensor_dropout_ratio",
+        "kpi_speed_limit_violation_count",
+        "kpi_safety_violation_count",
+        "kpi_max_acceleration_mps2",
+        "kpi_speed_roughness_mps",
+    ]
+    rows = []
+    for metric in preferred_metrics:
+        ranking = kpi_rankings.get(metric)
+        if not isinstance(ranking, dict):
+            continue
+        worst = ranking.get("worst_high", [])
+        if not worst:
+            continue
+        rows.append(
+            {
+                "metric": metric,
+                "spread": ranking.get("spread"),
+                "worst": list(worst)[:3],
+            }
+        )
+    if len(rows) >= limit:
+        return rows[:limit]
+    for metric, ranking in sorted(kpi_rankings.items()):
+        if metric in preferred_metrics or not isinstance(ranking, dict):
+            continue
+        worst = ranking.get("worst_high", [])
+        if not worst:
+            continue
+        rows.append(
+            {
+                "metric": metric,
+                "spread": ranking.get("spread"),
+                "worst": list(worst)[:3],
+            }
+        )
+        if len(rows) >= limit:
+            break
+    return rows
+
+
+def newest_artifact_created_at(rows):
+    newest = None
+    for row in rows:
+        artifact_dir = row.get("artifact_dir")
+        if not artifact_dir:
+            continue
+        manifest_path = Path(artifact_dir) / "manifest.json"
+        manifest = load_json_or_empty(manifest_path)
+        created_at = manifest.get("created_at_utc")
+        if created_at and (newest is None or created_at > newest):
+            newest = created_at
+    return newest
+
+
 class DashboardServer:
     def __init__(self, data_source, host="127.0.0.1", port=8765):
         self.data_source = data_source
@@ -451,6 +654,16 @@ class DashboardServer:
                     return
                 if parsed.path == "/api/platform-acceptance/latest":
                     self._json(call_optional(data_source, "platform_acceptance_latest", {"available": False}))
+                    return
+                if parsed.path == "/api/suites/latest":
+                    query = urllib.parse.parse_qs(parsed.query)
+                    limit = int(query.get("limit", ["20"])[0])
+                    self._json(call_optional(data_source, "list_suite_reports", {"available": False}, limit=limit))
+                    return
+                if parsed.path == "/api/test-surfaces/latest":
+                    query = urllib.parse.parse_qs(parsed.query)
+                    limit = int(query.get("limit", ["20"])[0])
+                    self._json(call_optional(data_source, "list_test_surface_reports", {"available": False}, limit=limit))
                     return
 
                 self.send_error(404, "Not found")

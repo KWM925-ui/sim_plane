@@ -6,6 +6,7 @@ from pathlib import Path
 
 from sim_plane.runner import ensure_artifact_root
 from sim_plane.scenario import load_scenario
+from sim_plane.evaluation import enrich_result_with_kpis
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -16,13 +17,20 @@ DEFAULT_KEEP_LAST = 10
 def run_suite(
     scenario_path,
     suite_path=None,
+    suite_definition=None,
     artifact_root="runs",
     report_root=None,
     keep_last=DEFAULT_KEEP_LAST,
     runtime_options=None,
 ):
     base_scenario = load_scenario(scenario_path)
-    suite = load_suite_definition(suite_path)
+    if suite_path is not None and suite_definition is not None:
+        raise ValueError("suite_path and suite_definition cannot both be provided")
+    suite = (
+        normalize_suite_definition(suite_definition, default_name="generated_suite")
+        if suite_definition is not None
+        else load_suite_definition(suite_path)
+    )
     ensure_artifact_root(artifact_root)
     rows = []
     issues = []
@@ -47,6 +55,7 @@ def run_suite(
     }
     report["factor_analysis"] = analyze_factors(rows)
     report["top_metric_effects"] = summarize_top_metric_effects(report["factor_analysis"])
+    report["kpi_rankings"] = summarize_kpi_rankings(rows)
     if report_root is not None:
         report["saved_report"] = write_suite_report(
             report,
@@ -58,7 +67,7 @@ def run_suite(
 
 def load_suite_definition(path=None):
     if path is None:
-        return {
+        return normalize_suite_definition({
             "name": "default_disturbance_suite",
             "variants": [
                 {"name": "baseline", "overrides": {}},
@@ -84,9 +93,16 @@ def load_suite_definition(path=None):
                     },
                 },
             ],
-        }
+        })
     suite_path = Path(path)
     payload = json.loads(suite_path.read_text(encoding="utf-8"))
+    return normalize_suite_definition(payload, default_name=suite_path.stem)
+
+
+def normalize_suite_definition(payload, default_name="suite"):
+    if not isinstance(payload, dict):
+        raise ValueError("suite definition must be an object")
+    payload = copy.deepcopy(payload)
     variants = expand_suite_variants(payload)
     if not variants:
         raise ValueError("suite must contain at least one variant")
@@ -103,7 +119,7 @@ def load_suite_definition(path=None):
         validate_optional_mapping(variant, "required_metrics")
         validate_metric_thresholds(variant)
     validate_unique_variant_names(variants)
-    payload.setdefault("name", suite_path.stem)
+    payload.setdefault("name", default_name)
     payload["variants"] = variants
     return payload
 
@@ -116,8 +132,27 @@ def expand_suite_variants(payload):
     if sweep is None:
         if not isinstance(variants, list):
             raise ValueError("suite must contain at least one variant")
-        return variants
+        return apply_base_overrides_to_variants(payload, variants)
     return build_sweep_variants(payload, sweep)
+
+
+def apply_base_overrides_to_variants(payload, variants):
+    base_overrides = payload.get("base_overrides", {})
+    if not isinstance(base_overrides, dict):
+        raise ValueError("suite base_overrides must be an object")
+    if not base_overrides:
+        return variants
+    merged_variants = []
+    for variant in variants:
+        if not isinstance(variant, dict):
+            merged_variants.append(variant)
+            continue
+        merged = copy.deepcopy(variant)
+        overrides = copy.deepcopy(base_overrides)
+        deep_merge(overrides, copy.deepcopy(variant.get("overrides", {})))
+        merged["overrides"] = overrides
+        merged_variants.append(merged)
+    return merged_variants
 
 
 def build_sweep_variants(payload, sweep):
@@ -280,6 +315,7 @@ def run_scenario_data(scenario, artifact_root, runtime_options):
             "error": str(exc),
         }
         sink.emit_event("error", "suite variant failed", {"error": str(exc)})
+    result = enrich_result_with_kpis(result, scenario, sink.telemetry)
     writer.write_result(result)
     return {
         "artifact_dir": str(artifact_dir),
@@ -472,6 +508,43 @@ def summarize_top_metric_effects(factor_analysis):
     return sorted(effects, key=lambda item: (-item["mean_spread"], item["factor"], item["metric"]))
 
 
+def summarize_kpi_rankings(rows, limit=8):
+    metric_names = sorted(
+        {
+            metric_name
+            for row in rows
+            for metric_name, value in row.get("metrics", {}).items()
+            if metric_name.startswith("kpi_")
+            and isinstance(value, (int, float))
+            and not isinstance(value, bool)
+        }
+    )
+    rankings = {}
+    for metric_name in metric_names:
+        values = []
+        for row in rows:
+            value = row.get("metrics", {}).get(metric_name)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                values.append(
+                    {
+                        "name": row.get("name"),
+                        "status": row.get("status"),
+                        "artifact_dir": row.get("artifact_dir"),
+                        "value": value,
+                    }
+                )
+        if not values:
+            continue
+        sorted_desc = sorted(values, key=lambda item: (-item["value"], item["name"] or ""))
+        sorted_asc = sorted(values, key=lambda item: (item["value"], item["name"] or ""))
+        rankings[metric_name] = {
+            "worst_high": sorted_desc[:limit],
+            "best_low": sorted_asc[:limit],
+            "spread": sorted_desc[0]["value"] - sorted_asc[0]["value"],
+        }
+    return rankings
+
+
 def write_suite_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST):
     root = Path(report_root) if report_root is not None else DEFAULT_SUITE_REPORT_ROOT
     stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
@@ -547,6 +620,9 @@ def format_suite_report(report):
     if report.get("top_metric_effects"):
         lines.append("")
         lines.append("top_metric_effects={0}".format(json.dumps(report["top_metric_effects"], ensure_ascii=False, sort_keys=True)))
+    if report.get("kpi_rankings"):
+        lines.append("")
+        lines.append("kpi_rankings={0}".format(json.dumps(report["kpi_rankings"], ensure_ascii=False, sort_keys=True)))
     saved = report.get("saved_report")
     if saved:
         lines.append("")

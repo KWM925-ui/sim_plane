@@ -68,6 +68,16 @@
   planner 验收报告
 - `runs/platform_acceptance/`
   平台顶层验收报告
+- `runs/suites/`
+  `run-suite` 功能套件报告，包括退化测试、任务族测试、参数扫描和 KPI 排名
+- `runs/algorithm_ingress/`
+  自定义算法接入体检产生的临时场景和报告入口
+- `runs/flight_log_analysis/`
+  artifact telemetry 或 PX4 `.ulg` 飞行日志复盘报告
+- `runs/scenario_fuzz/`
+  可复现 seed fuzz/sweep 报告、最差 case 排名和生成出的 suite JSON
+- `runs/autotest/`
+  本机 CI/autotest-like 一键复验报告
 - `runs/human_follow_stage1_acceptance/`
   human-follow 项目专用 Stage1 行为验收报告
 
@@ -132,6 +142,216 @@ python3 -m sim_plane manual-probe-hygiene --artifact-root runs
 ```bash
 python3 -m sim_plane manual-probe-hygiene --artifact-root runs --prune-safe
 ```
+
+### 4.4 功能退化与 KPI 套件
+
+轻量 demo 后端现在支持可复现的退化/故障字段：
+
+- `disturbances`：风、测量噪声、初始偏移等轻量扰动。
+- `degradations`：传感器 dropout、目标丢失、延迟、噪声、测量 bias、bias 漂移、测量饱和、通信中断、控制限速/饱和。
+- `kpi_*`：统一追加到 `result.json` 的评价指标，包括高度误差、超调、到达时间、稳定时间、恢复时间、轨迹误差、最终目标距离、速度/加速度峰值、速度/加速度粗糙度、传感器丢失/重捕获次数、安全边界违规、测量误差等。
+- `kpi_mission_*`：只统计 mission/offboard 阶段，避免把起飞、降落瞬态误读成巡航或跟踪质量。
+
+标准退化套件：
+
+```bash
+python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
+  --suite configs/demo_degradation_suite.json
+```
+
+标准轻量任务族套件：
+
+```bash
+python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
+  --suite configs/demo_task_family_suite.json
+```
+
+这套“考试卷”覆盖：
+
+- 起飞/降落
+- 航点跟踪
+- 目标丢失与重捕获
+- 感知退化
+- 通信中断
+- 控制饱和/限速
+- fail-safe hold
+- 安全边界检查
+
+这些指标是追加层，不改变旧的 backend metrics 和现有 acceptance contract。
+PX4 SIH 路径仍只使用真实支持的参数/命令，不把 demo 里的 wind 或 dropout
+伪装成 PX4 物理故障。
+
+打开 dashboard 时也能直接看到最新 suite 摘要、KPI 行和
+`kpi_rankings` / `top_metric_effects`，同时也会展示最新专业测试面报告：
+PX4 failure、flight-log replay、scenario fuzz、autotest pack。
+
+```bash
+python3 -m sim_plane serve runs
+```
+
+这里的价值是：以后接入新算法时，不只看“有没有跑通”，还可以看
+“误差多大、控制平不平、恢复慢不慢、是否越界、哪一个退化因素让指标变差”。
+
+### 4.5 PX4 原生故障注入验收
+
+现在有一条独立的 PX4 原生故障注入验收面：
+
+```bash
+python3 -m sim_plane run scenarios/px4_sih_quadx_mavsdk_failure_motor.json \
+  --artifact-root runs --no-hold-open
+
+python3 -m sim_plane px4-failure-acceptance --latest --artifact-root runs
+```
+
+这条线验证的是：
+
+- 平台启动真实 `PX4 SIH`。
+- adapter 通过 MAVSDK failure plugin 发送 PX4 `MAV_CMD_INJECT_FAILURE`。
+- 当前已证明的首个受管故障是 `SYSTEM_MOTOR/OFF`，随后用 `SYSTEM_MOTOR/OK` 复位。
+- artifact 里必须出现 `failure_injection_accepted=true` 和
+  `failure_injection_reset_accepted=true`。
+- 报告保存在 `runs/px4_failure_injection_acceptance/`。
+
+边界必须说清楚：
+
+- 这不是 demo backend 的 dropout/noise/wind。
+- 这不是“所有 PX4 故障都已覆盖”。
+- 当前 PX4 源码显示这版通用 failure injector 首先稳定支持 `SYSTEM_MOTOR`
+  路径，所以首个验收面只锁这个已经 fresh 证明的组合。
+- `gps`、`rc_signal`、`mavlink_signal` 等其它 failure unit 后续要逐个用
+  fresh artifact 证明 PX4 接受后，才能进入正式矩阵。
+
+### 4.6 自定义算法接入体检
+
+已有场景可以直接做接入体检：
+
+```bash
+python3 -m sim_plane check-algorithm-ingress \
+  --scenario scenarios/px4_sih_quadx_external_command_template.json
+```
+
+也可以临时生成并体检一个 PX4 侧控制算法：
+
+```bash
+python3 -m sim_plane check-algorithm-ingress \
+  --adapter external_command \
+  --backend px4_sih \
+  --command "python3 /path/to/my_controller.py"
+```
+
+ROS 规划/感知算法同理：
+
+```bash
+python3 -m sim_plane check-algorithm-ingress \
+  --adapter ros_command \
+  --backend marsim \
+  --command "roslaunch my_pkg planner.launch"
+```
+
+体检会检查：
+
+- 场景是否跑完并通过
+- adapter 是否存在
+- adapter 是否报告成功
+- 是否有 telemetry
+- 是否观察到控制/命令输出
+- 是否生成 `kpi_*` 指标
+
+这条命令的目标不是替代完整验收，而是在你第一次接自己的算法时，
+快速指出失败点到底是进程没起来、topic/端口没通、没有发控制，还是跑完但没有指标。
+
+### 4.7 飞行日志 / artifact KPI 复盘
+
+可以把一次 `sim_plane` run artifact 复盘成统一 KPI 报告：
+
+```bash
+python3 -m sim_plane flight-log-analyze runs/<artifact_dir>
+```
+
+也可以直接解析 PX4 `.ulg`：
+
+```bash
+python3 -m sim_plane flight-log-analyze /path/to/log.ulg
+```
+
+报告保存在：
+
+```text
+runs/flight_log_analysis/
+```
+
+它会提取：
+
+- duration
+- 最大/最小高度
+- 最大/平均速度
+- 路径长度
+- mode/nav state 变化
+- arming state 变化
+- PX4 日志 warning/fail/error
+- replay 后的 `kpi_*`
+
+边界要分清：
+
+- artifact replay 读的是 `telemetry.jsonl`、`result.json`、`events.jsonl`。
+- `.ulg` replay 读的是真 PX4 ULog。
+- 当前平台已经能解析 `.ulg`，但不能把 artifact replay 说成已经自动采集了 `.ulg`。
+
+### 4.8 可复现 fuzz / 最差 case 搜索
+
+跑一组固定 seed 的场景扰动、退化、限速、通信中断组合：
+
+```bash
+python3 -m sim_plane scenario-fuzz scenarios/basic_takeoff.json \
+  --profile demo_fast \
+  --seed 20260528 \
+  --variants 6
+```
+
+报告保存在：
+
+```text
+runs/scenario_fuzz/
+```
+
+每次报告会保存：
+
+- 生成出的 `generated_suite.json`
+- 每个变体的 artifact
+- `kpi_rankings`
+- `top_metric_effects`
+- `worst_cases`
+
+这件事的价值是：以后你接入一个新算法，不只是跑一条正常场景，而是自动扫一批可复现难例，直接看哪种条件让指标最差。
+
+当前 `demo_fast` 是 demo backend 的轻量退化/扰动 fuzz，不是 PX4 原生故障注入。PX4 原生故障仍以 `px4-failure-acceptance` 为准。
+
+### 4.9 一键 autotest pack
+
+快速本机复验：
+
+```bash
+python3 -m sim_plane autotest-pack --profile fast --artifact-root runs
+```
+
+报告保存在：
+
+```text
+runs/autotest/
+```
+
+`fast` profile 当前包括：
+
+- `doctor`
+- `artifact-hygiene`
+- `live-smoke --profile fast`
+- demo degradation suite
+- seeded scenario fuzz
+- flight-log artifact replay
+- PX4 failure acceptance latest
+- platform acceptance latest
+
+这件事的价值是：关机重启后，不需要手动挑命令，可以一条命令验证“平台还健康、artifact 还干净、核心测试面还绿”。
 
 ## 5. 现在的运行分层
 

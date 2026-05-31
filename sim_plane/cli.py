@@ -22,6 +22,12 @@ from sim_plane.platform_acceptance import (
     validate_platform_matrix,
     write_platform_acceptance_report,
 )
+from sim_plane.px4_failure_acceptance import (
+    DEFAULT_REPORT_ROOT as DEFAULT_PX4_FAILURE_REPORT_ROOT,
+    format_report as format_px4_failure_acceptance_report,
+    validate_matrix as validate_px4_failure_acceptance_matrix,
+    write_report as write_px4_failure_acceptance_report,
+)
 from sim_plane.human_follow_stage1_acceptance import (
     DEFAULT_REPORT_ROOT as DEFAULT_HF_STAGE1_REPORT_ROOT,
     format_report as format_hf_stage1_acceptance_report,
@@ -64,6 +70,29 @@ from sim_plane.run_suite import (
     DEFAULT_SUITE_REPORT_ROOT,
     format_suite_report,
     run_suite,
+)
+from sim_plane.algorithm_ingress_check import (
+    DEFAULT_INGRESS_REPORT_ROOT,
+    format_algorithm_ingress_report,
+    run_algorithm_ingress_check,
+)
+from sim_plane.autotest_pack import (
+    DEFAULT_PROFILE as DEFAULT_AUTOTEST_PROFILE,
+    DEFAULT_REPORT_ROOT as DEFAULT_AUTOTEST_REPORT_ROOT,
+    format_autotest_report,
+    run_autotest_pack,
+)
+from sim_plane.flight_log_analysis import (
+    DEFAULT_REPORT_ROOT as DEFAULT_FLIGHT_LOG_REPORT_ROOT,
+    analyze_flight_log,
+    format_flight_log_report,
+)
+from sim_plane.scenario_fuzz import (
+    DEFAULT_PROFILE as DEFAULT_FUZZ_PROFILE,
+    DEFAULT_REPORT_ROOT as DEFAULT_FUZZ_REPORT_ROOT,
+    DEFAULT_SEED as DEFAULT_FUZZ_SEED,
+    format_fuzz_report,
+    run_scenario_fuzz,
 )
 
 
@@ -190,6 +219,45 @@ def build_parser():
         type=int,
         default=5,
         help="Keep only the newest N timestamped platform acceptance report directories per mode; 0 disables pruning",
+    )
+
+    px4_failure_acceptance_parser = subparsers.add_parser(
+        "px4-failure-acceptance",
+        help="Validate the PX4-native failure-injection acceptance surface",
+    )
+    px4_failure_acceptance_parser.add_argument(
+        "--matrix",
+        help="Path to the PX4 failure-injection acceptance matrix JSON",
+    )
+    px4_failure_acceptance_parser.add_argument(
+        "--artifact-root",
+        help="Artifact root to search when --latest is used",
+    )
+    px4_failure_acceptance_parser.add_argument(
+        "--latest",
+        action="store_true",
+        help="Validate the latest matching artifacts instead of the frozen reference artifacts",
+    )
+    px4_failure_acceptance_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print the PX4 failure-injection acceptance report as JSON",
+    )
+    px4_failure_acceptance_parser.add_argument(
+        "--report-root",
+        default=str(DEFAULT_PX4_FAILURE_REPORT_ROOT),
+        help="Where PX4 failure-injection acceptance reports should be written",
+    )
+    px4_failure_acceptance_parser.add_argument(
+        "--no-save-report",
+        action="store_true",
+        help="Do not persist the PX4 failure-injection acceptance report under the report root",
+    )
+    px4_failure_acceptance_parser.add_argument(
+        "--keep-last-reports",
+        type=int,
+        default=5,
+        help="Keep only the newest N timestamped PX4 failure-injection acceptance report directories per mode; 0 disables pruning",
     )
 
     human_follow_stage1_acceptance_parser = subparsers.add_parser(
@@ -505,6 +573,144 @@ def build_parser():
         help="Override MAVLink heartbeat wait timeout in seconds for PX4-based suite variants",
     )
 
+    flight_log_parser = subparsers.add_parser(
+        "flight-log-analyze",
+        help="Analyze a sim_plane run artifact or PX4 .ulg file into replay KPIs",
+    )
+    flight_log_parser.add_argument("source", help="Run artifact directory or PX4 .ulg file")
+    flight_log_parser.add_argument(
+        "--report-root",
+        default=str(DEFAULT_FLIGHT_LOG_REPORT_ROOT),
+        help="Where flight-log analysis reports should be written",
+    )
+    flight_log_parser.add_argument(
+        "--no-save-report",
+        action="store_true",
+        help="Do not persist the flight-log analysis report",
+    )
+    flight_log_parser.add_argument(
+        "--keep-last-reports",
+        type=int,
+        default=10,
+        help="Keep only the newest N timestamped reports for the same source; 0 disables pruning",
+    )
+    flight_log_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print the flight-log analysis report as JSON",
+    )
+
+    fuzz_parser = subparsers.add_parser(
+        "scenario-fuzz",
+        help="Generate and run a deterministic fuzz/sweep suite, then report worst cases",
+    )
+    fuzz_parser.add_argument("scenario", help="Base scenario JSON file")
+    fuzz_parser.add_argument(
+        "--profile",
+        default=DEFAULT_FUZZ_PROFILE,
+        help="Fuzz profile to use. Currently: demo_fast",
+    )
+    fuzz_parser.add_argument(
+        "--seed",
+        type=int,
+        default=DEFAULT_FUZZ_SEED,
+        help="Deterministic fuzz seed",
+    )
+    fuzz_parser.add_argument(
+        "--variants",
+        type=int,
+        default=6,
+        help="Number of generated fuzz variants, excluding the baseline row",
+    )
+    fuzz_parser.add_argument(
+        "--artifact-root",
+        default="runs",
+        help="Where fresh fuzz variant artifacts should be written",
+    )
+    fuzz_parser.add_argument(
+        "--report-root",
+        default=str(DEFAULT_FUZZ_REPORT_ROOT),
+        help="Where scenario-fuzz reports should be written",
+    )
+    fuzz_parser.add_argument(
+        "--no-save-report",
+        action="store_true",
+        help="Do not persist the scenario-fuzz report",
+    )
+    fuzz_parser.add_argument(
+        "--keep-last-reports",
+        type=int,
+        default=10,
+        help="Keep only the newest N timestamped reports for the same fuzz name; 0 disables pruning",
+    )
+    fuzz_parser.add_argument(
+        "--px4-dir",
+        help="PX4-Autopilot checkout path for PX4-based fuzz profiles",
+    )
+    fuzz_parser.add_argument(
+        "--ros-workspace",
+        help="Override ROS workspace path for ROS-based fuzz profiles",
+    )
+    fuzz_parser.add_argument(
+        "--connect-timeout",
+        type=float,
+        help="Override MAVLink heartbeat wait timeout in seconds for PX4-based fuzz profiles",
+    )
+    fuzz_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print the scenario-fuzz report as JSON",
+    )
+
+    autotest_parser = subparsers.add_parser(
+        "autotest-pack",
+        help="Run a CI/autotest-like local validation pack",
+    )
+    autotest_parser.add_argument(
+        "--profile",
+        default=DEFAULT_AUTOTEST_PROFILE,
+        help="Autotest profile to run. Currently: fast",
+    )
+    autotest_parser.add_argument(
+        "--artifact-root",
+        default="runs",
+        help="Artifact root to use for fresh runs and latest acceptance checks",
+    )
+    autotest_parser.add_argument(
+        "--report-root",
+        default=str(DEFAULT_AUTOTEST_REPORT_ROOT),
+        help="Where autotest pack reports should be written",
+    )
+    autotest_parser.add_argument(
+        "--no-save-report",
+        action="store_true",
+        help="Do not persist the autotest pack report",
+    )
+    autotest_parser.add_argument(
+        "--keep-last-reports",
+        type=int,
+        default=10,
+        help="Keep only the newest N timestamped autotest report directories; 0 disables pruning",
+    )
+    autotest_parser.add_argument(
+        "--px4-dir",
+        help="PX4-Autopilot checkout path for PX4-based steps",
+    )
+    autotest_parser.add_argument(
+        "--ros-workspace",
+        help="Override ROS workspace path for ROS-based steps",
+    )
+    autotest_parser.add_argument(
+        "--connect-timeout",
+        type=float,
+        help="Override MAVLink heartbeat wait timeout in seconds for PX4-based steps",
+    )
+    autotest_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print the autotest pack report as JSON",
+    )
+
     show_parser = subparsers.add_parser("show-scenario", help="Print a normalized scenario")
     show_parser.add_argument("scenario", help="Path to the scenario JSON file")
 
@@ -584,6 +790,76 @@ def build_parser():
         help="Overwrite the output scenario if it already exists",
     )
 
+    ingress_parser = subparsers.add_parser(
+        "check-algorithm-ingress",
+        help="Run one custom algorithm scenario and report adapter/interface health",
+    )
+    ingress_parser.add_argument(
+        "--scenario",
+        help="Existing scenario JSON to run for ingress health checking",
+    )
+    ingress_parser.add_argument(
+        "--adapter",
+        choices=["external_command", "ros_command"],
+        help="Adapter to generate when --scenario is not provided",
+    )
+    ingress_parser.add_argument(
+        "--command",
+        dest="user_command",
+        help="User algorithm command to generate when --scenario is not provided",
+    )
+    ingress_parser.add_argument(
+        "--backend",
+        help="Backend to use for generated ingress scenario",
+    )
+    ingress_parser.add_argument(
+        "--workdir",
+        help="Working directory for generated user command",
+    )
+    ingress_parser.add_argument(
+        "--shell",
+        action="store_true",
+        help="Keep generated --command as a shell string instead of splitting it into argv",
+    )
+    ingress_parser.add_argument(
+        "--duration-s",
+        type=float,
+        help="Generated scenario duration in seconds",
+    )
+    ingress_parser.add_argument(
+        "--target-altitude-m",
+        type=float,
+        help="Generated scenario target altitude",
+    )
+    ingress_parser.add_argument(
+        "--artifact-root",
+        default="runs",
+        help="Where fresh ingress artifacts should be written",
+    )
+    ingress_parser.add_argument(
+        "--report-root",
+        default=str(DEFAULT_INGRESS_REPORT_ROOT),
+        help="Where generated ingress scenario templates should be written",
+    )
+    ingress_parser.add_argument(
+        "--px4-dir",
+        help="PX4-Autopilot checkout path for PX4-based ingress checks",
+    )
+    ingress_parser.add_argument(
+        "--ros-workspace",
+        help="Override ROS workspace path for ROS-based ingress checks",
+    )
+    ingress_parser.add_argument(
+        "--connect-timeout",
+        type=float,
+        help="Override MAVLink heartbeat wait timeout in seconds",
+    )
+    ingress_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print the ingress health report as JSON",
+    )
+
     return parser
 
 
@@ -650,6 +926,33 @@ def main(argv=None):
         print(format_generated_scenario_help(scenario, written_path))
         return 0
 
+    if args.command == "check-algorithm-ingress":
+        try:
+            report = run_algorithm_ingress_check(
+                scenario_path=args.scenario,
+                adapter=args.adapter,
+                command=args.user_command,
+                backend=args.backend,
+                workdir=args.workdir,
+                shell=args.shell,
+                duration_s=args.duration_s,
+                target_altitude_m=args.target_altitude_m,
+                artifact_root=args.artifact_root,
+                report_root=args.report_root,
+                runtime_options={
+                    "px4_dir": args.px4_dir,
+                    "ros_workspace_dir": args.ros_workspace,
+                    "connect_timeout_s": args.connect_timeout,
+                },
+            )
+        except ValueError as exc:
+            parser.error(str(exc))
+        if args.json:
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+        else:
+            print(format_algorithm_ingress_report(report))
+        return 0 if report["status"] == "passed" else 1
+
     if args.command == "planner-acceptance":
         report = validate_acceptance_matrix(
             path=args.matrix,
@@ -695,6 +998,32 @@ def main(argv=None):
             print(json.dumps(report, indent=2, ensure_ascii=False))
         else:
             print(format_platform_acceptance_report(report))
+            if saved_report is not None:
+                print("report_dir: {0}".format(saved_report["report_dir"]))
+                print("latest_report_json: {0}".format(saved_report["latest_report_json"]))
+                print("latest_delta_json: {0}".format(saved_report["latest_delta_json"]))
+                print("history_jsonl: {0}".format(saved_report["history_jsonl"]))
+        return 0 if report["status"] == "passed" else 1
+
+    if args.command == "px4-failure-acceptance":
+        report = validate_px4_failure_acceptance_matrix(
+            path=args.matrix,
+            artifact_root=args.artifact_root,
+            use_latest=args.latest,
+        )
+        saved_report = None
+        if not args.no_save_report:
+            saved_report = write_px4_failure_acceptance_report(
+                report,
+                report_root=args.report_root,
+                keep_last=args.keep_last_reports,
+            )
+            report["saved_report"] = saved_report
+            report["delta_from_previous"] = saved_report["delta"]
+        if args.json:
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+        else:
+            print(format_px4_failure_acceptance_report(report))
             if saved_report is not None:
                 print("report_dir: {0}".format(saved_report["report_dir"]))
                 print("latest_report_json: {0}".format(saved_report["latest_report_json"]))
@@ -873,6 +1202,67 @@ def main(argv=None):
             print(json.dumps(report, indent=2, ensure_ascii=False))
         else:
             print(format_suite_report(report))
+        return 0 if report["status"] == "passed" else 1
+
+    if args.command == "flight-log-analyze":
+        try:
+            report = analyze_flight_log(
+                args.source,
+                report_root=None if args.no_save_report else args.report_root,
+                keep_last=args.keep_last_reports,
+                save_report=not args.no_save_report,
+            )
+        except ValueError as exc:
+            parser.error(str(exc))
+        if args.json:
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+        else:
+            print(format_flight_log_report(report))
+        return 0 if report["status"] == "passed" else 1
+
+    if args.command == "scenario-fuzz":
+        try:
+            report = run_scenario_fuzz(
+                scenario_path=args.scenario,
+                profile=args.profile,
+                seed=args.seed,
+                variants=args.variants,
+                artifact_root=args.artifact_root,
+                report_root=None if args.no_save_report else args.report_root,
+                keep_last=args.keep_last_reports,
+                runtime_options={
+                    "px4_dir": args.px4_dir,
+                    "ros_workspace_dir": args.ros_workspace,
+                    "connect_timeout_s": args.connect_timeout,
+                },
+            )
+        except ValueError as exc:
+            parser.error(str(exc))
+        if args.json:
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+        else:
+            print(format_fuzz_report(report))
+        return 0 if report["status"] == "passed" else 1
+
+    if args.command == "autotest-pack":
+        try:
+            report = run_autotest_pack(
+                profile=args.profile,
+                artifact_root=args.artifact_root,
+                report_root=None if args.no_save_report else args.report_root,
+                keep_last=args.keep_last_reports,
+                runtime_options={
+                    "px4_dir": args.px4_dir,
+                    "ros_workspace_dir": args.ros_workspace,
+                    "connect_timeout_s": args.connect_timeout,
+                },
+            )
+        except ValueError as exc:
+            parser.error(str(exc))
+        if args.json:
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+        else:
+            print(format_autotest_report(report))
         return 0 if report["status"] == "passed" else 1
 
     if args.command == "run":

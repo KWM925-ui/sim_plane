@@ -129,6 +129,7 @@ Use a layered approach instead of forcing one heavy simulator to do everything:
 - [EGO-Planner-Swarm integration](docs/ego_planner_swarm_integration.md)
 - [FAST_LIO + MARSIM integration](docs/fast_lio_marsim_integration.md)
 - [Frontier algorithm probes](docs/frontier_algorithm_probes.md)
+- [平台总入口（中文）](<docs/平台总入口_zh.md>)
 - [项目结构与维护说明（中文）](<docs/项目结构与维护说明_zh.md>)
 - [前沿算法探针说明（中文）](<docs/前沿算法探针说明_zh.md>)
 - [算法复现手册（中文）](<docs/算法复现手册_zh.md>)
@@ -183,6 +184,12 @@ Browse retained artifacts and compare two runs in the dashboard:
 python3 -m sim_plane serve runs
 ```
 
+The dashboard also shows the latest suite reports under `runs/suites/`,
+including KPI rows, KPI rankings, and the strongest `top_metric_effects` from
+parameter sweeps. It also lists the latest professional test-surface reports:
+PX4 failure injection, flight-log replay, seeded fuzz, and local autotest pack
+results.
+
 List backends:
 
 ```bash
@@ -214,11 +221,80 @@ python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
   --suite configs/demo_disturbance_suite.json
 ```
 
+Run the PX4-native failure-injection proof:
+
+```bash
+python3 -m sim_plane run scenarios/px4_sih_quadx_mavsdk_failure_motor.json \
+  --artifact-root runs --no-hold-open
+
+python3 -m sim_plane px4-failure-acceptance --latest --artifact-root runs
+```
+
+This is deliberately not a demo disturbance. It uses PX4 `MAV_CMD_INJECT_FAILURE`
+through the MAVSDK failure plugin and currently locks the first proven SIH path:
+`SYSTEM_MOTOR/OFF` followed by `SYSTEM_MOTOR/OK`. Other failure units must be
+added only after fresh PX4-backed evidence proves they are accepted on the
+selected backend.
+
 Run an automatic parameter sweep without hand-writing every variant:
 
 ```bash
 python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
   --suite configs/demo_parameter_sweep_suite.json
+```
+
+Run deterministic sensor degradation and KPI gates on the lightweight demo
+backend:
+
+```bash
+python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
+  --suite configs/demo_degradation_suite.json
+```
+
+Replay a run artifact or PX4 `.ulg` flight log into normalized KPI evidence:
+
+```bash
+python3 -m sim_plane flight-log-analyze runs/<artifact_dir>
+
+python3 -m sim_plane flight-log-analyze /path/to/log.ulg
+```
+
+Reports are written under `runs/flight_log_analysis/`. Artifact replay reads
+`telemetry.jsonl`, `result.json`, and `events.jsonl`; `.ulg` replay uses
+`pyulog` and extracts duration, altitude/speed summaries, nav/arming state
+changes, PX4 log warnings, dropout counts, and replay `kpi_*` metrics. These
+are two different inputs: artifact replay does not imply `.ulg` capture unless
+the source is actually a `.ulg` file.
+
+Run a deterministic seeded fuzz/sweep and rank worst cases:
+
+```bash
+python3 -m sim_plane scenario-fuzz scenarios/basic_takeoff.json \
+  --profile demo_fast --seed 20260528 --variants 6
+```
+
+Reports are written under `runs/scenario_fuzz/` and include the generated suite
+JSON, fresh variant artifacts, KPI rankings, `top_metric_effects`, and
+`worst_cases`. The current `demo_fast` profile deliberately exercises the
+lightweight demo backend's disturbance/degradation knobs; do not label it as
+PX4-native physical failure injection.
+
+Run the fast CI/autotest-like pack:
+
+```bash
+python3 -m sim_plane autotest-pack --profile fast --artifact-root runs
+```
+
+The fast pack runs doctor, artifact hygiene, `live-smoke --profile fast`, the
+demo degradation suite, seeded fuzz, flight-log artifact replay, PX4 failure
+acceptance latest, and platform acceptance latest. Reports are written under
+`runs/autotest/`.
+
+Run the standard lightweight task-family exam:
+
+```bash
+python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
+  --suite configs/demo_task_family_suite.json
 ```
 
 Run the same suite surface on the real PX4 SIH flight-stack path:
@@ -234,6 +310,23 @@ suite report under:
 ```text
 runs/suites/
 ```
+
+Every shared-runner artifact now also receives normalized plugin-style `kpi_*`
+metrics in `result.json`, such as altitude error, reach time, settle/recovery
+time, path error, final-goal distance, speed and acceleration roughness, speed
+limit violations, safety/geofence violations, sensor dropout/reacquire counts,
+and measurement error when truth data is available. These metrics are
+intentionally additive: existing backend-specific metrics and acceptance
+contracts keep their original meaning. Whole-run KPI values include takeoff and
+landing transients; `kpi_mission_*` values isolate the mission or offboard phase
+when the backend labels that phase.
+
+The lightweight demo backend supports deterministic degradation knobs for
+algorithm robustness testing: `sensor_dropout`, `target_loss`, `sensor_latency`,
+`sensor_noise`, `measurement_bias`, `measurement_bias_drift`,
+`measurement_saturation`, `communication_interruption`, and
+`control_saturation`. PX4 SIH remains conservative: do not call a PX4 run a
+wind/fault test unless that injection is backed by a real PX4-side mechanism.
 
 For the fastest local sanity check, run only the built-in demo row:
 
@@ -255,6 +348,13 @@ Run the repo-local custom algorithm template on PX4 SIH:
 python3 -m sim_plane run scenarios/px4_sih_quadx_external_command_template.json --visualize --no-hold-open
 ```
 
+Run an interface health check for that same control-algorithm ingress:
+
+```bash
+python3 -m sim_plane check-algorithm-ingress \
+  --scenario scenarios/px4_sih_quadx_external_command_template.json
+```
+
 Generate a scenario for your own PX4-side control algorithm:
 
 ```bash
@@ -262,6 +362,15 @@ python3 -m sim_plane generate-scenario \
   --adapter external_command \
   --command "python3 /path/to/my_controller.py" \
   --name my_px4_controller
+```
+
+Generate and immediately health-check your own control algorithm:
+
+```bash
+python3 -m sim_plane check-algorithm-ingress \
+  --adapter external_command \
+  --command "python3 /path/to/my_controller.py" \
+  --backend px4_sih
 ```
 
 Run the repo-local ROS planner/perception template on top of MARSIM:

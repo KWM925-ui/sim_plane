@@ -8,6 +8,7 @@ def available_adapters():
     from sim_plane.adapters.human_follow_ros import HumanFollowROSStage1Adapter
     from sim_plane.adapters.human_follow_ros_stage2 import HumanFollowROSStage2Adapter
     from sim_plane.adapters.mavsdk_action import MAVSDKActionAdapter
+    from sim_plane.adapters.mavsdk_failure import MAVSDKFailureInjectionAdapter
     from sim_plane.adapters.ros_command import ROSCommandAdapter
 
     return {
@@ -15,6 +16,7 @@ def available_adapters():
         HumanFollowROSStage1Adapter.name: HumanFollowROSStage1Adapter,
         HumanFollowROSStage2Adapter.name: HumanFollowROSStage2Adapter,
         MAVSDKActionAdapter.name: MAVSDKActionAdapter,
+        MAVSDKFailureInjectionAdapter.name: MAVSDKFailureInjectionAdapter,
         ROSCommandAdapter.name: ROSCommandAdapter,
     }
 
@@ -43,8 +45,6 @@ def build_algorithm_adapter(spec):
 
 
 def validate_algorithm_adapter(spec, context=None):
-    from sim_plane.adapters.mavsdk_action import extract_udp_port, resolve_mavsdk_system_address
-
     try:
         adapter, normalized = build_algorithm_adapter(spec)
     except AdapterError as exc:
@@ -54,7 +54,7 @@ def validate_algorithm_adapter(spec, context=None):
 
     issues = adapter.validate_environment(normalized, context=context)
     telemetry_port = extract_udp_port((context or {}).get("telemetry_endpoint"))
-    system_address = resolve_mavsdk_system_address(normalized, context=context)
+    system_address = resolve_adapter_system_address(adapter, normalized, context=context)
     adapter_port = extract_udp_port(system_address)
     if adapter.requires_dedicated_udp_port and telemetry_port is not None and adapter_port == telemetry_port:
         issues.append(
@@ -80,6 +80,20 @@ def validate_algorithm_adapter(spec, context=None):
             )
         )
     return issues
+
+
+def extract_udp_port(address):
+    from sim_plane.adapters.mavsdk_action import extract_udp_port as extract_action_udp_port
+
+    return extract_action_udp_port(address)
+
+
+def resolve_adapter_system_address(adapter, spec, context=None):
+    if adapter.name == "mavsdk_failure_injection":
+        from sim_plane.adapters.mavsdk_failure import resolve_mavsdk_system_address
+    else:
+        from sim_plane.adapters.mavsdk_action import resolve_mavsdk_system_address
+    return resolve_mavsdk_system_address(spec, context=context)
 
 
 def has_algorithm_adapter(spec):

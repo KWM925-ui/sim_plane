@@ -5,6 +5,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
 
+from sim_plane.artifacts import build_artifact_dir
 from sim_plane.cli import main
 from sim_plane.run_suite import load_suite_definition, run_suite
 
@@ -33,6 +34,22 @@ def write_base_scenario(path):
 
 
 class RunSuiteTest(unittest.TestCase):
+    def test_artifact_dir_uses_collision_resistant_stamp(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            first = build_artifact_dir(tmpdir, "same_name")
+            first.mkdir(parents=True)
+            second = build_artifact_dir(tmpdir, "same_name")
+
+            self.assertNotEqual(first, second)
+            self.assertRegex(first.name, r"same_name_\d{8}_\d{6}_\d{6}")
+
+    def test_artifact_dir_sanitizes_path_separators(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            artifact_dir = build_artifact_dir(tmpdir, "bad/name with spaces")
+
+            self.assertEqual(artifact_dir.parent, Path(tmpdir))
+            self.assertRegex(artifact_dir.name, r"bad_name_with_spaces_\d{8}_\d{6}_\d{6}")
+
     def test_run_suite_writes_variant_artifacts_and_report(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -77,7 +94,9 @@ class RunSuiteTest(unittest.TestCase):
             wind_row = {row["name"]: row for row in report["rows"]}["wind"]
             self.assertTrue(wind_row["metrics"]["disturbance_enabled"])
             self.assertGreater(wind_row["metrics"]["max_horizontal_error_m"], 0.0)
+            self.assertIn("kpi_altitude_mae_m", wind_row["metrics"])
             self.assertIn("max_horizontal_error_m", report["metric_summary"])
+            self.assertIn("kpi_altitude_mae_m", report["kpi_rankings"])
             self.assertEqual(report["factor_analysis"], {})
             self.assertTrue(Path(report["saved_report"]["report_json"]).exists())
 
@@ -146,6 +165,97 @@ class RunSuiteTest(unittest.TestCase):
 
             self.assertEqual(report["status"], "failed")
             self.assertIn("below min", report["issues"][0])
+
+    def test_suite_can_gate_on_kpi_metrics(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            scenario_path = root / "scenario.json"
+            suite_path = root / "suite.json"
+            write_base_scenario(scenario_path)
+            suite_path.write_text(
+                json.dumps(
+                    {
+                        "name": "kpi_suite",
+                        "variants": [
+                            {
+                                "name": "dropout",
+                                "overrides": {
+                                    "degradations": {
+                                        "sensor_dropout": {
+                                            "windows": [
+                                                {
+                                                    "start_s": 5.5,
+                                                    "end_s": 6.0,
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "required_metrics": {
+                                    "degradation_enabled": True
+                                },
+                                "metric_thresholds": {
+                                    "kpi_sensor_dropout_count": {
+                                        "min": 1
+                                    }
+                                },
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            report = run_suite(
+                scenario_path=scenario_path,
+                suite_path=suite_path,
+                artifact_root=root / "runs",
+                report_root=None,
+            )
+
+            self.assertEqual(report["status"], "passed")
+            self.assertGreater(report["rows"][0]["metrics"]["kpi_sensor_dropout_count"], 0)
+
+    def test_base_overrides_apply_to_hand_written_variants(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            suite_path = root / "suite.json"
+            suite_path.write_text(
+                json.dumps(
+                    {
+                        "name": "base_override_suite",
+                        "base_overrides": {
+                            "duration_s": 8.0,
+                            "disturbances": {
+                                "seed": 5
+                            },
+                        },
+                        "variants": [
+                            {
+                                "name": "baseline",
+                                "overrides": {
+                                    "disturbances": {
+                                        "wind": {
+                                            "y_mps": 0.2
+                                        }
+                                    }
+                                },
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            suite = load_suite_definition(suite_path)
+
+            self.assertEqual(suite["variants"][0]["overrides"]["duration_s"], 8.0)
+            self.assertEqual(suite["variants"][0]["overrides"]["disturbances"]["seed"], 5)
+            self.assertEqual(suite["variants"][0]["overrides"]["disturbances"]["wind"]["y_mps"], 0.2)
 
     def test_invalid_metric_threshold_shape_fails_before_running(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -267,6 +377,8 @@ class RunSuiteTest(unittest.TestCase):
                 },
                 report["top_metric_effects"],
             )
+            self.assertIn("kpi_distance_m", report["kpi_rankings"])
+            self.assertEqual(len(report["kpi_rankings"]["kpi_distance_m"]["worst_high"]), 4)
 
     def test_sweep_suite_rejects_variants_and_sweep_together(self):
         with tempfile.TemporaryDirectory() as tmpdir:

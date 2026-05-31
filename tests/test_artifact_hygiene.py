@@ -67,6 +67,7 @@ class ArtifactHygieneTest(unittest.TestCase):
             runs_root = Path(tmpdir) / "runs"
             report_roots = [
                 "acceptance",
+                "algorithm_ingress",
                 "human_follow_stage1_acceptance",
                 "human_follow_stage1_detector_tracker_acceptance",
                 "human_follow_stage2_acceptance",

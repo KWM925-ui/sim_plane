@@ -1,0 +1,165 @@
+{
+  "name": "demo_task_family_suite",
+  "description": "Standard lightweight task-family exam for takeoff, hover, waypoint tracking, target loss/reacquire, perception degradation, communication interruption, control saturation, geofence safety, and fail-safe behavior on the demo backend.",
+  "base_overrides": {
+    "duration_s": 14.0,
+    "realtime_factor": 0.0,
+    "target_altitude_m": 12.0,
+    "safety": {
+      "min_altitude_m": 0.0,
+      "max_altitude_m": 16.0,
+      "max_radius_m": 35.0
+    },
+    "control_limits": {
+      "max_speed_mps": 6.0
+    }
+  },
+  "variants": [
+    {
+      "name": "takeoff_landing",
+      "overrides": {},
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "degradation_enabled": false
+      },
+      "metric_thresholds": {
+        "kpi_target_reach_time_s": { "max": 5.0 },
+        "kpi_altitude_overshoot_m": { "max": 0.01 },
+        "kpi_safety_violation_count": { "max": 0 }
+      }
+    },
+    {
+      "name": "waypoint_tracking",
+      "overrides": {
+        "waypoints": [
+          { "x": 0.0, "y": 0.0 },
+          { "x": 12.0, "y": 0.0 },
+          { "x": 12.0, "y": 8.0 },
+          { "x": 0.0, "y": 8.0 },
+          { "x": 0.0, "y": 0.0 }
+        ]
+      },
+      "required_metrics": {
+        "target_altitude_reached": true
+      },
+      "metric_thresholds": {
+        "kpi_mission_path_error_max_m": { "max": 0.01 },
+        "kpi_final_goal_distance_m": { "max": 0.01 }
+      }
+    },
+    {
+      "name": "target_loss_reacquire",
+      "overrides": {
+        "degradations": {
+          "target_loss": {
+            "windows": [
+              { "start_s": 6.0, "end_s": 7.2 }
+            ]
+          }
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "degradation_enabled": true
+      },
+      "metric_thresholds": {
+        "kpi_target_lost_count": { "min": 1 },
+        "kpi_target_reacquire_count": { "min": 1 },
+        "kpi_sensor_recovery_time_s": { "max": 1.5 }
+      }
+    },
+    {
+      "name": "perception_degradation",
+      "overrides": {
+        "degradations": {
+          "seed": 41,
+          "sensor_noise": {
+            "position_std_m": 0.12,
+            "altitude_std_m": 0.08
+          },
+          "measurement_bias_drift": {
+            "x_mps": 0.03,
+            "y_mps": -0.02,
+            "z_mps": 0.01
+          }
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "degradation_enabled": true
+      },
+      "metric_thresholds": {
+        "kpi_measurement_horizontal_error_mae_m": { "min": 0.05 },
+        "kpi_measurement_horizontal_error_max_m": { "min": 0.2 }
+      }
+    },
+    {
+      "name": "communication_interruption",
+      "overrides": {
+        "degradations": {
+          "communication_interruption": {
+            "windows": [
+              { "start_s": 6.0, "end_s": 6.8 }
+            ]
+          }
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "degradation_enabled": true
+      },
+      "metric_thresholds": {
+        "communication_interruption_count": { "min": 1 },
+        "kpi_safety_violation_count": { "max": 0 }
+      }
+    },
+    {
+      "name": "control_saturation",
+      "overrides": {
+        "control_limits": {
+          "max_speed_mps": 3.0
+        },
+        "degradations": {
+          "control_saturation": {
+            "max_speed_mps": 3.0
+          }
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "degradation_enabled": true
+      },
+      "metric_thresholds": {
+        "control_saturation_count": { "min": 1 },
+        "kpi_speed_limit_violation_count": { "max": 0 },
+        "kpi_max_speed_mps": { "max": 3.0 }
+      }
+    },
+    {
+      "name": "fail_safe_hold",
+      "overrides": {
+        "degradations": {
+          "communication_interruption": {
+            "windows": [
+              { "start_s": 5.6, "end_s": 8.0 }
+            ]
+          },
+          "target_loss": {
+            "windows": [
+              { "start_s": 6.0, "end_s": 7.0 }
+            ]
+          }
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "degradation_enabled": true
+      },
+      "metric_thresholds": {
+        "communication_interruption_count": { "min": 1 },
+        "kpi_target_lost_count": { "min": 1 },
+        "kpi_safety_violation_count": { "max": 0 }
+      }
+    }
+  ]
+}

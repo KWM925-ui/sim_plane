@@ -1,0 +1,33 @@
+{
+  "name": "px4_sih_quadx_mavsdk_failure_motor",
+  "description": "Real PX4 SIH quadrotor run that proves PX4-native MAV_CMD_INJECT_FAILURE support for the currently supported motor failure path through MAVSDK.",
+  "backend": "px4_sih",
+  "vehicle": "quadrotor",
+  "duration_s": 18.0,
+  "update_hz": 5.0,
+  "target_altitude_m": 1.0,
+  "algorithm_adapter": {
+    "type": "mavsdk_failure_injection",
+    "system_address": "udp://127.0.0.1:14580",
+    "failure_unit": "motor",
+    "failure_type": "off",
+    "instance": 1,
+    "reset_after_injection": true,
+    "reset_failure_type": "ok",
+    "pre_injection_wait_s": 1.0,
+    "post_injection_observe_s": 2.0,
+    "reset_after_s": 1.0,
+    "connect_timeout_s": 15.0,
+    "ready_timeout_s": 20.0,
+    "join_timeout_s": 3.0
+  },
+  "backend_options": {
+    "model": "sihsim_quadx",
+    "mavlink_endpoint": "udpin:127.0.0.1:14550",
+    "launch_qgc": false,
+    "launch_jmavsim": false,
+    "speed_factor": 1.0,
+    "success_criteria": "adapter_completed",
+    "allow_early_stop_on_adapter_success": true
+  }
+}

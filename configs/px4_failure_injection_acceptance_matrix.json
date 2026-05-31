@@ -1,0 +1,51 @@
+{
+  "matrix_name": "px4_failure_injection_acceptance",
+  "required_event_levels": [
+    "info"
+  ],
+  "metric_regression_budgets": {
+    "telemetry_count": {
+      "max_drop": 5
+    },
+    "mode_changes": {
+      "max_drop": 0
+    }
+  },
+  "rows": [
+    {
+      "name": "px4_sih_motor_failure_injection",
+      "backend": "px4_sih",
+      "surface": "PX4 SIH native MAV_CMD_INJECT_FAILURE through MAVSDK failure plugin",
+      "scenario_name": "px4_sih_quadx_mavsdk_failure_motor",
+      "reference_artifact": "runs/px4_sih_quadx_mavsdk_failure_motor_20260528_105546_340839",
+      "required_metrics": {
+        "algorithm_adapter_name": "mavsdk_failure_injection",
+        "algorithm_adapter_connected": true,
+        "algorithm_adapter_completed_successfully": true,
+        "failure_injection_backend": "px4_mavsdk_failure_plugin",
+        "failure_injection_command": "MAV_CMD_INJECT_FAILURE",
+        "failure_injection_unit": "SYSTEM_MOTOR",
+        "failure_injection_type": "OFF",
+        "failure_injection_instance": 1,
+        "failure_injection_accepted": true,
+        "failure_injection_reset_type": "OK",
+        "failure_injection_reset_accepted": true
+      },
+      "metric_thresholds": {
+        "telemetry_count": {
+          "min": 1
+        },
+        "mode_changes": {
+          "min": 1
+        },
+        "failure_injection_health_changed_count": {
+          "min": 0
+        }
+      },
+      "notes_must_contain": [
+        "PX4-native MAV_CMD_INJECT_FAILURE",
+        "Demo backend disturbances are not treated as PX4-native failures."
+      ]
+    }
+  ]
+}

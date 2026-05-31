@@ -4,6 +4,7 @@ from pathlib import Path
 from sim_plane.artifacts import ArtifactWriter, build_artifact_dir, utc_timestamp
 from sim_plane.backends import available_backends
 from sim_plane.backends.base import BackendError
+from sim_plane.evaluation import enrich_result_with_kpis
 from sim_plane.scenario import load_scenario
 from sim_plane.web import ArtifactReplay, ArtifactRootBrowser, DashboardServer, LiveRunState, is_complete_artifact_dir
 
@@ -12,8 +13,10 @@ class RunSink:
     def __init__(self, artifact_writer, live_state):
         self.artifact_writer = artifact_writer
         self.live_state = live_state
+        self.telemetry = []
 
     def emit_telemetry(self, sample):
+        self.telemetry.append(sample)
         self.artifact_writer.append_telemetry(sample)
         if self.live_state is not None:
             self.live_state.append_telemetry(sample)
@@ -83,6 +86,7 @@ def run_scenario(
         }
         sink.emit_event("error", "run failed", {"error": str(exc)})
 
+    result = enrich_result_with_kpis(result, scenario, sink.telemetry)
     writer.write_result(result)
     if live_state is not None:
         live_state.finalize(result)

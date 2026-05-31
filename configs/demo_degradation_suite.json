@@ -1,0 +1,184 @@
+{
+  "name": "demo_degradation_suite",
+  "description": "Functional degradation suite for deterministic sensor dropout, target loss, latency, noise, bias drift, communication interruption, control saturation, and range saturation on the lightweight demo backend.",
+  "base_overrides": {
+    "duration_s": 12.0,
+    "realtime_factor": 0.0
+  },
+  "variants": [
+    {
+      "name": "baseline",
+      "overrides": {},
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "degradation_enabled": false
+      },
+      "metric_thresholds": {
+        "kpi_sensor_dropout_ratio": {
+          "max": 0.0
+        },
+        "kpi_altitude_overshoot_m": {
+          "max": 0.01
+        }
+      }
+    },
+    {
+      "name": "dropout_window",
+      "overrides": {
+        "degradations": {
+          "seed": 31,
+          "sensor_dropout": {
+            "windows": [
+              {
+                "start_s": 6.0,
+                "end_s": 7.0
+              }
+            ]
+          }
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "degradation_enabled": true
+      },
+      "metric_thresholds": {
+        "kpi_sensor_dropout_count": {
+          "min": 1
+        },
+        "kpi_sensor_dropout_ratio": {
+          "max": 0.2
+        }
+      }
+    },
+    {
+      "name": "latency_bias",
+      "overrides": {
+        "degradations": {
+          "seed": 37,
+          "sensor_latency": {
+            "delay_s": 0.4
+          },
+          "measurement_bias": {
+            "x_m": 0.4,
+            "y_m": -0.2,
+            "z_m": -0.1
+          }
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "degradation_enabled": true
+      },
+      "metric_thresholds": {
+        "kpi_measurement_horizontal_error_mae_m": {
+          "min": 0.2
+        },
+        "kpi_measurement_vertical_error_mae_m": {
+          "min": 0.05
+        }
+      }
+    },
+    {
+      "name": "range_saturation",
+      "overrides": {
+        "degradations": {
+          "measurement_saturation": {
+            "max_horizontal_range_m": 8.0,
+            "max_altitude_m": 8.0
+          }
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "degradation_enabled": true
+      },
+      "metric_thresholds": {
+        "kpi_measurement_horizontal_error_max_m": {
+          "min": 1.0
+        },
+        "kpi_measurement_vertical_error_max_m": {
+          "min": 1.0
+        }
+      }
+    },
+    {
+      "name": "target_loss_reacquire",
+      "overrides": {
+        "degradations": {
+          "target_loss": {
+            "windows": [
+              {
+                "start_s": 6.0,
+                "end_s": 7.0
+              }
+            ]
+          }
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "degradation_enabled": true
+      },
+      "metric_thresholds": {
+        "kpi_target_lost_count": {
+          "min": 1
+        },
+        "kpi_target_reacquire_count": {
+          "min": 1
+        },
+        "kpi_sensor_recovery_time_s": {
+          "max": 1.5
+        }
+      }
+    },
+    {
+      "name": "noise_drift_comm_control",
+      "overrides": {
+        "control_limits": {
+          "max_speed_mps": 4.0
+        },
+        "degradations": {
+          "seed": 43,
+          "sensor_noise": {
+            "position_std_m": 0.1,
+            "altitude_std_m": 0.05
+          },
+          "measurement_bias_drift": {
+            "x_mps": 0.02,
+            "y_mps": -0.02,
+            "z_mps": 0.01
+          },
+          "communication_interruption": {
+            "windows": [
+              {
+                "start_s": 6.0,
+                "end_s": 6.6
+              }
+            ]
+          },
+          "control_saturation": {
+            "max_speed_mps": 4.0
+          }
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "degradation_enabled": true
+      },
+      "metric_thresholds": {
+        "communication_interruption_count": {
+          "min": 1
+        },
+        "control_saturation_count": {
+          "min": 1
+        },
+        "kpi_measurement_horizontal_error_max_m": {
+          "min": 0.1
+        },
+        "kpi_speed_limit_violation_count": {
+          "max": 0
+        }
+      }
+    }
+  ]
+}

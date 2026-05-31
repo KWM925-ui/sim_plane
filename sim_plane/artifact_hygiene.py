@@ -14,6 +14,9 @@ DEFAULT_REFERENCE_SEARCH_PATHS = (
 )
 DEFAULT_RESERVED_ROOT_NAMES = {
     "acceptance",
+    "algorithm_ingress",
+    "autotest",
+    "flight_log_analysis",
     "human_follow_stage1_acceptance",
     "human_follow_stage1_detector_tracker_acceptance",
     "human_follow_stage2_acceptance",
@@ -21,6 +24,8 @@ DEFAULT_RESERVED_ROOT_NAMES = {
     "live_smoke",
     "manual_probes",
     "platform_acceptance",
+    "px4_failure_injection_acceptance",
+    "scenario_fuzz",
     "suites",
 }
 DEFAULT_MANUAL_PROBE_ROOT_NAME = "manual_probes"

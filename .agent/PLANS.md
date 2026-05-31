@@ -383,3 +383,215 @@
   - final validation PASS: `116` tests, compileall, shell syntax,
     `doctor --json`, artifact hygiene, latest planner acceptance, latest
     platform acceptance, and fast live smoke.
+
+## Functional KPI And Degradation Frontier 2026-05-28
+
+- Current functional widening after external reference review:
+  - add a backend-agnostic KPI evaluation layer that reads recorded telemetry
+    and appends normalized algorithm-quality metrics into each artifact result;
+  - extend the lightweight demo backend with deterministic degradation/fault
+    knobs that are safe to test without pretending PX4 SIH supports fake wind;
+  - let `run-suite` gate on these normalized KPI metrics so scenario batches can
+    judge quality, not only raw pass/fail.
+- Scope boundaries:
+  - do not add AirSim, Isaac/Pegasus, or another heavy simulator backend now;
+  - do not change existing acceptance semantics or thresholds;
+  - do not touch `/home/coco/follwer_ws`;
+  - keep the first implementation dependency-free and usable on the current
+    Ubuntu 20.04 host;
+  - do not label PX4 SIH variants as wind/fault tests unless the fault is backed
+    by a real PX4-side contract.
+- Promotion gate:
+  - unit tests for KPI calculations, result enrichment, degradation behavior,
+    and suite thresholding;
+  - one runnable demo degradation suite that proves the surface;
+  - README/docs mention the new command path and the value of the metrics;
+  - final validation through unit tests, compileall, doctor, artifact hygiene,
+    latest acceptance, and fast live smoke.
+- Landed shape:
+  - `sim_plane.evaluation` appends backend-agnostic `kpi_*` metrics to each
+    shared-runner `result.json`;
+  - `kpi_mission_*` isolates mission/offboard quality from takeoff and landing
+    transients when the backend labels that phase;
+  - the demo backend supports deterministic `degradations` for sensor dropout,
+    latency, measurement bias, and measurement saturation;
+  - hand-written suite variants now inherit suite-level `base_overrides`, like
+    generated sweep variants already did;
+  - `configs/demo_degradation_suite.json` provides the first reusable
+    degradation/KPI-gated suite.
+- Fresh evidence:
+  - degradation suite PASS at
+    `runs/suites/demo_degradation_suite_20260528_044024_950793/report.json`;
+  - fast live smoke PASS at
+    `runs/live_smoke/live_smoke_fast_20260528_044113_006224/report.json`;
+  - final validation PASS: `121` tests, compileall, shell syntax,
+    `doctor --json`, artifact hygiene, latest planner acceptance, latest
+    platform acceptance, and fast live smoke.
+
+## Dashboard KPI And Suite Replay Frontier 2026-05-28
+
+- Next functional widening: make the already-created KPI/suite evidence visible
+  in the local dashboard instead of requiring manual JSON inspection.
+- Scope boundaries:
+  - keep the dashboard dependency-free and served by the existing local HTTP
+    server;
+  - do not change suite or acceptance semantics;
+  - do not add a heavyweight frontend framework;
+  - do not touch `/home/coco/follwer_ws`.
+- Landed shape:
+  - `/api/suites/latest` summarizes `runs/suites/latest_*.json`;
+  - the dashboard now has a `Latest Suites` panel with suite status, row counts,
+    key KPI rows, and top factor effects;
+  - run comparison prioritizes important KPI deltas before dumping all numeric
+    metrics;
+  - dashboard JavaScript now has a dependency-free static guard test for
+    balanced delimiters, unterminated strings/templates/comments, and duplicate
+    same-scope `const` / `let` bindings.
+- Promotion gate:
+  - dashboard replay tests cover suite summary extraction;
+  - static smoke confirms the current `runs/suites/` reports expose KPI data.
+- Fresh evidence:
+  - degradation suite refreshed and passed at
+    `runs/suites/demo_degradation_suite_20260528_055519_209876/report.json`;
+  - suite dashboard API smoke returned `demo_degradation_suite passed` with
+    `4/4` rows passed;
+  - final validation PASS: `123` tests, compileall, shell syntax,
+    `doctor --json`, artifact hygiene, latest planner acceptance, latest
+    platform acceptance, and fast live smoke;
+  - latest reports:
+    - `/home/coco/sim_plane/runs/acceptance/planner_acceptance_baseline_latest_20260528_055610_860265/report.json`;
+    - `/home/coco/sim_plane/runs/platform_acceptance/platform_acceptance_baseline_latest_20260528_055610_964248/report.json`;
+    - `runs/live_smoke/live_smoke_fast_20260528_055615_402373/report.json`.
+
+## Functional Capability Pack Closure 2026-05-28
+
+- Five platform-level functional hardening lines are now landed on the generic
+  `sim_plane` mainline:
+  - plugin-style KPI evaluation over recorded telemetry;
+  - deterministic lightweight degradation/fault injection for the demo backend;
+  - standard demo task-family suite;
+  - suite KPI ranking and dashboard visibility;
+  - one-command custom algorithm ingress health check.
+- Scope stayed bounded:
+  - no changes to `/home/coco/follwer_ws`;
+  - no Stage1/Stage2 human-follow reopening;
+  - no platform/planner acceptance semantic or threshold change;
+  - no new heavy simulator backend;
+  - no fake PX4 SIH wind/fault injection.
+- Landed implementation:
+  - `sim_plane.evaluation` appends normalized `kpi_*` metrics through
+    `KPI_PLUGINS`;
+  - altitude timing KPI now ignores samples without altitude instead of
+    misaligning time stamps;
+  - demo backend supports `sensor_dropout`, `target_loss`, `sensor_latency`,
+    `sensor_noise`, `measurement_bias`, `measurement_bias_drift`,
+    `measurement_saturation`, `communication_interruption`, and
+    `control_saturation`;
+  - demo backend can exercise `algorithm_adapter` and propagate adapter metrics;
+  - `configs/demo_degradation_suite.json` and
+    `configs/demo_task_family_suite.json` define reusable lightweight
+    robustness/task exams;
+  - `run-suite` emits `kpi_rankings`;
+  - dashboard API/UI exposes latest suite KPI summaries and rankings;
+  - `python3 -m sim_plane check-algorithm-ingress` runs existing or generated
+    custom algorithm scenarios and checks adapter, telemetry, control evidence,
+    and KPI generation;
+  - artifact directory allocation now uses microsecond stamps plus collision
+    fallback and path-safe scenario names.
+- Fresh evidence:
+  - degradation suite PASS:
+    `runs/suites/demo_degradation_suite_20260528_070636_064192/report.json`;
+  - task-family suite PASS:
+    `runs/suites/demo_task_family_suite_20260528_070642_918611/report.json`;
+  - demo ingress PASS:
+    `runs/demo_cli_ingress_20260528_070701_928706`;
+  - PX4 SIH external command ingress PASS:
+    `runs/px4_sih_quadx_external_command_template_20260528_070701_903805`;
+  - `python3 -m unittest discover -s tests` PASS: `131` tests;
+  - compileall, shell syntax, and `61` JSON files PASS;
+  - `doctor --json` PASS: `12` ready backends and `5` ready adapters;
+  - artifact hygiene PASS: `status=clean`, `attention_count=0`;
+  - planner latest acceptance PASS:
+    `/home/coco/sim_plane/runs/acceptance/planner_acceptance_baseline_latest_20260528_070829_407378/report.json`;
+  - platform latest acceptance PASS:
+    `/home/coco/sim_plane/runs/platform_acceptance/platform_acceptance_baseline_latest_20260528_070829_749673/report.json`,
+    `changed_rows_count=0`;
+  - fast live smoke PASS:
+    `runs/live_smoke/live_smoke_fast_20260528_070859_544327/report.json`.
+- Remaining objective limit:
+  - current standardized degradation/fault injection is intentionally proven
+    first on the lightweight demo backend;
+  - PX4 SIH fault injection must remain conservative and only be widened when a
+    real PX4-side injection mechanism is separately proven.
+
+## Professional Test Surface Closure 2026-05-28
+
+- The external-method review follow-up is now implemented as platform-native
+  test surfaces instead of a roadmap:
+  - `python3 -m sim_plane flight-log-analyze <artifact-or-ulg>`;
+  - `python3 -m sim_plane scenario-fuzz scenarios/basic_takeoff.json --profile demo_fast`;
+  - `python3 -m sim_plane autotest-pack --profile fast`;
+  - dashboard `Professional Test Surfaces` panel over latest PX4 failure,
+    flight-log, fuzz, and autotest reports.
+- Scope stayed bounded:
+  - no changes to `/home/coco/follwer_ws`;
+  - no Stage1/Stage2 reopening;
+  - no existing acceptance semantic or threshold changes;
+  - no AirSim/Isaac/Gazebo Harmonic migration;
+  - demo fuzz remains clearly separated from PX4-native failure injection.
+- Landed implementation:
+  - `sim_plane.flight_log_analysis` analyzes either a complete run artifact or
+    a real PX4 `.ulg` through `pyulog`, producing duration, altitude/speed,
+    path distance, mode/nav changes, armed transitions, anomaly/warning counts,
+    and replay `kpi_*`;
+  - `sim_plane.scenario_fuzz` creates deterministic seed-based fuzz suites in
+    memory, saves the generated suite JSON with the report, and ranks
+    `worst_cases`;
+  - `sim_plane.autotest_pack` composes doctor, artifact hygiene, live-smoke
+    fast, demo degradation suite, seeded fuzz, flight-log artifact replay, PX4
+    failure latest acceptance, and platform latest acceptance;
+  - `runs/flight_log_analysis`, `runs/scenario_fuzz`, and `runs/autotest` are
+    reserved artifact-hygiene roots;
+  - dashboard API/UI now lists professional test-surface report summaries.
+- Fresh evidence:
+  - artifact replay PASS:
+    `runs/flight_log_analysis/artifact_px4_sih_quadx_mavsdk_failure_motor_20260528_105546_340839_20260528_112327_129051/report.json`;
+  - `.ulg` replay PASS over historical PX4 build-root log:
+    `runs/flight_log_analysis/ulog_17_28_07_20260528_112503_012345/report.json`;
+  - seeded fuzz PASS:
+    `runs/scenario_fuzz/demo_seeded_fuzz_20260528_20260528_112342_404826/report.json`;
+  - autotest fast PASS:
+    `runs/autotest/sim_plane_autotest_fast_20260528_112450_660913/report.json`;
+  - autotest fast latest platform acceptance nested PASS:
+    `runs/platform_acceptance/platform_acceptance_baseline_latest_20260528_112450_656432/report.json`;
+  - autotest fast latest PX4 failure acceptance nested PASS:
+    `runs/px4_failure_injection_acceptance/px4_failure_injection_acceptance_latest_20260528_112450_470300/report.json`.
+- Remaining objective limit:
+  - current `.ulg` proof parses an existing PX4 build-root log; automatic copy
+    of fresh PX4 `.ulg` into each run artifact is still a future enhancement,
+    not claimed as completed here.
+
+## Platform Baseline Release Closure 2026-06-01
+
+- Current frontier: freeze the current generic `sim_plane` platform into a
+  clean, documented, locally reproducible baseline instead of widening into a
+  new simulator, new algorithm family, or human-follow branch.
+- Scope:
+  - stay inside `/home/coco/sim_plane`;
+  - do not touch `/home/coco/follwer_ws`;
+  - do not change existing acceptance semantics, matrices, thresholds, or
+    scenario behavior;
+  - do not add a new heavy backend;
+  - keep unresolved limits explicit instead of presenting them as completed.
+- Required closure work:
+  - add a single Chinese platform entry document for daily use and debugging;
+  - rerun the current validation pack from the actual workspace;
+  - clean generated residue such as `__pycache__` / `*.pyc`;
+  - commit the landed platform capabilities and tag a rollback point.
+- Locked remaining objective limits:
+  - fresh PX4 `.ulg` files are not yet automatically copied into every run
+    artifact;
+  - demo degradation/fuzz remains a lightweight robustness surface, not
+    PX4-native physical failure;
+  - PX4-native failure acceptance currently proves only
+    `SYSTEM_MOTOR/OFF/OK`.

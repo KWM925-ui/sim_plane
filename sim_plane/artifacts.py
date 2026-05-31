@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
+import re
 
 
 def utc_timestamp():
@@ -8,9 +9,22 @@ def utc_timestamp():
 
 
 def build_artifact_dir(root_dir, scenario_name):
-    safe_name = scenario_name.replace(" ", "_")
-    stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    return Path(root_dir) / "{0}_{1}".format(safe_name, stamp)
+    safe_name = safe_artifact_name(scenario_name)
+    stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
+    root = Path(root_dir)
+    candidate = root / "{0}_{1}".format(safe_name, stamp)
+    if not candidate.exists():
+        return candidate
+    for index in range(1, 1000):
+        numbered = root / "{0}_{1}_{2:03d}".format(safe_name, stamp, index)
+        if not numbered.exists():
+            return numbered
+    raise RuntimeError("could not allocate unique artifact directory for {0}".format(scenario_name))
+
+
+def safe_artifact_name(value):
+    safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(value)).strip("._")
+    return safe or "artifact"
 
 
 class ArtifactWriter:

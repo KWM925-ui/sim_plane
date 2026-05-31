@@ -6,6 +6,61 @@
 - Workspace: `/home/coco/sim_plane`
 - Primary child session: `(not set yet)`
 
+## Current Frontier 2026-06-01
+
+### 已锁定事实
+
+- 当前主线是通用 `sim_plane` 无人机仿真平台，不是 `/home/coco/follwer_ws`。
+- 平台已经具备多后端、artifact、KPI、suite、dashboard、live-smoke、custom algorithm ingress、PX4-native motor failure、flight-log replay、scenario fuzz 和 autotest pack。
+- 当前工作区有大量已实现但未提交的改动；继续扩新功能前必须先封版固化。
+
+### 当前要解的问题
+
+- 把当前平台状态整理成一个干净、可复验、可回滚的 baseline。
+- 只补交付和使用入口，不改变已有仿真逻辑或验收语义。
+
+### 本轮不能做的事
+
+- 不碰 `/home/coco/follwer_ws`。
+- 不重开 human-follow Stage1/Stage2。
+- 不改 platform/planner/human-follow/PX4 failure acceptance 阈值或语义。
+- 不新增 AirSim/Isaac/Gazebo Harmonic 等重后端。
+- 不把 demo fuzz/dropout 说成 PX4 原生故障。
+
+### 本轮输出方式
+
+- 最终只汇报：改了什么、跑了什么、PASS/FAIL、commit/tag/push 状态、仍然客观存在的边界。
+
+### 封版验证结果 2026-05-31
+
+- 新增中文总入口：`docs/平台总入口_zh.md`。
+- 清理生成残留：提交前删除 `__pycache__` / `*.pyc`，这些文件由 Python 验证命令自动再生成但被 `.gitignore` 排除。
+- 静态与单测：
+  - `python3 -m unittest discover -s tests`: PASS，`152` tests。
+  - `python3 -m compileall -q sim_plane scripts tests examples`: PASS。
+  - `find scripts -maxdepth 1 -type f -name '*.sh' -print0 | xargs -0 -r bash -n`: PASS。
+  - JSON syntax check: PASS，`63` scenario/config JSON files。
+  - `git diff --check`: PASS。
+- 平台状态：
+  - `python3 -m sim_plane doctor --json`: PASS，`12` ready backends，`6` ready adapters。
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: PASS，`status=clean`，`attention_count=0`。
+  - `python3 -m sim_plane manual-probe-hygiene --artifact-root runs --json`: PASS，`status=clean`。
+- 封版复验：
+  - `python3 -m sim_plane autotest-pack --profile fast --artifact-root runs --report-root runs/autotest --json`: PASS。
+  - report: `runs/autotest/sim_plane_autotest_fast_20260531_163336_692041/report.json`。
+  - 包含：doctor、artifact hygiene、live-smoke fast、demo degradation suite、scenario fuzz、flight-log artifact replay、PX4 failure latest、platform latest。
+- 独立 latest acceptance：
+  - `python3 -m sim_plane planner-acceptance --latest --artifact-root runs --json`: PASS。
+  - report: `runs/acceptance/planner_acceptance_baseline_latest_20260531_163431_695941/report.json`。
+  - `python3 -m sim_plane px4-failure-acceptance --latest --artifact-root runs --json`: PASS。
+  - report: `runs/px4_failure_injection_acceptance/px4_failure_injection_acceptance_latest_20260531_163431_662417/report.json`。
+  - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: PASS，`23/23` rows。
+  - report: `runs/platform_acceptance/platform_acceptance_baseline_latest_20260531_163431_910880/report.json`。
+- 客观边界保持不变：
+  - fresh PX4 `.ulg` 自动收集到每个 artifact 仍未实现；
+  - demo fuzz/degradation 不是 PX4-native physical failure；
+  - PX4-native failure acceptance 当前只证明 `SYSTEM_MOTOR/OFF/OK`。
+
 ## Locked Facts
 
 - The repository now contains project-local control docs and a platform blueprint.
@@ -1321,3 +1376,501 @@ true:
   swept parameter value is associated with metric movement.
 - This is the minimum machine-readable basis for future dashboard-side
   parameter-effect visualization.
+
+## Dashboard KPI Suite Replay Closure 2026-05-28
+
+### Locked Facts
+
+- The active branch is the generic `sim_plane` platform mainline.
+- `/home/coco/follwer_ws` is out of scope for this round.
+- KPI evaluation, deterministic demo degradations, degradation suite reporting,
+  and dashboard suite/KPI visibility were already landed in the working tree.
+- Current local inspection found no duplicate adjacent `const item` declaration
+  in `sim_plane/static/app.js`, but the dashboard JavaScript should still be
+  guarded because browser-side syntax is not executed by Python unit tests.
+
+### Current Frontier
+
+- Close the dashboard KPI/suite replay widening without changing acceptance
+  semantics:
+  - simplify the suite rendering JavaScript;
+  - add a dependency-free static guard for the dashboard bundle;
+  - rerun project tests, compile checks, hygiene, latest acceptance, and fast
+    live smoke.
+
+### Forbidden Actions
+
+- Do not touch `/home/coco/follwer_ws`.
+- Do not change existing acceptance thresholds or scenario semantics.
+- Do not add a heavyweight frontend framework or a new simulator backend.
+- Do not reopen Stage1/Stage2 human-follow branches.
+
+### Promotion Gate
+
+- Dashboard static guard passes.
+- Full unit tests pass.
+- Compile and shell syntax checks pass.
+- `doctor`, artifact hygiene, latest planner acceptance, latest platform
+  acceptance, and fast live smoke pass.
+
+### Implementation Locked
+
+- `sim_plane/static/app.js` suite rendering was simplified to avoid nested
+  template-expression fragments in the new suite panel.
+- `tests/test_dashboard_replay.py` now includes a dependency-free dashboard
+  JavaScript static guard for:
+  - unterminated strings/templates/comments;
+  - unbalanced `()`, `[]`, `{}`;
+  - duplicate same-scope `const` / `let` bindings.
+- Acceptance semantics, scenario behavior, and matrix thresholds were not
+  changed.
+
+### Fresh Evidence
+
+- `python3 -m sim_plane run-suite scenarios/basic_takeoff.json --suite configs/demo_degradation_suite.json --artifact-root runs --report-root runs/suites --json`
+  passed at `runs/suites/demo_degradation_suite_20260528_055519_209876/report.json`.
+- `python3 -m unittest tests.test_dashboard_replay` passed: `5` tests.
+- `python3 -m unittest discover -s tests` passed: `123` tests.
+- `python3 -m compileall -q sim_plane scripts tests` passed.
+- `find scripts -maxdepth 1 -type f -name '*.sh' -print0 | xargs -0 -r bash -n`
+  passed.
+- Dashboard suite API smoke returned `demo_degradation_suite passed` with
+  `4/4` rows.
+- `python3 -m sim_plane doctor --json` reported `12` ready backends and `5`
+  ready adapters.
+- `python3 -m sim_plane artifact-hygiene --artifact-root runs --json` returned
+  `status=clean`.
+- `python3 -m sim_plane planner-acceptance --latest --artifact-root runs --json`
+  passed at
+  `/home/coco/sim_plane/runs/acceptance/planner_acceptance_baseline_latest_20260528_055610_860265/report.json`.
+- `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`
+  passed at
+  `/home/coco/sim_plane/runs/platform_acceptance/platform_acceptance_baseline_latest_20260528_055610_964248/report.json`
+  with `changed_rows_count=0`.
+- `python3 -m sim_plane live-smoke --profile fast --artifact-root runs --report-root runs/live_smoke --json`
+  passed at
+  `runs/live_smoke/live_smoke_fast_20260528_055615_402373/report.json`.
+
+### Current Conclusion
+
+- The KPI/degradation functional widening and dashboard suite replay surface
+  are closed cleanly for the current platform mainline.
+- The new dashboard panel exposes latest suite/KPI evidence without changing
+  acceptance semantics or adding frontend dependencies.
+- There is no current blocker on this functional widening.
+
+## Functional Simulation Capability Pack 2026-05-28
+
+### Locked Facts
+
+- The active branch is the generic `sim_plane` platform mainline.
+- The user requested completion of five platform-level functional补强 lines:
+  KPI evaluation, real degradation/fault injection, standardized scenario task
+  library, dashboard comparison/replay enhancement, and custom algorithm
+  ingress acceptance templates.
+- Current KPI/degradation/dashboard basics already exist and passed.
+- `/home/coco/follwer_ws` is out of scope for this round.
+- PX4 SIH fault/wind support must not be faked; only metrics from real PX4
+  telemetry or explicitly proven backend knobs may be used.
+
+### Current Frontier
+
+- Land a dependency-free functional capability pack over the existing platform:
+  - make KPI calculation plugin-like and broaden the metric surface;
+  - standardize lightweight demo fault/degradation knobs and task-family suites;
+  - expose suite KPI ranking and strongest factor effects through dashboard API/UI;
+  - add a one-command custom algorithm ingress check that runs a generated or
+    existing scenario and reports interface health.
+
+### Forbidden Actions
+
+- Do not touch `/home/coco/follwer_ws`.
+- Do not change existing platform/human-follow acceptance semantics or
+  thresholds.
+- Do not add AirSim/Isaac/Pegasus/Gazebo migration or another heavy backend.
+- Do not label PX4 SIH suite variants as wind/fault tests unless backed by a
+  real PX4-side contract.
+
+### Promotion Gate
+
+- Unit tests cover new KPI metrics, demo degradation knobs, suite/task configs,
+  dashboard ranking, and custom ingress check behavior.
+- Fresh demo task/fault suite evidence exists under `runs/suites/`.
+- Normal repo validation passes: tests, compileall, shell syntax, doctor,
+  artifact hygiene, latest planner/platform acceptance, and fast live smoke.
+
+### Resume Frontier 2026-05-28
+
+#### 已锁定事实
+
+- 本轮只做通用 `sim_plane` 平台功能性补强，不回到 `/home/coco/follwer_ws`。
+- 工作树里已经落下 KPI 插件化、demo 退化注入、任务族 suite、dashboard KPI ranking、`check-algorithm-ingress` 的主体实现。
+- 还不能把本轮视为完成，直到中文文档、台账和完整验证全部收口。
+- PX4 SIH 仍保持保守边界：不把 demo 里的风、dropout、通信中断等伪装成 PX4 物理故障。
+
+#### 当前要解的问题
+
+- 补齐中文维护文档对新能力的说明。
+- 核查新增实现是否有基础接口或语义暗病。
+- 刷新 demo degradation/task-family suite 与 algorithm ingress 证据。
+- 跑完整验证并清理生成缓存。
+
+#### 本轮不能做的事
+
+- 不改 `/home/coco/follwer_ws`。
+- 不新增重型仿真后端。
+- 不改已有 platform/planner/human-follow acceptance 阈值或语义。
+- 不把一次性 demo 证据说成真实 PX4 故障注入证据。
+
+#### 本轮输出方式
+
+- 只报告已实现的五条能力、对应价值、关键 artifact/report、验证 PASS/FAIL、剩余客观限制。
+
+### Implementation Locked 2026-05-28
+
+- `sim_plane.evaluation` 现在以插件式 `KPI_PLUGINS` 计算统一 `kpi_*`
+  指标，并在共享 runner / suite runner 写入 `result.json` 前追加 KPI。
+- KPI 面覆盖高度误差、超调、到达时间、稳定/恢复时间、路径误差、最终目标距离、速度/加速度峰值、速度/加速度粗糙度、速度限制违规、安全/geofence 违规、目标丢失与重捕获、传感器恢复时间和 truth-vs-measurement 误差。
+- 修复了 KPI 高度时间统计的潜在错位问题：现在按“样本 + 高度值”成对计算，不会因为中间样本缺 altitude 字段而把时间戳错配。
+- `sim_plane/backends/demo.py` 扩展了确定性退化/故障 knobs：
+  `sensor_dropout`、`target_loss`、`sensor_latency`、`sensor_noise`、
+  `measurement_bias`、`measurement_bias_drift`、
+  `measurement_saturation`、`communication_interruption`、
+  `control_saturation`。
+- demo backend 现在可选运行 `algorithm_adapter`，并把 adapter metrics 合并到 result；adapter 失败会让 demo run 失败。
+- 新增 `configs/demo_degradation_suite.json` 和
+  `configs/demo_task_family_suite.json`，作为轻量鲁棒性测试和标准任务族“考试卷”。
+- `run-suite` 报告新增 `kpi_rankings`，dashboard API/UI 会展示 suite KPI 排名和关键退化指标。
+- 新增 `sim_plane/algorithm_ingress_check.py` 和 CLI
+  `python3 -m sim_plane check-algorithm-ingress`，用于一键检查自定义算法进程/adapter/telemetry/control/KPI 是否闭环。
+- `runs/algorithm_ingress` 已加入 artifact hygiene 的 reserved roots。
+- `sim_plane/artifacts.py` 的 artifact 目录名现在使用微秒级时间戳，并在极端碰撞时追加序号；同时清理场景名里的路径分隔符，避免并发 suite 或异常名称污染证据目录。
+- 中文维护文档和 README 已补齐功能说明、命令和边界。
+
+### Fresh Evidence 2026-05-28
+
+- 定向测试：
+  - `python3 -m unittest tests.test_evaluation tests.test_algorithm_ingress_check tests.test_demo_run tests.test_run_suite tests.test_dashboard_replay`: `25` tests passed。
+  - `python3 -m unittest tests.test_artifact_hygiene`: `6` tests passed。
+- Fresh suite：
+  - `python3 -m sim_plane run-suite scenarios/basic_takeoff.json --suite configs/demo_degradation_suite.json --artifact-root runs --report-root runs/suites --json`
+    passed at `runs/suites/demo_degradation_suite_20260528_070636_064192/report.json`。
+  - `python3 -m sim_plane run-suite scenarios/basic_takeoff.json --suite configs/demo_task_family_suite.json --artifact-root runs --report-root runs/suites --json`
+    passed at `runs/suites/demo_task_family_suite_20260528_070642_918611/report.json`。
+- Algorithm ingress：
+  - demo `external_command` ingress passed at
+    `runs/demo_cli_ingress_20260528_070701_928706`。
+  - PX4 SIH `external_command` ingress passed at
+    `runs/px4_sih_quadx_external_command_template_20260528_070701_903805`，
+    with `telemetry_count=198`, `ever_armed=true`,
+    `template_reached_altitude_m=3.803`, `kpi_sample_count=198`。
+- Full validation:
+  - `python3 -m unittest discover -s tests`: `131` tests passed。
+  - `python3 -m compileall -q sim_plane scripts tests`: passed。
+  - `find scripts -maxdepth 1 -type f -name '*.sh' -print0 | xargs -0 -r bash -n`: passed。
+  - JSON syntax check: `61` files passed。
+  - `python3 -m sim_plane doctor --json`: `12` ready backends, `5` ready adapters。
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: `status=clean`, `attention_count=0`。
+  - `python3 -m sim_plane planner-acceptance --latest --artifact-root runs --json`: passed at `/home/coco/sim_plane/runs/acceptance/planner_acceptance_baseline_latest_20260528_070829_407378/report.json`。
+  - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: passed at `/home/coco/sim_plane/runs/platform_acceptance/platform_acceptance_baseline_latest_20260528_070829_749673/report.json`, `changed_rows_count=0`。
+  - `python3 -m sim_plane live-smoke --profile fast --artifact-root runs --report-root runs/live_smoke --json`: passed at `runs/live_smoke/live_smoke_fast_20260528_070859_544327/report.json`。
+
+### Current Conclusion
+
+- 五条功能性补强已落地并通过 fresh 验证。
+- 本轮没有改变既有 platform/planner/human-follow acceptance 阈值或语义。
+- 当前真实限制仍然是：PX4 SIH 故障注入保持保守，不伪造 demo 风/传感器故障为真实 PX4 物理故障；真实 PX4 故障注入后续需要逐项以 PX4 支持机制证明。
+
+## External Test-Method Research Frontier 2026-05-28
+
+### 已锁定事实
+
+- 本轮是外部调研和方法论评估，不是代码实现轮。
+- 研究开始时间：`2026-05-28 18:06:52 CST`。
+- 当前平台已有：artifact、KPI、suite、dashboard、live-smoke、acceptance、
+  PX4 SIH/JSBSim/Gazebo Classic/MARSIM/FAST_LIO/EGO-Planner 证据。
+- 当前限制仍然是：不伪造 PX4 SIH 不支持的风或故障；真实故障注入必须有真实 backend 机制支撑。
+
+### 当前要解的问题
+
+- 网上、论文、GitHub、论坛里专业无人机仿真/算法测试通常怎么做。
+- 哪些方法能直接用于当前轻量平台，哪些需要以后再做。
+- 当前 `sim_plane` 到底有没有工程价值，缺口在哪里。
+
+### 本轮不能做的事
+
+- 不改代码。
+- 不把网上项目的宣传当作本地已完成事实。
+- 不把重型仿真框架当成立刻要迁移的结论。
+
+### 本轮输出方式
+
+- 给出来源类别、专业方法清单、和当前平台逐项对照。
+- 给出下一步最值得做的测试方法建议，不写空泛路线图。
+
+### Research Closure 2026-05-28
+
+#### 已查方向
+
+- PX4 官方 `MAVSDK` integration testing、SITL/CI、failure injection、failsafe simulation、ULog/Flight Review。
+- ArduPilot `autotest` 框架、DataFlash/tlog 产物、可本地复现实验失败的测试组织方式。
+- 论文/开源仿真器方向：Flightmare、FlightGoggles、RotorS、gym-pybullet-drones、safe-control-gym、Aerial Gym、Agilicious、Pegasus/Isaac Sim。
+- 场景生成/反例搜索方向：Scenic、VerifAI、Avis、Aerialist 等 simulation-based testing / falsification / fault-injection 方法。
+- 生命周期风险：Gazebo Classic EOL、ROS1 Noetic EOL、AirSim archived、Gazebo Harmonic/现代 Gazebo 的系统约束。
+
+#### 外部方法结论
+
+- 专业无人机仿真测试的核心不是单一重型 3D 后端，而是：
+  - 可重复场景；
+  - 真实飞控闭环；
+  - 一键运行与日志收集；
+  - KPI/安全指标；
+  - latest-vs-reference 回归；
+  - 故障/退化注入；
+  - flight-log 级别复盘；
+  - CI/live-smoke；
+  - 必要时再使用高保真视觉/物理后端。
+- PX4 官方推荐 MAVSDK integration testing 作为端到端集成测试路径，测试 runner 负责启动 PX4/Gazebo 并收集日志。
+- PX4 failure injection 是真实故障注入的首选下一步，但必须受 `SYS_FAILURE_EN`、模拟器支持范围、failure type 支持范围限制，不能把 demo dropout/wind 冒充 PX4 真实故障。
+- ArduPilot `autotest` 强调本地复现、标准日志、flight track 和 failure bisect，这提示 `sim_plane` 后续应加强自动 artifact 复盘和日志指标提取。
+- safe-control-gym/gym-pybullet-drones 这类 benchmark 提示控制算法评测应重点看轨迹跟踪、约束/扰动、控制器对比和仿真加速，而不只是 pass/fail。
+- Flightmare/FlightGoggles 等高保真视觉仿真器说明视觉/感知算法需要更强 sensor realism，但不应立刻替代当前轻量默认路径。
+- Gazebo Classic 与 ROS1 Noetic 的 EOL 风险属实，但当前主机仍以 Ubuntu 20.04 为约束，不建议立即迁移导致平台失稳。
+
+#### 对当前平台的客观判断
+
+- 当前 `sim_plane` 是有用的，而且方向基本对：
+  - 已有统一 runner、artifact、KPI、suite、dashboard、live-smoke、acceptance、PX4 SIH/JSBSim/Gazebo Classic/MARSIM/FAST_LIO/EGO-Planner 能力面；
+  - 已具备专业测试平台所需的重复性、集成验证、指标评估和轻量退化测试雏形。
+- 当前还不是“最终专业封顶版”：
+  - PX4-native failure injection acceptance 尚未成为正式验收面；
+  - ULog/flight-log 自动 KPI 与 latest-vs-reference 趋势还不够深；
+  - 场景 fuzz/sweep/反例搜索还没系统化；
+  - 高保真视觉/传感器 realism 只在 MARSIM/ROS 路径上有基础，不等同于 Flightmare/FlightGoggles 级别视觉仿真；
+  - CI 化打包可以继续加强。
+
+#### 下一步最值钱方向
+
+1. PX4-native failure-injection acceptance：只用 PX4 官方支持的 `failure`/MAVSDK failure plugin/真实 failsafe 参数，先覆盖 gps/gyro/baro/mavlink_signal 等可证明项。
+2. ULog/flight-log KPI replay：把 PX4 `.ulg` 或 telemetry artifact 转成统一 KPI、异常事件、模式切换、failsafe 证据和 latest-vs-reference 趋势。
+3. Scenario fuzz/sweep generator：围绕初始位姿、目标点、延迟、dropout、速度限制、通信中断做可复现实验矩阵，自动找最差 case。
+4. CI/live smoke pack：把本机一键 smoke、latest acceptance、artifact hygiene、关键 suite 固化成更接近官方 autotest/CI 的标准入口。
+5. 视觉/感知 realism 只在有具体视觉算法需求时推进，不现在盲目换重后端。
+
+## PX4 Native Failure Injection Frontier 2026-05-28
+
+### 已锁定事实
+
+- 当前主线回到通用 `sim_plane` 平台，不碰 `/home/coco/follwer_ws`。
+- 上一轮外部调研结论已经锁定：下一步优先补真实 PX4 failure-injection 验收面，而不是换重型后端。
+- 本机 `mavsdk.failure` 模块可 import。
+- 当前 PX4 源码包含 `MAV_CMD_INJECT_FAILURE=420`、failure unit/type 枚举，且 POSIX `rcS` 默认设置 `SYS_FAILURE_EN=1`。
+- 当前 `px4_sih` backend 已支持 `algorithm_adapter`，但没有 PX4-native failure injection adapter 或独立 acceptance surface。
+
+### 当前要解的问题
+
+- 新增一个独立、平台通用的 PX4-native failure-injection 能力面：
+  - 使用 MAVSDK failure plugin 或等价 MAVLink 命令；
+  - 记录注入是否被 PX4 接受；
+  - 记录注入前后健康/模式/飞行状态指标；
+  - 形成独立 scenario、acceptance matrix、CLI/report root；
+  - 不污染现有 `platform-acceptance`。
+
+### 本轮不能做的事
+
+- 不改 `/home/coco/follwer_ws`。
+- 不改现有 platform/planner/human-follow acceptance 阈值或语义。
+- 不把 demo backend 的 dropout/wind 等伪装成 PX4 真实故障。
+- 不强行要求 PX4 在每一种 failure 上都触发同一种 failsafe；只有本轮 fresh artifact 能证明的行为才能进验收。
+- 不新增 AirSim/Isaac/Gazebo Harmonic 等重后端。
+
+### 验收门槛
+
+- 新 adapter 有单元测试覆盖地址解析、failure enum 解析、环境校验。
+- 新 acceptance 能检查独立 failure-injection artifact。
+- Fresh `px4_sih` failure-injection scenario 跑通，且报告里明确 `failure_injection_accepted=true`。
+- 常规项目验证至少覆盖相关单测、compileall、JSON 语法、doctor、artifact hygiene、latest platform acceptance。
+
+### Implementation Locked 2026-05-28
+
+- 新增通用 MAVSDK failure adapter：
+  - `sim_plane/adapters/mavsdk_failure.py`
+  - adapter type: `mavsdk_failure_injection`
+  - 使用 MAVSDK failure plugin 发送 PX4 `MAV_CMD_INJECT_FAILURE`
+  - 记录 `failure_injection_accepted`、`failure_injection_reset_accepted`、failure unit/type/instance、注入前后 health/flight mode。
+- 新增独立场景：
+  - `scenarios/px4_sih_quadx_mavsdk_failure_motor.json`
+  - backend: `px4_sih`
+  - adapter: `mavsdk_failure_injection`
+  - 当前锁定的已证明组合：`SYSTEM_MOTOR/OFF`，instance `1`，随后 `SYSTEM_MOTOR/OK` 复位。
+- 新增独立验收面：
+  - matrix: `configs/px4_failure_injection_acceptance_matrix.json`
+  - module: `sim_plane/px4_failure_acceptance.py`
+  - CLI: `python3 -m sim_plane px4-failure-acceptance --latest --artifact-root runs`
+  - report root: `runs/px4_failure_injection_acceptance/`
+- 新增通用验收 helper：
+  - `sim_plane/acceptance_common.py`
+  - 避免平台通用 PX4 验收反向依赖 human-follow 专用模块。
+- `runs/px4_failure_injection_acceptance` 已加入 artifact hygiene reserved roots。
+- README 和中文维护文档已说明：
+  - 这是真 PX4 failure injection，不是 demo dropout/wind；
+  - 当前只证明 motor failure path；
+  - `gps`、`rc_signal`、`mavlink_signal` 等其它 failure unit 必须逐项 fresh 证明后才能进入正式矩阵。
+
+### Fresh Evidence 2026-05-28
+
+- 反证/边界探针：
+  - 临时 shell probe `failure rc_signal off` 在当前 SIH 上出现 `Timeout waiting for ack`，因此未进入正式验收。
+  - 临时 shell probe `failure motor off -i 1` 可触发 PX4 日志 `CMD_INJECT_FAILURE, motor 1 off/ok`，但临时 probe artifact 已清理，只保留结论。
+- 正式 fresh artifact：
+  - `runs/px4_sih_quadx_mavsdk_failure_motor_20260528_105546_340839/result.json`
+  - `status=passed`
+  - `failure_injection_backend=px4_mavsdk_failure_plugin`
+  - `failure_injection_command=MAV_CMD_INJECT_FAILURE`
+  - `failure_injection_unit=SYSTEM_MOTOR`
+  - `failure_injection_type=OFF`
+  - `failure_injection_instance=1`
+  - `failure_injection_accepted=true`
+  - `failure_injection_reset_type=OK`
+  - `failure_injection_reset_accepted=true`
+  - `event_levels={"info": 19}`
+  - PX4 backend log contains `CMD_INJECT_FAILURE, motor 1 off` and `CMD_INJECT_FAILURE, motor 1 ok`.
+- Acceptance:
+  - `python3 -m sim_plane px4-failure-acceptance --artifact-root runs --json`: passed at
+    `runs/px4_failure_injection_acceptance/px4_failure_injection_acceptance_reference_20260528_105636_585354/report.json`
+  - latest refresh passed at
+    `runs/px4_failure_injection_acceptance/px4_failure_injection_acceptance_latest_20260528_105935_086917/report.json`
+- Verification:
+  - `python3 -m unittest tests.test_mavsdk_failure_adapter tests.test_px4_failure_acceptance`: passed, `11` tests.
+  - targeted suite passed, `31` tests.
+  - `python3 -m unittest discover -s tests`: passed, `142` tests.
+  - `python3 -m compileall -q sim_plane scripts tests`: passed.
+  - JSON syntax check: `63` scenario/config JSON files passed.
+  - `python3 -m sim_plane list-adapters`: `mavsdk_failure_injection: ready`.
+  - `python3 -m sim_plane doctor --json`: `12` ready backends, `6` ready adapters.
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: `status=clean`, `attention_count=0`.
+  - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: passed at
+    `runs/platform_acceptance/platform_acceptance_baseline_latest_20260528_105935_241492/report.json`, `changed_rows_count=0`.
+
+### Current Conclusion
+
+- PX4-native failure injection 已经从“建议方向”变成正式平台能力面。
+- 这条能力面当前只证明 `PX4 SIH + MAVSDK failure plugin + SYSTEM_MOTOR/OFF/OK`。
+- 还不能声称所有 PX4 failure unit 都可用；下一步若继续扩展，应按 `gps`、`baro`、`mavlink_signal` 等逐项 fresh probe，再把被接受的组合加入矩阵。
+
+## Professional Test Surface Closure Frontier 2026-05-28
+
+### 已锁定事实
+
+- 本轮用户要求把上一轮外部专业测试方法对照中提到的剩余项继续做完并测试。
+- 当前通用平台主线已经具备：KPI、suite、dashboard、live-smoke、algorithm ingress、PX4-native motor failure acceptance。
+- `runs/` 下当前没有 `.ulg`，但 PX4 build root 下存在 historical `.ulg`，且本机 Python 可 import `pyulog`。
+- 真实 PX4 failure injection 不能扩大成未经 fresh 证明的故障类型。
+
+### 当前要解的问题
+
+- 把剩余专业测试能力做成正式平台入口：
+  - `flight-log` / artifact telemetry KPI replay；
+  - reproducible scenario fuzz/sweep 和最差 case 排名；
+  - CI/autotest-like 一键测试包；
+  - dashboard 可看这些新报告。
+
+### 本轮不能做的事
+
+- 不碰 `/home/coco/follwer_ws`。
+- 不迁移到 AirSim/Isaac/Gazebo Harmonic。
+- 不改现有 platform/planner/human-follow/PX4 failure acceptance 语义。
+- 不把 demo backend 的 disturbance/fuzz 说成 PX4 原生物理故障。
+- 不把 PX4 build root 下的历史 `.ulg` 当成当前 artifact 已经自动采集的证明。
+
+### 验收门槛
+
+- 新能力都有 CLI 标准命令、报告根目录、单元测试。
+- 新报告根目录纳入 artifact hygiene reserved roots。
+- 至少用现有本地 artifact fresh 跑通 flight-log/artifact replay。
+- 至少 fresh 跑通一个 fuzz/sweep 报告，并能产出 worst-case/KPI 排名。
+- 至少 fresh 跑通 fast profile 的 autotest pack。
+- 最后跑 targeted tests、compileall、JSON 检查、doctor、artifact hygiene、platform latest acceptance。
+
+### Implementation Locked 2026-05-28
+
+- 新增 flight-log / artifact replay：
+  - module: `sim_plane/flight_log_analysis.py`
+  - CLI: `python3 -m sim_plane flight-log-analyze <artifact-or-ulg>`
+  - report root: `runs/flight_log_analysis/`
+  - artifact 输入读取 `telemetry.jsonl` / `result.json` / `events.jsonl`
+  - `.ulg` 输入通过 `pyulog` 解析 `vehicle_local_position`、`vehicle_status`、日志 warning/dropout 等。
+- 新增 deterministic scenario fuzz：
+  - module: `sim_plane/scenario_fuzz.py`
+  - CLI: `python3 -m sim_plane scenario-fuzz scenarios/basic_takeoff.json --profile demo_fast --seed 20260528`
+  - report root: `runs/scenario_fuzz/`
+  - 报告保存 `generated_suite.json`、fresh variant artifacts、`worst_cases`。
+- 新增 CI/autotest-like fast pack：
+  - module: `sim_plane/autotest_pack.py`
+  - CLI: `python3 -m sim_plane autotest-pack --profile fast`
+  - report root: `runs/autotest/`
+  - fast pack 串联 doctor、artifact hygiene、live-smoke fast、demo degradation suite、scenario fuzz、flight-log artifact replay、PX4 failure latest acceptance、platform latest acceptance。
+- `run-suite` 现在支持内存生成的 `suite_definition`，避免 fuzz 运行前制造临时 suite 文件。
+- dashboard 后端/前端新增 `Professional Test Surfaces`，展示 PX4 failure、flight-log、scenario fuzz、autotest 的 latest report 摘要。
+- 新 report roots 已加入 artifact hygiene reserved roots：
+  - `flight_log_analysis`
+  - `scenario_fuzz`
+  - `autotest`
+
+### Fresh Evidence 2026-05-28
+
+- `python3 -m unittest tests.test_flight_log_analysis tests.test_scenario_fuzz tests.test_autotest_pack tests.test_run_suite tests.test_dashboard_replay tests.test_artifact_hygiene` passed: `32` tests。
+- `python3 -m sim_plane flight-log-analyze runs/px4_sih_quadx_mavsdk_failure_motor_20260528_105546_340839 --report-root runs/flight_log_analysis --json` passed:
+  - `runs/flight_log_analysis/artifact_px4_sih_quadx_mavsdk_failure_motor_20260528_105546_340839_20260528_112327_129051/report.json`
+  - source_type=`artifact`, telemetry_count=`41`, mode_change_count=`1`, anomaly_event_count=`0`。
+- `python3 -m sim_plane flight-log-analyze /home/coco/sim_plane_ws/src/core/PX4-Autopilot/build/px4_sitl_default/rootfs/log/2026-04-28/17_28_07.ulg --report-root runs/flight_log_analysis --json` passed:
+  - `runs/flight_log_analysis/ulog_17_28_07_20260528_112503_012345/report.json`
+  - source_type=`ulog`, ulog_dropout_count=`0`, nav_state_change_count=`4`, arming_state_change_count=`2`, ulog_warning_message_count=`2`。
+- `python3 -m sim_plane scenario-fuzz scenarios/basic_takeoff.json --profile demo_fast --seed 20260528 --variants 6 --artifact-root runs --report-root runs/scenario_fuzz --json` passed:
+  - `runs/scenario_fuzz/demo_seeded_fuzz_20260528_20260528_112342_404826/report.json`
+  - rows=`7`, status=`passed`, worst cases include measurement error/dropout/roughness/acceleration/path-error metrics。
+- First `autotest-pack` run exposed a wrapper status normalization bug:
+  - artifact hygiene returned `status=clean`
+  - pack step initially treated only `passed` as success
+  - fixed with `is_success_status({"passed","clean"})` and test coverage.
+- Refreshed `python3 -m sim_plane autotest-pack --profile fast --artifact-root runs --report-root runs/autotest --json` passed:
+  - `runs/autotest/sim_plane_autotest_fast_20260528_112450_660913/report.json`
+  - all `8/8` steps passed。
+
+### Current Conclusion
+
+- 上一轮外部专业测试方法中“最值钱”的平台侧测试面已经落到正式命令和报告：
+  - PX4-native failure acceptance 已完成；
+  - flight-log/artifact replay 已完成；
+  - scenario fuzz/worst-case ranking 已完成；
+  - CI/autotest fast pack 已完成；
+  - dashboard test-surface visibility 已完成。
+- 仍需客观保留的边界：
+  - `.ulg` 解析能力已证明，但 fresh PX4 run 自动收集 `.ulg` 到 artifact 还未实现；
+  - demo fuzz 是轻量可复现鲁棒性测试，不是 PX4 原生故障；
+  - PX4 failure surface 仍只证明 `SYSTEM_MOTOR/OFF/OK`。
+
+### Final Validation 2026-05-28
+
+- `python3 -m unittest tests.test_flight_log_analysis tests.test_scenario_fuzz tests.test_autotest_pack tests.test_run_suite tests.test_dashboard_replay tests.test_artifact_hygiene tests.test_px4_failure_acceptance tests.test_mavsdk_failure_adapter` passed: `44` tests。
+- `python3 -m unittest discover -s tests` passed: `152` tests。
+- `python3 -m compileall -q sim_plane scripts tests` passed。
+- Shell syntax check passed:
+  - `find scripts -maxdepth 1 -type f -name '*.sh' -print0 | xargs -0 -r bash -n`
+- JSON syntax check passed: `63` scenario/config JSON files。
+- `python3 -m sim_plane doctor --json` passed:
+  - `12` ready backends
+  - `6` ready adapters。
+- `python3 -m sim_plane artifact-hygiene --artifact-root runs --json` passed:
+  - `status=clean`
+  - `reserved_root_count=14`
+  - `complete_artifact_count=241`
+  - `attention_count=0`。
+- `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json` passed:
+  - `/home/coco/sim_plane/runs/platform_acceptance/platform_acceptance_baseline_latest_20260528_112901_884254/report.json`
+  - `changed_rows_count=0`。
+- Dashboard API smoke passed:
+  - `list_test_surface_reports('runs')` returned `5` latest surfaces:
+    PX4 failure, flight log artifact, ULog, scenario fuzz, autotest; all `passed`。
+- Non-functional cleanup:
+  - compile-generated `__pycache__` / `*.pyc` under `sim_plane scripts tests` were removed.

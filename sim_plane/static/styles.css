@@ -100,6 +100,10 @@ body {
   margin-bottom: 16px;
 }
 
+.wide-card {
+  grid-column: 1 / -1;
+}
+
 .secondary-panels {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -281,6 +285,76 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.suite-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.suite-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.suite-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.suite-head div:first-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.suite-head strong,
+.suite-kpis strong {
+  overflow-wrap: anywhere;
+}
+
+.suite-head span,
+.suite-meta,
+.suite-kpis span,
+.suite-effects span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.suite-kpis {
+  display: grid;
+  gap: 7px;
+}
+
+.suite-kpis div {
+  display: grid;
+  gap: 2px;
+}
+
+.suite-effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.suite-rankings {
+  display: grid;
+  gap: 5px;
+}
+
+.suite-effects span,
+.suite-rankings span {
+  border: 1px solid rgba(117, 230, 218, 0.18);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: rgba(117, 230, 218, 0.06);
+}
+
 .delta-table {
   overflow: auto;
 }
@@ -343,7 +417,8 @@ body {
   .metrics,
   .browser-panels,
   .main-panels,
-  .secondary-panels {
+  .secondary-panels,
+  .suite-list {
     grid-template-columns: 1fr;
   }
 

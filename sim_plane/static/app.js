@@ -7,6 +7,8 @@ const state = {
   artifacts: [],
   comparison: null,
   platformAcceptance: null,
+  suiteReports: null,
+  testSurfaceReports: null,
 };
 
 const elements = {
@@ -37,6 +39,10 @@ const elements = {
   trajectoryDeltaTable: document.getElementById("trajectory-delta-table"),
   acceptanceSummary: document.getElementById("acceptance-summary"),
   acceptanceRows: document.getElementById("acceptance-rows"),
+  suiteSummary: document.getElementById("suite-summary"),
+  suiteList: document.getElementById("suite-list"),
+  testSurfaceSummary: document.getElementById("test-surface-summary"),
+  testSurfaceList: document.getElementById("test-surface-list"),
 };
 
 async function fetchJson(url) {
@@ -58,14 +64,20 @@ async function hydrateMeta() {
 }
 
 async function hydrateBrowser() {
-  const [artifacts, platformAcceptance] = await Promise.all([
+  const [artifacts, platformAcceptance, suiteReports, testSurfaceReports] = await Promise.all([
     fetchJson("/api/artifacts?limit=120").catch(() => ({ items: [] })),
     fetchJson("/api/platform-acceptance/latest").catch(() => ({ available: false })),
+    fetchJson("/api/suites/latest?limit=12").catch(() => ({ available: false, items: [] })),
+    fetchJson("/api/test-surfaces/latest?limit=12").catch(() => ({ available: false, items: [] })),
   ]);
   state.artifacts = artifacts.items || [];
   state.platformAcceptance = platformAcceptance;
+  state.suiteReports = suiteReports;
+  state.testSurfaceReports = testSurfaceReports;
   renderArtifacts();
   renderPlatformAcceptance();
+  renderSuiteReports();
+  renderTestSurfaceReports();
   if (state.artifacts.length >= 2) {
     elements.leftArtifact.value = state.artifacts[1].name;
     elements.rightArtifact.value = state.artifacts[0].name;
@@ -158,13 +170,35 @@ function renderComparison() {
   }
   const left = comparison.left || {};
   const right = comparison.right || {};
+  const keyKpis = prioritizeMetricRows(comparison.metric_deltas || []);
   elements.compareSummary.innerHTML = `
     <strong>${escapeHtml(left.name)}</strong> -> <strong>${escapeHtml(right.name)}</strong>
     <span>${comparison.same_scenario ? "same scenario" : "different scenario"} · ${comparison.same_backend ? "same backend" : "different backend"}</span>
   `;
-  renderDeltaTable(elements.metricDeltaTable, comparison.metric_deltas || []);
+  renderDeltaTable(elements.metricDeltaTable, keyKpis);
   renderDeltaTable(elements.trajectoryDeltaTable, comparison.trajectory_deltas || []);
   drawTrack();
+}
+
+function prioritizeMetricRows(rows) {
+  const priority = [
+    "status",
+    "target_altitude_reached",
+    "kpi_mission_path_error_max_m",
+    "kpi_mission_path_error_mae_m",
+    "kpi_mission_altitude_mae_m",
+    "kpi_sensor_dropout_ratio",
+    "kpi_measurement_horizontal_error_max_m",
+    "kpi_measurement_vertical_error_max_m",
+    "kpi_speed_roughness_mps",
+    "max_speed_mps",
+    "max_altitude_m",
+  ];
+  const prioritySet = new Set(priority);
+  const byName = new Map(rows.map((row) => [row.name, row]));
+  const prioritized = priority.map((name) => byName.get(name)).filter(Boolean);
+  const rest = rows.filter((row) => !prioritySet.has(row.name));
+  return [...prioritized, ...rest];
 }
 
 function renderDeltaTable(container, rows) {
@@ -220,6 +254,149 @@ function renderPlatformAcceptance() {
   if (!elements.acceptanceRows.children.length) {
     elements.acceptanceRows.textContent = "Latest report has no changed rows.";
   }
+}
+
+function renderSuiteReports() {
+  const report = state.suiteReports;
+  if (!report || !report.available) {
+    elements.suiteSummary.textContent = "No latest suite reports found.";
+    elements.suiteList.innerHTML = "";
+    return;
+  }
+  const items = report.items || [];
+  const failed = items.filter((item) => item.status !== "passed").length;
+  const suiteStatusText = failed ? `${failed} failing` : "all listed suites passed";
+  elements.suiteSummary.innerHTML = `
+    <strong>${items.length} latest suite reports</strong>
+    <span>${suiteStatusText} · ${escapeHtml(report.suite_root || "-")}</span>
+  `;
+  elements.suiteList.innerHTML = "";
+  if (!items.length) {
+    elements.suiteList.textContent = "No suite reports found.";
+    return;
+  }
+  items.forEach((suite) => {
+    const item = document.createElement("div");
+    item.className = "suite-card";
+    const effects = (suite.top_metric_effects || []).slice(0, 3);
+    const keyRows = (suite.key_metrics || []).slice(0, 5);
+    const rankings = (suite.kpi_rankings || []).slice(0, 4);
+    const failedRowsText = suite.failed_row_count ? ` · failed ${suite.failed_row_count}` : "";
+    const effectRowsHtml = effects.length
+      ? effects.map(renderSuiteEffect).join("")
+      : '<span>No factor effects in this suite.</span>';
+    const rankingRowsHtml = rankings.length
+      ? rankings.map(renderSuiteRanking).join("")
+      : '<span>No KPI ranking in this suite.</span>';
+    item.innerHTML = `
+      <div class="suite-head">
+        <div>
+          <strong>${escapeHtml(suite.suite_name || "-")}</strong>
+          <span>${escapeHtml(suite.base_scenario || "-")}</span>
+        </div>
+        <div class="artifact-status" data-status="${escapeHtml(suite.status || "unknown")}">${escapeHtml(suite.status || "unknown")}</div>
+      </div>
+      <div class="suite-meta">
+        rows ${suite.passed_row_count ?? 0}/${suite.row_count ?? 0}
+        ${failedRowsText}
+      </div>
+      <div class="suite-kpis">
+        ${keyRows.map(renderSuiteKpiRow).join("")}
+      </div>
+      <div class="suite-effects">
+        ${effectRowsHtml}
+      </div>
+      <div class="suite-rankings">
+        ${rankingRowsHtml}
+      </div>
+    `;
+    elements.suiteList.appendChild(item);
+  });
+}
+
+function renderSuiteKpiRow(row) {
+  return `
+    <div>
+      <strong>${escapeHtml(row.name || "-")}</strong>
+      <span>drop ${formatPercent(row.kpi_sensor_dropout_ratio)} · path ${formatNumber(row.kpi_mission_path_error_max_m)} m · alt ${formatNumber(row.kpi_mission_altitude_mae_m)} m</span>
+    </div>
+  `;
+}
+
+function renderSuiteEffect(effect) {
+  return `
+    <span>${escapeHtml(effect.factor || "-")} -> ${escapeHtml(effect.metric || "-")}: ${formatNumber(effect.mean_spread)}</span>
+  `;
+}
+
+function renderSuiteRanking(ranking) {
+  const worst = (ranking.worst || [])[0] || {};
+  return `
+    <span>${escapeHtml(ranking.metric || "-")}: worst ${escapeHtml(worst.name || "-")}=${formatNumber(worst.value)}, spread ${formatNumber(ranking.spread)}</span>
+  `;
+}
+
+function renderTestSurfaceReports() {
+  const report = state.testSurfaceReports;
+  if (!report || !report.available) {
+    elements.testSurfaceSummary.textContent = "No latest professional test-surface reports found.";
+    elements.testSurfaceList.innerHTML = "";
+    return;
+  }
+  const items = report.items || [];
+  const failed = items.filter((item) => item.status !== "passed").length;
+  elements.testSurfaceSummary.innerHTML = `
+    <strong>${items.length} latest test reports</strong>
+    <span>${failed ? `${failed} failing` : "all listed reports passed"} · ${escapeHtml(report.artifact_root || "-")}</span>
+  `;
+  elements.testSurfaceList.innerHTML = "";
+  items.forEach((surface) => {
+    const item = document.createElement("div");
+    item.className = "suite-card";
+    const metrics = surface.key_metrics || {};
+    const worstCases = (surface.worst_cases || []).slice(0, 3);
+    const issues = (surface.issues || []).slice(0, 2);
+    item.innerHTML = `
+      <div class="suite-head">
+        <div>
+          <strong>${escapeHtml(surface.surface || "-")} · ${escapeHtml(surface.name || "-")}</strong>
+          <span>${escapeHtml(surface.latest_json || "-")}</span>
+        </div>
+        <div class="artifact-status" data-status="${escapeHtml(surface.status || "unknown")}">${escapeHtml(surface.status || "unknown")}</div>
+      </div>
+      <div class="suite-meta">
+        rows ${surface.passed_row_count ?? 0}/${surface.row_count ?? 0}
+        · steps ${surface.passed_step_count ?? 0}/${surface.step_count ?? 0}
+        ${surface.profile ? ` · profile ${escapeHtml(surface.profile)}` : ""}
+        ${surface.seed != null ? ` · seed ${escapeHtml(surface.seed)}` : ""}
+      </div>
+      <div class="suite-kpis">
+        ${renderMetricChips(metrics)}
+      </div>
+      <div class="suite-rankings">
+        ${worstCases.length ? worstCases.map(renderWorstCase).join("") : "<span>No worst-case ranking.</span>"}
+        ${issues.length ? issues.map((issue) => `<span>issue: ${escapeHtml(issue)}</span>`).join("") : ""}
+      </div>
+    `;
+    elements.testSurfaceList.appendChild(item);
+  });
+}
+
+function renderMetricChips(metrics) {
+  const entries = Object.entries(metrics || {});
+  if (!entries.length) {
+    return "<div><span>No key metrics in report.</span></div>";
+  }
+  return entries
+    .map(([key, value]) => `<div><strong>${escapeHtml(key)}</strong><span>${formatCell(value)}</span></div>`)
+    .join("");
+}
+
+function renderWorstCase(caseRow) {
+  const worst = (caseRow.worst || [])[0] || {};
+  return `
+    <span>${escapeHtml(caseRow.metric || "-")}: worst ${escapeHtml(worst.name || "-")}=${formatNumber(worst.value)}, spread ${formatNumber(caseRow.spread)}</span>
+  `;
 }
 
 function renderEvents() {
@@ -410,6 +587,13 @@ function formatNumber(value) {
     return "-";
   }
   return Number(value).toFixed(2);
+}
+
+function formatPercent(value) {
+  if (value === undefined || value === null || Number.isNaN(Number(value))) {
+    return "-";
+  }
+  return `${(Number(value) * 100).toFixed(1)}%`;
 }
 
 function formatCell(value) {
