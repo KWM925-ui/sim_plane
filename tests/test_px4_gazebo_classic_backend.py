@@ -5,6 +5,7 @@ from unittest import mock
 
 from sim_plane.backends.px4_gazebo_classic import (
     PX4GazeboClassicBackend,
+    build_algorithm_adapter_context,
     build_runtime_config,
     prepare_gazebo_classic_env,
     parse_gazebo_classic_log_event,
@@ -45,11 +46,13 @@ class PX4GazeboClassicBackendTest(unittest.TestCase):
                         "backend_options": {
                             "px4_dir": str(px4_root),
                             "world": "warehouse",
+                            "launch_rviz": True,
                         },
                     }
                 )
         self.assertEqual(config["model"], "iris")
         self.assertEqual(config["world"], "warehouse")
+        self.assertTrue(config["launch_rviz"])
         self.assertEqual(config["simulation_target"], "gazebo-classic")
         self.assertTrue(config["gazebo_master_uri"].startswith("http://127.0.0.1:"))
         self.assertTrue(str(config["world_file"]).endswith("warehouse.world"))
@@ -165,6 +168,22 @@ class PX4GazeboClassicBackendTest(unittest.TestCase):
         env = prepare_gazebo_classic_env(config)
         self.assertEqual(env["GAZEBO_MASTER_URI"], "http://127.0.0.1:45678")
         self.assertEqual(env["GAZEBO_MODEL_DATABASE_URI"], "")
+
+    def test_algorithm_adapter_context_passes_rviz_request(self):
+        context = build_algorithm_adapter_context(
+            {
+                "vehicle": "quadrotor",
+                "name": "gazebo_stage2_visual",
+                "duration_s": 12.0,
+                "target_altitude_m": 0.0,
+            },
+            {
+                "launch_rviz": True,
+                "mavlink_endpoint": "udpin:127.0.0.1:14550",
+            },
+        )
+        self.assertTrue(context["launch_rviz"])
+        self.assertEqual(context["backend"], "px4_gazebo_classic")
 
 
 if __name__ == "__main__":

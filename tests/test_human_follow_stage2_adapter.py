@@ -3,7 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from sim_plane.adapters import available_adapters
-from sim_plane.adapters.human_follow_ros_stage2 import build_runtime_config
+from sim_plane.adapters.human_follow_ros_stage2 import build_adapter_notes, build_runtime_config
 
 
 class HumanFollowROSStage2AdapterTest(unittest.TestCase):
@@ -44,6 +44,11 @@ class HumanFollowROSStage2AdapterTest(unittest.TestCase):
 
         default_config = build_runtime_config({}, {})
         self.assertEqual(default_config["stage2_variant"], "real_ego")
+
+    def test_adapter_notes_name_selected_px4_backend(self):
+        config = build_runtime_config({}, {"backend": "px4_gazebo_classic"})
+        notes = build_adapter_notes(config)
+        self.assertIn("PX4 Gazebo Classic + MAVROS", notes[0])
 
 
 if __name__ == "__main__":

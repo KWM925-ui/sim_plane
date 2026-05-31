@@ -255,6 +255,7 @@ def build_runtime_config(spec, context):
     stage2_variant = classify_stage2_variant(stage2_launch_path)
     return {
         "ros_setup": Path(spec.get("ros_setup", DEFAULT_ROS_SETUP)).expanduser(),
+        "backend": context.get("backend", "unknown"),
         "workspace_dir": workspace_dir,
         "workspace_setup": workspace_setup,
         "mavros_overlay_setup": mavros_overlay_setup,
@@ -330,17 +331,24 @@ def classify_stage2_variant(stage2_launch_path):
 
 
 def build_adapter_notes(config):
+    backend_label = {
+        "px4_sih": "PX4 SIH + MAVROS",
+        "px4_gazebo_classic": "PX4 Gazebo Classic + MAVROS",
+        "unknown": "the selected PX4/MAVROS backend",
+    }.get(config.get("backend"), "{0} + MAVROS".format(config.get("backend")))
     if config["stage2_variant"] == "real_ego":
         return [
-            "A repo-local ROS adapter launched the managed Stage2 real-EGO chain on top of real PX4 SIH + MAVROS from {0}.".format(
-                config["workspace_dir"]
+            "A repo-local ROS adapter launched the managed Stage2 real-EGO chain on top of {0} from {1}.".format(
+                backend_label,
+                config["workspace_dir"],
             ),
             "This proof consumes the project-side stage2_real_ego.launch contract, including rolling follow goals, search goals after target loss, lost/hold behavior after search timeout, real EGO waypoint/path generation, PositionCommand bridge, and OFFBOARD gate.",
             "This is sim-plane managed evidence for the project-side real Stage2 chain, not a sim-plane independent ego_planner baseline.",
         ]
     return [
-        "A repo-local ROS adapter launched an explicit non-standard Stage2 launch on top of real PX4 SIH + MAVROS from {0}.".format(
-            config["workspace_dir"]
+        "A repo-local ROS adapter launched an explicit non-standard Stage2 launch on top of {0} from {1}.".format(
+            backend_label,
+            config["workspace_dir"],
         ),
         "The current platform-mainline Stage2 proof is the real-EGO launch; custom Stage2 launch paths are outside the frozen acceptance surface unless a separate matrix row is added.",
     ]

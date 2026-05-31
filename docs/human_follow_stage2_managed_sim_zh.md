@@ -192,7 +192,53 @@ python3 -m sim_plane human-follow-stage2-acceptance --latest --artifact-root run
 runs/human_follow_stage2_acceptance/
 ```
 
-## 11. 已退休的旧结论
+## 11. Gazebo/RViz 受管仿真入口
+
+在 `PX4 SIH + MAVROS + Stage2 real-EGO` 通过之后，可以用下面两条
+Gazebo Classic 场景做更重的本地仿真验证。
+
+headless Gazebo：
+
+```bash
+python3 -m sim_plane run \
+  scenarios/px4_gazebo_classic_iris_human_follow_stage2_real_ego.json \
+  --artifact-root runs --no-hold-open
+```
+
+Gazebo GUI + RViz：
+
+```bash
+python3 -m sim_plane run \
+  scenarios/px4_gazebo_classic_iris_human_follow_stage2_real_ego_visual.json \
+  --artifact-root runs --visualize --no-hold-open
+```
+
+最新验证 artifact：
+
+- `runs/px4_gazebo_classic_iris_human_follow_stage2_real_ego_20260531_180600_060153`
+- `runs/px4_gazebo_classic_iris_human_follow_stage2_real_ego_visual_20260531_180705_889048`
+
+这两条线证明的是：
+
+- `PX4 Gazebo Classic + MAVROS + Stage2 real-EGO` headless 可运行；
+- `PX4 Gazebo Classic + MAVROS + Stage2 real-EGO + Gazebo GUI + RViz` 可运行；
+- RViz 由 Stage2 managed launch 接收 `rviz:=true` 后启动。
+
+仍然不能把它说成：
+
+- 实机安全验证；
+- 真实相机、真实 SLAM、硬件标定端到端验证；
+- Gazebo Harmonic 或所有 Gazebo 版本通用验证。
+
+已知边界：
+
+- 两条 Gazebo run 都有 shutdown 阶段 PX4 提示：
+  `WARN  [commander] Connection to mission computer lost`。
+- visual run 还有一次 shutdown 清理提示：
+  `forcing process kill` for `human_follow_stage2_integrated_chain`。
+- 这些提示没有阻止 `status=passed`，但这两次 run 不能写成 `info-only`。
+
+## 12. 已退休的旧结论
 
 下面这些现在都不是当前主线：
 

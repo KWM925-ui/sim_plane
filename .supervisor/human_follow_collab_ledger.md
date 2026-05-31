@@ -258,6 +258,132 @@
   - first make the tracking plus search portion complete and strict in simulation
   - then, if the project still wants it, integrate the project's own EGO route into that chain
   - then finish the complete end-to-end system simulation
+
+## Current Frontier 2026-06-01
+
+### 已锁定事实
+
+- Windows/MATLAB 不是 Ubuntu Gazebo/RViz 仿真的前置条件；Windows 侧主要负责整理算法实验表格、图片和论文数据包。
+- 当前可用的本地仿真平台候选是 `/home/coco/sim_plane`。
+- `/home/coco/sim_plane` 已有 human-follow Stage2 real-EGO 受管入口：
+  - `scenarios/px4_sih_quadx_human_follow_stage2_real_ego.json`
+  - `sim_plane/ros/human_follow_stage2_real_ego_managed.launch`
+  - `python3 -m sim_plane human-follow-stage2-acceptance --latest --artifact-root runs`
+- 既有记录证明的是 `PX4 SIH + MAVROS + Stage2 real-EGO` 受管链路；这不能自动等同于“Gazebo + RViz 严格全链路已经新鲜跑通”。
+
+### 当前要解的问题
+
+- 先判断 `/home/coco/sim_plane` 当前机器状态是否仍然可用，并确认它能否作为接下来 Gazebo/RViz 严格全链路仿真的主入口。
+
+### 假设
+
+- 如果 `doctor`、artifact hygiene、Stage2 latest acceptance 都通过，则可以进入“ fresh headless 受管 Stage2 rerun ”。
+- 如果 headless rerun 通过，再升级到 Gazebo/RViz 或 visual 模式，避免一开始就被 GUI、显示、端口和旧进程问题干扰。
+
+### 本轮不能做的事
+
+- 不把 Windows/MATLAB 当成 Ubuntu 仿真的阻塞项。
+- 不把历史 artifact 说成今天新跑通。
+- 不直接宣称 Gazebo/RViz 严格全链路完成，除非有本轮新 artifact 支撑。
+- 不改 EGO 内部、PX4、SLAM、detector、硬件标定或 acceptance 阈值。
+
+### 下一步
+
+- 跑轻量健康检查：
+  - `python3 -m sim_plane doctor --json`
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`
+- 跑既有 Stage2 latest 验收：
+  - `python3 -m sim_plane human-follow-stage2-acceptance --latest --artifact-root runs --json`
+- 根据结果决定是否启动 fresh Stage2 受管 rerun，以及是否继续升级到 Gazebo/RViz 可视化链路。
+
+### 本轮轻量检查结果
+
+- `python3 -m sim_plane doctor --json` 通过：
+  - `ready_backend_count=12`
+  - `ready_adapter_count=6`
+  - `px4_gazebo_classic=ready`
+  - `px4_sih=ready`
+  - `human_follow_ros_stage2=ready`
+- `python3 -m sim_plane artifact-hygiene --artifact-root runs --json` 通过：
+  - `status=clean`
+  - `attention_count=0`
+- `python3 -m sim_plane human-follow-stage2-acceptance --latest --artifact-root runs --json` 通过：
+  - `status=passed`
+  - latest artifact: `runs/px4_sih_quadx_human_follow_stage2_real_ego_20260508_102052`
+  - `algorithm_adapter_stage2_real_ego_path_observed=true`
+  - `algorithm_adapter_stage2_search_goal_observed=true`
+- `python3 scripts/sync_human_follow_stage1_workspace.py --source-ws /home/coco/follower_paper_ws --dry-run` 显示当前论文线源同步到受管工作区为 `clean`。
+
+### 本轮允许的下一步
+
+- 可以从 `/home/coco/follower_paper_ws` 显式同步并重建受管工作区。
+- 可以跑 fresh headless Stage2 real-EGO 受管链路，拿今天的新 artifact。
+- 如果 fresh headless 通过，可以新增并验证 `px4_gazebo_classic + human_follow_ros_stage2` 场景；先 headless Gazebo，再 GUI/RViz。
+
+### 本轮新增 Gazebo/RViz 证据
+
+- 已从当前论文线显式同步受管工作区：
+  - command: `python3 scripts/sync_human_follow_stage1_workspace.py --source-ws /home/coco/follower_paper_ws`
+  - result: synced packages all `clean`; removed `2` pycache entries
+- 已重建受管工作区：
+  - command: `./scripts/build_human_follow_stage1_ws.sh`
+  - result: PASS
+- 已跑 fresh `PX4 SIH + MAVROS + Stage2 real-EGO`：
+  - command: `python3 -m sim_plane run scenarios/px4_sih_quadx_human_follow_stage2_real_ego.json --artifact-root runs --no-hold-open`
+  - artifact: `runs/px4_sih_quadx_human_follow_stage2_real_ego_20260531_175457_993127`
+  - result: `status=passed`
+  - latest acceptance: `python3 -m sim_plane human-follow-stage2-acceptance --latest --artifact-root runs --json`
+  - acceptance result: `status=passed`
+- 已新增并验证 headless Gazebo 场景：
+  - scenario: `scenarios/px4_gazebo_classic_iris_human_follow_stage2_real_ego.json`
+  - command: `python3 -m sim_plane run scenarios/px4_gazebo_classic_iris_human_follow_stage2_real_ego.json --artifact-root runs --no-hold-open`
+  - artifact: `runs/px4_gazebo_classic_iris_human_follow_stage2_real_ego_20260531_180600_060153`
+  - result: `status=passed`
+  - key metrics:
+    - `backend=px4_gazebo_classic`
+    - `world=empty`
+    - `model=iris`
+    - `headless=true`
+    - `gazebo_gui=false`
+    - `ever_armed=true`
+    - `algorithm_adapter_offboard_mode_reached=true`
+    - `algorithm_adapter_stage2_real_ego_path_observed=true`
+    - `algorithm_adapter_stage2_search_goal_observed=true`
+    - `algorithm_adapter_stage2_nonzero_mavros_setpoint_count=82`
+  - known residual warning:
+    - `WARN  [commander] Connection to mission computer lost` after ROS/MAVROS shutdown; run still passed.
+- 已新增并验证 Gazebo GUI + RViz 场景：
+  - scenario: `scenarios/px4_gazebo_classic_iris_human_follow_stage2_real_ego_visual.json`
+  - command: `python3 -m sim_plane run scenarios/px4_gazebo_classic_iris_human_follow_stage2_real_ego_visual.json --artifact-root runs --visualize --no-hold-open`
+  - artifact: `runs/px4_gazebo_classic_iris_human_follow_stage2_real_ego_visual_20260531_180705_889048`
+  - result: `status=passed`
+  - dashboard: `http://127.0.0.1:8765` during run
+  - key metrics:
+    - `backend=px4_gazebo_classic`
+    - `world=warehouse`
+    - `model=iris`
+    - `headless=false`
+    - `gazebo_gui=true`
+    - `ever_armed=true`
+    - `algorithm_adapter_offboard_mode_reached=true`
+    - `algorithm_adapter_stage2_real_ego_path_observed=true`
+    - `algorithm_adapter_stage2_search_goal_observed=true`
+    - `algorithm_adapter_stage2_nonzero_mavros_setpoint_count=106`
+  - RViz launch evidence:
+    - adapter launch args included `rviz:=true`
+    - roslaunch command included `rviz:=true`
+  - known residual warning:
+    - `WARN  [commander] Connection to mission computer lost` after ROS/MAVROS shutdown; run still passed.
+    - `forcing process kill` for `human_follow_stage2_integrated_chain` during shutdown cleanup; run still passed.
+
+### 新边界
+
+- 现在可以说：当前论文线已经有 fresh Ubuntu 本地 `PX4 Gazebo Classic + MAVROS + Stage2 real-EGO + Gazebo GUI + RViz` 受管仿真证据。
+- 仍不能说：
+  - 已经实机安全；
+  - detector、真实相机、真实 SLAM、硬件标定都已经端到端验证；
+  - Gazebo Classic 代表未来所有 Gazebo/Harmonic 环境；
+  - 所有论文指标都已经由 Gazebo 场景系统性扫参完成。
 - "Complete and strict in simulation" for the pre-EGO branch means the branch should cover the Stage1 behavior target rather than only isolated platform plumbing:
   - target acquisition
   - follow
