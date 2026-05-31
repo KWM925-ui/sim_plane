@@ -8,6 +8,7 @@ from pathlib import Path
 from sim_plane.artifacts import build_artifact_dir
 from sim_plane.cli import main
 from sim_plane.run_suite import load_suite_definition, run_suite
+from sim_plane.quadrotor_exam import run_quadrotor_exam
 
 
 def write_base_scenario(path):
@@ -217,6 +218,42 @@ class RunSuiteTest(unittest.TestCase):
 
             self.assertEqual(report["status"], "passed")
             self.assertGreater(report["rows"][0]["metrics"]["kpi_sensor_dropout_count"], 0)
+
+    def test_data_stream_sensor_fault_suite_passes(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            scenario_path = root / "scenario.json"
+            write_base_scenario(scenario_path)
+
+            report = run_suite(
+                scenario_path=scenario_path,
+                suite_path=Path.cwd() / "configs" / "demo_sensor_stream_fault_suite.json",
+                artifact_root=root / "runs",
+                report_root=root / "suites",
+            )
+
+            self.assertEqual(report["status"], "passed")
+            rows = {row["name"]: row for row in report["rows"]}
+            self.assertGreater(rows["gps_dropout_window"]["metrics"]["gps_dropout_count"], 0)
+            self.assertGreater(rows["vio_scale_drift"]["metrics"]["vio_scale_drift_count"], 0)
+            self.assertGreater(rows["imu_noise_burst"]["metrics"]["imu_noise_burst_count"], 0)
+
+    def test_quadrotor_exam_writes_success_rate_summary(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            scenario_path = root / "scenario.json"
+            write_base_scenario(scenario_path)
+
+            report = run_quadrotor_exam(
+                scenario_path=scenario_path,
+                suite_path=Path.cwd() / "configs" / "paper_quadrotor_exam_suite.json",
+                artifact_root=root / "runs",
+                report_root=root / "suites",
+            )
+
+            self.assertEqual(report["status"], "passed")
+            self.assertEqual(report["exam"]["scene_count"], 8)
+            self.assertEqual(report["exam"]["success_rate"], 1.0)
 
     def test_base_overrides_apply_to_hand_written_variants(self):
         with tempfile.TemporaryDirectory() as tmpdir:

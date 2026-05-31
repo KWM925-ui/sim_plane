@@ -94,6 +94,12 @@ from sim_plane.scenario_fuzz import (
     format_fuzz_report,
     run_scenario_fuzz,
 )
+from sim_plane.baselines import format_baselines, get_baseline, list_baselines
+from sim_plane.quadrotor_exam import (
+    DEFAULT_EXAM_SUITE,
+    format_quadrotor_exam_report,
+    run_quadrotor_exam,
+)
 
 
 def build_parser():
@@ -133,6 +139,43 @@ def build_parser():
 
     subparsers.add_parser("list-backends", help="List known backends")
     subparsers.add_parser("list-adapters", help="List known algorithm adapters")
+    baseline_parser = subparsers.add_parser(
+        "list-baselines",
+        help="List built-in baseline algorithm entrypoints",
+    )
+    baseline_parser.add_argument(
+        "--include-planned",
+        action="store_true",
+        help="Also show planned catalog entries that are not runnable yet",
+    )
+    baseline_parser.add_argument(
+        "--family",
+        help="Filter by baseline family, for example control, planner, or tracking",
+    )
+    baseline_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print baseline catalog as JSON",
+    )
+    run_baseline_parser = subparsers.add_parser(
+        "run-baseline",
+        help="Run a ready baseline algorithm entrypoint",
+    )
+    run_baseline_parser.add_argument("name", help="Baseline name from list-baselines")
+    run_baseline_parser.add_argument(
+        "--artifact-root",
+        default="runs",
+        help="Where fresh baseline artifacts should be written",
+    )
+    run_baseline_parser.add_argument("--visualize", action="store_true", help="Launch the local web dashboard")
+    run_baseline_parser.add_argument("--host", default="127.0.0.1", help="Dashboard bind host")
+    run_baseline_parser.add_argument("--port", type=int, default=8765, help="Dashboard bind port")
+    run_baseline_parser.add_argument("--open-browser", action="store_true", help="Try to open the dashboard automatically")
+    run_baseline_parser.add_argument("--no-hold-open", action="store_true", help="Do not keep the dashboard open")
+    run_baseline_parser.add_argument("--px4-dir", help="PX4-Autopilot checkout path for PX4-based baselines")
+    run_baseline_parser.add_argument("--ros-workspace", help="Override ROS workspace path for ROS-based baselines")
+    run_baseline_parser.add_argument("--connect-timeout", type=float, help="Override MAVLink heartbeat wait timeout in seconds")
+    run_baseline_parser.add_argument("--json", action="store_true", help="Print baseline run outcome as JSON")
     doctor_parser = subparsers.add_parser(
         "doctor",
         help="Inspect current platform readiness and print recommended next run paths",
@@ -573,6 +616,46 @@ def build_parser():
         help="Override MAVLink heartbeat wait timeout in seconds for PX4-based suite variants",
     )
 
+    exam_parser = subparsers.add_parser(
+        "quadrotor-exam",
+        help="Run the standard paper/project-style quadrotor validation exam",
+    )
+    exam_parser.add_argument(
+        "--scenario",
+        default="scenarios/basic_takeoff.json",
+        help="Base scenario JSON file. Defaults to scenarios/basic_takeoff.json",
+    )
+    exam_parser.add_argument(
+        "--suite",
+        default=str(DEFAULT_EXAM_SUITE),
+        help="Exam suite JSON. Defaults to configs/paper_quadrotor_exam_suite.json",
+    )
+    exam_parser.add_argument(
+        "--artifact-root",
+        default="runs",
+        help="Where fresh exam artifacts should be written",
+    )
+    exam_parser.add_argument(
+        "--report-root",
+        default=str(DEFAULT_SUITE_REPORT_ROOT),
+        help="Where exam reports should be written",
+    )
+    exam_parser.add_argument(
+        "--no-save-report",
+        action="store_true",
+        help="Do not persist the exam report under the report root",
+    )
+    exam_parser.add_argument(
+        "--keep-last-reports",
+        type=int,
+        default=10,
+        help="Keep only the newest N timestamped exam report directories; 0 disables pruning",
+    )
+    exam_parser.add_argument("--px4-dir", help="PX4-Autopilot checkout path for PX4-based exam rows")
+    exam_parser.add_argument("--ros-workspace", help="Override ROS workspace path for ROS-based exam rows")
+    exam_parser.add_argument("--connect-timeout", type=float, help="Override MAVLink heartbeat wait timeout in seconds")
+    exam_parser.add_argument("--json", action="store_true", help="Print the exam report as JSON")
+
     flight_log_parser = subparsers.add_parser(
         "flight-log-analyze",
         help="Analyze a sim_plane run artifact or PX4 .ulg file into replay KPIs",
@@ -886,6 +969,50 @@ def main(argv=None):
             for issue in issues:
                 print("  - {0}".format(issue))
         return 0
+
+    if args.command == "list-baselines":
+        rows = list_baselines(include_planned=args.include_planned, family=args.family)
+        if args.json:
+            print(json.dumps({"baselines": rows}, indent=2, ensure_ascii=False))
+        else:
+            print(format_baselines(rows))
+        return 0
+
+    if args.command == "run-baseline":
+        try:
+            baseline = get_baseline(args.name)
+        except KeyError:
+            parser.error("unknown baseline: {0}".format(args.name))
+        if baseline.get("status") != "ready":
+            parser.error("baseline {0} is not runnable yet: status={1}".format(args.name, baseline.get("status")))
+        scenario = baseline.get("scenario")
+        if not scenario:
+            parser.error("baseline {0} has no scenario".format(args.name))
+        ensure_artifact_root(args.artifact_root)
+        outcome = run_scenario(
+            scenario,
+            artifact_root=args.artifact_root,
+            visualize=args.visualize,
+            host=args.host,
+            port=args.port,
+            open_browser=args.open_browser,
+            hold_open=not args.no_hold_open and args.visualize,
+            runtime_options={
+                "px4_dir": args.px4_dir,
+                "ros_workspace_dir": args.ros_workspace,
+                "connect_timeout_s": args.connect_timeout,
+            },
+        )
+        payload = {"baseline": baseline, "outcome": outcome}
+        if args.json:
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+        else:
+            print("baseline: {0}".format(args.name))
+            print("status: {0}".format(outcome["result"].get("status")))
+            print("artifact_dir: {0}".format(outcome["artifact_dir"]))
+            if outcome.get("dashboard_url"):
+                print("dashboard_url: {0}".format(outcome["dashboard_url"]))
+        return 0 if outcome["result"].get("status") == "passed" else 1
 
     if args.command == "doctor":
         report = collect_platform_doctor_report()
@@ -1202,6 +1329,28 @@ def main(argv=None):
             print(json.dumps(report, indent=2, ensure_ascii=False))
         else:
             print(format_suite_report(report))
+        return 0 if report["status"] == "passed" else 1
+
+    if args.command == "quadrotor-exam":
+        try:
+            report = run_quadrotor_exam(
+                scenario_path=args.scenario,
+                suite_path=args.suite,
+                artifact_root=args.artifact_root,
+                report_root=None if args.no_save_report else args.report_root,
+                keep_last=args.keep_last_reports,
+                runtime_options={
+                    "px4_dir": args.px4_dir,
+                    "ros_workspace_dir": args.ros_workspace,
+                    "connect_timeout_s": args.connect_timeout,
+                },
+            )
+        except ValueError as exc:
+            parser.error(str(exc))
+        if args.json:
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+        else:
+            print(format_quadrotor_exam_report(report))
         return 0 if report["status"] == "passed" else 1
 
     if args.command == "flight-log-analyze":

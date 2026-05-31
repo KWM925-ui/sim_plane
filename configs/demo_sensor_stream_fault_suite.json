@@ -1,0 +1,102 @@
+{
+  "name": "demo_sensor_stream_fault_suite",
+  "description": "Data-stream-level sensor fault suite on the lightweight demo backend. It simulates GPS dropout, VIO scale drift, and IMU noise bursts in telemetry data flow; it is not PX4-native failure injection.",
+  "base_overrides": {
+    "duration_s": 12.0,
+    "realtime_factor": 0.0,
+    "target_altitude_m": 8.0,
+    "safety": {
+      "min_altitude_m": 0.0,
+      "max_altitude_m": 14.0,
+      "max_radius_m": 30.0
+    }
+  },
+  "variants": [
+    {
+      "name": "baseline",
+      "overrides": {},
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "sensor_stream_fault_enabled": false
+      },
+      "metric_thresholds": {
+        "kpi_sensor_dropout_count": { "max": 0 },
+        "kpi_safety_violation_count": { "max": 0 }
+      }
+    },
+    {
+      "name": "gps_dropout_window",
+      "overrides": {
+        "degradations": {
+          "sensor_stream_faults": {
+            "gps_dropout": {
+              "windows": [
+                { "start_s": 6.0, "end_s": 7.0 }
+              ]
+            }
+          }
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "sensor_stream_fault_enabled": true
+      },
+      "metric_thresholds": {
+        "gps_dropout_count": { "min": 1 },
+        "kpi_sensor_dropout_count": { "min": 1 },
+        "kpi_target_reacquire_count": { "min": 1 },
+        "kpi_sensor_recovery_time_s": { "max": 1.5 }
+      }
+    },
+    {
+      "name": "vio_scale_drift",
+      "overrides": {
+        "degradations": {
+          "sensor_stream_faults": {
+            "vio_scale_drift": {
+              "start_s": 4.0,
+              "scale_rate_per_s": 0.035,
+              "max_scale_error": 0.18
+            }
+          }
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "sensor_stream_fault_enabled": true
+      },
+      "metric_thresholds": {
+        "vio_scale_drift_count": { "min": 1 },
+        "vio_scale_drift_max_scale_error": { "min": 0.1 },
+        "kpi_measurement_horizontal_error_max_m": { "min": 0.5 }
+      }
+    },
+    {
+      "name": "imu_noise_burst",
+      "overrides": {
+        "degradations": {
+          "seed": 61,
+          "sensor_stream_faults": {
+            "imu_noise_burst": {
+              "windows": [
+                { "start_s": 5.6, "end_s": 6.6 }
+              ],
+              "position_std_m": 0.3,
+              "altitude_std_m": 0.12,
+              "speed_std_mps": 0.4
+            }
+          }
+        }
+      },
+      "required_metrics": {
+        "target_altitude_reached": true,
+        "sensor_stream_fault_enabled": true
+      },
+      "metric_thresholds": {
+        "imu_noise_burst_count": { "min": 1 },
+        "kpi_measurement_horizontal_error_max_m": { "min": 0.2 },
+        "kpi_measurement_vertical_error_max_m": { "min": 0.1 }
+      }
+    }
+  ]
+}

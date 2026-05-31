@@ -2,12 +2,13 @@
 
 ## 1. 项目定位
 
-`sim_plane` 是一个以当前这台 Ubuntu 20.04 主机为第一落点的无人机算法仿真平台。  
+`sim_plane` 是一个以当前这台 Ubuntu 20.04 主机为第一落点、面向算法验证的无人机仿真评测平台。
 设计原则不是“先堆最重的全家桶”，而是：
 
 - 先保证能跑、能看、能复现。
 - 先把轻路径和统一控制面做稳。
 - 再逐步接入更重的 3D、感知和规划算法。
+- 不把当前平台宣传成 AirSim / Isaac Sim / Flightmare / FlightGoggles 那类高保真视觉仿真器。
 
 当前平台已经分成两层：
 
@@ -180,6 +181,68 @@ python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
 这些指标是追加层，不改变旧的 backend metrics 和现有 acceptance contract。
 PX4 SIH 路径仍只使用真实支持的参数/命令，不把 demo 里的 wind 或 dropout
 伪装成 PX4 物理故障。
+
+### 4.4.1 标准论文 / 项目实验闭环
+
+标准四旋翼实验闭环入口：
+
+```bash
+python3 -m sim_plane quadrotor-exam --artifact-root runs
+```
+
+默认使用：
+
+```text
+configs/paper_quadrotor_exam_suite.json
+```
+
+当前固定场景包括：
+
+- `hover`
+- `waypoint`
+- `obstacle_avoidance_proxy`
+- `corridor`
+- `sensor_dropout`
+- `dynamic_target`
+- `failure_motor_proxy`
+- `planner_compare`
+
+每个场景都会产出统一 `kpi_*` 指标，报告里额外有 `exam.success_rate` 和关键 KPI 汇总，便于做论文表格、项目验收表和版本对比。
+
+### 4.4.2 数据流层面传感器故障
+
+轻量 demo backend 现在还支持 `sensor_stream_faults`：
+
+- `gps_dropout`
+- `vio_scale_drift`
+- `imu_noise_burst`
+
+标准入口：
+
+```bash
+python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
+  --suite configs/demo_sensor_stream_fault_suite.json
+```
+
+边界必须明确：这属于仿真数据流层面的传感器退化测试，不是 PX4-native
+`MAV_CMD_INJECT_FAILURE`。PX4 原生命令级故障仍然只以
+`px4-failure-acceptance` 为准。
+
+### 4.4.3 Baseline 算法库入口
+
+查看当前可用 baseline：
+
+```bash
+python3 -m sim_plane list-baselines
+```
+
+运行一个 baseline：
+
+```bash
+python3 -m sim_plane run-baseline pid_position_demo --artifact-root runs
+```
+
+当前 baseline catalog 里区分 `ready` 和 `planned`。`planned` 只表示后续值得实现，不会被平台冒充成已跑通能力。
 
 打开 dashboard 时也能直接看到最新 suite 摘要、KPI 行和
 `kpi_rankings` / `top_metric_effects`，同时也会展示最新专业测试面报告：

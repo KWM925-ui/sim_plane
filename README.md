@@ -1,6 +1,8 @@
 # sim_plane
 
-A lightweight but capable UAV algorithm simulation platform, designed to run on the current machine first and grow into richer validation later.
+A lightweight but capable UAV algorithm simulation and evaluation platform, designed to run on the current machine first and grow into richer validation later.
+
+This repository is positioned as an algorithm-validation and experiment-management layer. It is not a high-fidelity visual-realism simulator in the same category as AirSim, Isaac Sim, Flightmare, FlightGoggles, or Unity/Unreal-based camera simulation stacks.
 
 ## Current Status
 
@@ -251,6 +253,37 @@ python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
   --suite configs/demo_degradation_suite.json
 ```
 
+Run the standard paper/project-style quadrotor exam:
+
+```bash
+python3 -m sim_plane quadrotor-exam --artifact-root runs
+```
+
+The exam writes a normal suite report under `runs/suites/` and adds a compact
+`exam` summary with success rate and fixed KPI names for repeatable
+paper/project tables.
+
+Run data-stream-level sensor fault checks on the lightweight demo backend:
+
+```bash
+python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
+  --suite configs/demo_sensor_stream_fault_suite.json
+```
+
+This surface simulates GPS dropout, VIO scale drift, and IMU noise bursts in
+the telemetry data flow. It is deliberately separate from PX4-native failure
+injection.
+
+List and run built-in baseline algorithm entrypoints:
+
+```bash
+python3 -m sim_plane list-baselines
+python3 -m sim_plane run-baseline pid_position_demo --artifact-root runs
+```
+
+The catalog includes ready baselines and planned entries. Planned entries are
+not runnable until an implementation and tests are landed.
+
 Replay a run artifact or PX4 `.ulg` flight log into normalized KPI evidence:
 
 ```bash
@@ -325,8 +358,10 @@ The lightweight demo backend supports deterministic degradation knobs for
 algorithm robustness testing: `sensor_dropout`, `target_loss`, `sensor_latency`,
 `sensor_noise`, `measurement_bias`, `measurement_bias_drift`,
 `measurement_saturation`, `communication_interruption`, and
-`control_saturation`. PX4 SIH remains conservative: do not call a PX4 run a
-wind/fault test unless that injection is backed by a real PX4-side mechanism.
+`control_saturation`. It also has a clearly labelled data-stream sensor fault
+surface under `sensor_stream_faults` for GPS dropout, VIO scale drift, and IMU
+noise bursts. PX4 SIH remains conservative: do not call a PX4 run a wind/fault
+test unless that injection is backed by a real PX4-side mechanism.
 
 For the fastest local sanity check, run only the built-in demo row:
 

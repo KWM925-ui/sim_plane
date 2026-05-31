@@ -8,6 +8,58 @@
 
 ## Current Frontier 2026-06-01
 
+### Resume Frontier 2026-06-01 platform-mainline paper-grade closure
+
+#### 已锁定事实
+
+- 当前继续的是通用 `sim_plane` 平台主线，不是 human-follow Stage1/Stage2。
+- 不碰 `/home/coco/follwer_ws`。
+- 外部评价已经转化为平台主线补强：论文/项目式四旋翼实验闭环、baseline 算法入口、demo 数据流传感器退化测试、清晰的“非高保真视觉仿真器”定位。
+- 上一轮已跑通：
+  - `python3 -m unittest tests.test_demo_run tests.test_run_suite tests.test_baselines`: PASS，`22` tests；
+  - `python3 -m unittest discover -s tests`: PASS，`161` tests；
+  - `python3 -m compileall -q sim_plane scripts tests examples`: PASS；
+  - shell syntax check: PASS；
+  - JSON syntax check: PASS，`67` files；
+  - `python3 -m sim_plane quadrotor-exam --artifact-root runs --report-root runs/suites --json`: PASS；
+  - `python3 -m sim_plane run-suite scenarios/basic_takeoff.json --suite configs/demo_sensor_stream_fault_suite.json --artifact-root runs --report-root runs/suites --json`: PASS；
+  - `python3 -m sim_plane run-baseline pid_position_demo --artifact-root runs --json`: PASS；
+  - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: PASS，`23` rows。
+- 当前唯一卫生问题是本轮调试残留的临时 debug artifact 根目录，`artifact-hygiene` 已明确标记为 `safe_to_prune=true`；不要在台账或文档里继续写入它的精确路径，避免把临时目录误提升为保留证据。
+- `compileall` 生成的 `__pycache__` / `*.pyc` 是验证产物，应在收口前清掉，避免工作区噪声。
+
+#### 当前要解的问题
+
+- 清理本轮临时 artifact 和 Python 编译缓存。
+- 复跑 artifact hygiene、manual probe hygiene、必要验收，确认平台主线无污染。
+- 更新台账，给出真实 PASS/FAIL 和剩余客观边界。
+
+#### 本轮不能做的事
+
+- 不扩新功能；
+- 不改 `/home/coco/follwer_ws`；
+- 不重开 human-follow 分支；
+- 不把 demo `sensor_stream_faults` 说成 PX4-native failure；
+- 不把 planned baseline 说成 runnable。
+
+#### 收口证据
+
+- 临时 debug artifact root 已清理；`artifact-hygiene` 最终为 `status=clean`，`complete_artifact_count=309`，`attention_count=0`。
+- Python 验证缓存已清理，`sim_plane`、`scripts`、`tests`、`examples` 下无残留 `__pycache__` / `*.pyc`。
+- `python3 -m unittest discover -s tests`: PASS，`161` tests。
+- `python3 -m compileall -q sim_plane scripts tests examples`: PASS。
+- shell syntax check: PASS。
+- JSON syntax check: PASS，`67` files。
+- `git diff --check`: PASS。
+- `python3 -m sim_plane doctor --json`: `12` ready backends，`6` ready adapters。
+- `python3 -m sim_plane quadrotor-exam --artifact-root runs --report-root runs/suites --json`: PASS，report `runs/suites/paper_quadrotor_exam_suite_20260531_183803_761883/report.json`，`8/8` scenes，`success_rate=1.0`。
+- `python3 -m sim_plane run-suite scenarios/basic_takeoff.json --suite configs/demo_sensor_stream_fault_suite.json --artifact-root runs --report-root runs/suites --json`: PASS，report `runs/suites/demo_sensor_stream_fault_suite_20260531_183803_655412/report.json`，`4/4` rows。
+- `python3 -m sim_plane run-baseline pid_position_demo --artifact-root runs --json`: PASS，artifact `runs/basic_takeoff_20260531_183349_747838`。
+- `python3 -m sim_plane planner-acceptance --latest --artifact-root runs --json`: PASS，report `/home/coco/sim_plane/runs/acceptance/planner_acceptance_baseline_latest_20260531_183904_572370/report.json`。
+- `python3 -m sim_plane px4-failure-acceptance --latest --artifact-root runs --json`: PASS，report `/home/coco/sim_plane/runs/px4_failure_injection_acceptance/px4_failure_injection_acceptance_latest_20260531_183904_489254/report.json`。
+- `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: PASS，report `/home/coco/sim_plane/runs/platform_acceptance/platform_acceptance_baseline_latest_20260531_183904_765915/report.json`，`23` rows。
+- `imu_noise_burst.speed_std_mps` 已闭环到 demo speed telemetry，不再是未生效配置项。
+
 ### 已锁定事实
 
 - 当前主线是通用 `sim_plane` 无人机仿真平台，不是 `/home/coco/follwer_ws`。

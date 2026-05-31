@@ -153,6 +153,12 @@ class DemoBackend(Backend):
                 latency_buffer=latency_buffer,
                 dt=dt,
             )
+            speed_mps = apply_speed_degradations(
+                speed_mps=speed_mps,
+                t=t,
+                degradation_config=degradation_config,
+                random_source=degradation_random_source,
+            )
             sample_visible = measured is not None
             if measured is None:
                 horizontal_error_m = None
@@ -229,6 +235,11 @@ class DemoBackend(Backend):
             or degradation_config["sensor_noise"]["altitude_std_m"] > 0.0,
             "communication_interruption_count": degradation_config["communication_interruption_count"],
             "control_saturation_count": degradation_config["control_saturation_count"],
+            "sensor_stream_fault_enabled": degradation_config["sensor_stream_fault_enabled"],
+            "gps_dropout_count": degradation_config["gps_dropout_count"],
+            "vio_scale_drift_count": degradation_config["vio_scale_drift_count"],
+            "vio_scale_drift_max_scale_error": round(degradation_config["vio_scale_drift_max_scale_error"], 6),
+            "imu_noise_burst_count": degradation_config["imu_noise_burst_count"],
         }
         metrics.update(adapter_report.get("metrics", {}))
         notes = [
@@ -342,10 +353,16 @@ def build_degradation_config(raw_config):
     latency = dict(config.get("sensor_latency") or {})
     communication = dict(config.get("communication_interruption") or {})
     control_saturation = dict(config.get("control_saturation") or {})
+    stream_faults = dict(config.get("sensor_stream_faults") or {})
+    gps_dropout = dict(stream_faults.get("gps_dropout") or {})
+    vio_scale_drift = dict(stream_faults.get("vio_scale_drift") or {})
+    imu_noise_burst = dict(stream_faults.get("imu_noise_burst") or {})
     seed = int(config.get("seed", 0))
     dropout_windows = normalize_dropout_windows(dropout.get("windows", []))
     target_loss_windows = normalize_dropout_windows(target_loss.get("windows", []))
     communication_windows = normalize_dropout_windows(communication.get("windows", []))
+    gps_dropout_windows = normalize_dropout_windows(gps_dropout.get("windows", []))
+    imu_noise_burst_windows = normalize_dropout_windows(imu_noise_burst.get("windows", []))
     normalized = {
         "seed": seed,
         "sensor_dropout": {
@@ -383,7 +400,25 @@ def build_degradation_config(raw_config):
         "control_saturation": {
             "max_speed_mps": optional_float(control_saturation.get("max_speed_mps")),
         },
+        "sensor_stream_faults": {
+            "gps_dropout": {
+                "probability": clamp(float(gps_dropout.get("probability", 0.0)), 0.0, 1.0),
+                "windows": gps_dropout_windows,
+            },
+            "vio_scale_drift": {
+                "start_s": max(float(vio_scale_drift.get("start_s", 0.0)), 0.0),
+                "scale_rate_per_s": float(vio_scale_drift.get("scale_rate_per_s", 0.0)),
+                "max_scale_error": max(float(vio_scale_drift.get("max_scale_error", 0.0)), 0.0),
+            },
+            "imu_noise_burst": {
+                "windows": imu_noise_burst_windows,
+                "position_std_m": float(imu_noise_burst.get("position_std_m", 0.0)),
+                "altitude_std_m": float(imu_noise_burst.get("altitude_std_m", 0.0)),
+                "speed_std_mps": float(imu_noise_burst.get("speed_std_mps", 0.0)),
+            },
+        },
     }
+    stream = normalized["sensor_stream_faults"]
     normalized["enabled"] = (
         normalized["sensor_dropout"]["probability"] > 0.0
         or bool(normalized["sensor_dropout"]["windows"])
@@ -395,12 +430,28 @@ def build_degradation_config(raw_config):
         or any(value is not None for value in normalized["measurement_saturation"].values())
         or bool(normalized["communication_interruption"]["windows"])
         or normalized["control_saturation"]["max_speed_mps"] is not None
+        or stream["gps_dropout"]["probability"] > 0.0
+        or bool(stream["gps_dropout"]["windows"])
+        or abs(stream["vio_scale_drift"]["scale_rate_per_s"]) > 1e-12
+        or stream["vio_scale_drift"]["max_scale_error"] > 0.0
+        or bool(stream["imu_noise_burst"]["windows"])
     )
     normalized["dropout_count"] = 0
     normalized["target_loss_count"] = 0
     normalized["latency_s"] = normalized["sensor_latency"]["delay_s"]
     normalized["communication_interruption_count"] = 0
     normalized["control_saturation_count"] = 0
+    normalized["gps_dropout_count"] = 0
+    normalized["vio_scale_drift_count"] = 0
+    normalized["vio_scale_drift_max_scale_error"] = 0.0
+    normalized["imu_noise_burst_count"] = 0
+    normalized["sensor_stream_fault_enabled"] = (
+        stream["gps_dropout"]["probability"] > 0.0
+        or bool(stream["gps_dropout"]["windows"])
+        or abs(stream["vio_scale_drift"]["scale_rate_per_s"]) > 1e-12
+        or stream["vio_scale_drift"]["max_scale_error"] > 0.0
+        or bool(stream["imu_noise_burst"]["windows"])
+    )
     normalized["summary"] = {
         "enabled": normalized["enabled"],
         "seed": seed,
@@ -413,6 +464,7 @@ def build_degradation_config(raw_config):
         "sensor_latency": normalized["sensor_latency"],
         "communication_interruption": normalized["communication_interruption"],
         "control_saturation": normalized["control_saturation"],
+        "sensor_stream_faults": normalized["sensor_stream_faults"],
     }
     return normalized
 
@@ -454,11 +506,17 @@ def apply_disturbances(truth, t, disturbance_config, random_source):
 def apply_degradations(measured, t, degradation_config, random_source, latency_buffer, dt):
     degraded = dict(measured)
     dropout = degradation_config["sensor_dropout"]
+    stream = degradation_config["sensor_stream_faults"]
+    gps_dropout = stream["gps_dropout"]
     if is_in_dropout_window(t, degradation_config["target_loss"]["windows"]):
         degradation_config["target_loss_count"] += 1
         degradation_config["dropout_count"] += 1
         return None
     if is_in_dropout_window(t, dropout["windows"]) or random_source.random() < dropout["probability"]:
+        degradation_config["dropout_count"] += 1
+        return None
+    if is_in_dropout_window(t, gps_dropout["windows"]) or random_source.random() < gps_dropout["probability"]:
+        degradation_config["gps_dropout_count"] += 1
         degradation_config["dropout_count"] += 1
         return None
 
@@ -478,6 +536,31 @@ def apply_degradations(measured, t, degradation_config, random_source, latency_b
         degraded["y_m"] += random_source.gauss(0.0, noise["position_std_m"])
     if noise["altitude_std_m"] > 0.0:
         degraded["z_m"] += random_source.gauss(0.0, noise["altitude_std_m"])
+
+    vio = stream["vio_scale_drift"]
+    if t >= vio["start_s"] and (abs(vio["scale_rate_per_s"]) > 1e-12 or vio["max_scale_error"] > 0.0):
+        raw_scale_error = max(t - vio["start_s"], 0.0) * vio["scale_rate_per_s"]
+        max_scale_error = vio["max_scale_error"]
+        if max_scale_error > 0.0:
+            raw_scale_error = clamp(raw_scale_error, -max_scale_error, max_scale_error)
+        scale = 1.0 + raw_scale_error
+        degraded["x_m"] *= scale
+        degraded["y_m"] *= scale
+        degraded["z_m"] *= scale
+        degradation_config["vio_scale_drift_count"] += 1
+        degradation_config["vio_scale_drift_max_scale_error"] = max(
+            degradation_config["vio_scale_drift_max_scale_error"],
+            abs(raw_scale_error),
+        )
+
+    imu = stream["imu_noise_burst"]
+    if is_in_dropout_window(t, imu["windows"]):
+        degradation_config["imu_noise_burst_count"] += 1
+        if imu["position_std_m"] > 0.0:
+            degraded["x_m"] += random_source.gauss(0.0, imu["position_std_m"])
+            degraded["y_m"] += random_source.gauss(0.0, imu["position_std_m"])
+        if imu["altitude_std_m"] > 0.0:
+            degraded["z_m"] += random_source.gauss(0.0, imu["altitude_std_m"])
 
     saturation = degradation_config["measurement_saturation"]
     max_horizontal = saturation["max_horizontal_range_m"]
@@ -510,6 +593,13 @@ def apply_degradations(measured, t, degradation_config, random_source, latency_b
     while len(latency_buffer) > 2 and latency_buffer[1]["t"] <= cutoff_t:
         latency_buffer.pop(0)
     return dict(delayed)
+
+
+def apply_speed_degradations(speed_mps, t, degradation_config, random_source):
+    imu = degradation_config["sensor_stream_faults"]["imu_noise_burst"]
+    if is_in_dropout_window(t, imu["windows"]) and imu["speed_std_mps"] > 0.0:
+        return max(0.0, speed_mps + random_source.gauss(0.0, imu["speed_std_mps"]))
+    return speed_mps
 
 
 def is_in_dropout_window(t, windows):

@@ -4,7 +4,7 @@
 
 ## 1. 当前平台是什么
 
-`sim_plane` 现在是一个轻量优先的无人机算法仿真与评测平台。它不是只包官方 launch 的脚本集合，核心价值在于统一了：
+`sim_plane` 现在是一个轻量优先、面向算法验证的无人机仿真评测平台。它不是只包官方 launch 的脚本集合，核心价值在于统一了：
 
 - 仿真后端启动
 - 算法进程接入
@@ -15,6 +15,8 @@
 - acceptance / live-smoke / autotest 复验
 
 当前主线以四旋翼为准。外部 upstream 和 ROS workspace 固定放在 `/home/coco/sim_plane_ws`，本仓库只放平台代码、场景、配置、文档和统一入口。
+
+它不应该被宣传成“高保真视觉无人机仿真平台”。真实光照、材质、动态遮挡、相机畸变、motion blur 这类能力不是当前主战场；当前主战场是四旋翼算法验证、可重复场景、KPI、故障/退化测试、日志复盘和实验管理。
 
 ## 2. 最常用命令
 
@@ -34,6 +36,18 @@ python3 -m sim_plane live-smoke --profile fast
 
 ```bash
 python3 -m sim_plane autotest-pack --profile fast --artifact-root runs
+```
+
+跑标准论文/项目式四旋翼实验闭环：
+
+```bash
+python3 -m sim_plane quadrotor-exam --artifact-root runs
+```
+
+查看内置 baseline 算法入口：
+
+```bash
+python3 -m sim_plane list-baselines
 ```
 
 检查当前严格基线有没有退化：
@@ -111,6 +125,8 @@ PX4/QGroundControl/JSBSim/Gazebo Classic 路径仍是可选视觉面，不是所
 - PX4-native `SYSTEM_MOTOR/OFF/OK` failure injection acceptance
 - artifact / `.ulg` flight-log replay
 - local `autotest-pack`
+- paper/project-style `quadrotor-exam`
+- baseline algorithm catalog
 
 `SUPER`、`visPlanner` 等前沿算法目前属于标准探针层，已有保留证据，但不等同于顶层严格基线。
 
@@ -118,7 +134,7 @@ PX4/QGroundControl/JSBSim/Gazebo Classic 路径仍是可选视觉面，不是所
 
 当前已经能解析 PX4 `.ulg`，但 fresh PX4 run 自动把 `.ulg` 收进每个 artifact 还没有做成默认能力。
 
-demo backend 的 dropout、延迟、噪声、通信中断、限速等适合做轻量鲁棒性评测，但不能说成 PX4 原生物理故障。PX4 原生故障只以 `px4-failure-acceptance` 中已经 fresh 证明的项为准。
+demo backend 的 dropout、延迟、噪声、通信中断、限速等适合做轻量鲁棒性评测。新增的 `sensor_stream_faults` 能模拟数据流层面的 GPS dropout、VIO scale drift、IMU noise burst，但仍不能说成 PX4 原生物理故障。PX4 原生故障只以 `px4-failure-acceptance` 中已经 fresh 证明的项为准。
 
 ROS1 Noetic 和 Gazebo Classic 都已经 EOL。当前因为主机是 Ubuntu 20.04，平台继续把它们作为可用受管路径保留，但后续迁移应作为独立大版本处理，不能在当前稳定线里硬切。
 
