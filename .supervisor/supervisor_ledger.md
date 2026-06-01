@@ -70,6 +70,12 @@
   - `python3 -m sim_plane quadrotor-exam-acceptance --latest --artifact-root runs --json`: PASS，report `/home/coco/sim_plane/runs/quadrotor_exam_acceptance/quadrotor_exam_acceptance_latest_20260601_054600_925808/report.json`，`8/8` rows，`success_rate=1.0`；
   - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: PASS，report `/home/coco/sim_plane/runs/platform_acceptance/platform_acceptance_baseline_latest_20260601_054601_238111/report.json`，`23/23` rows，nested planner PASS；
   - `find sim_plane scripts tests examples \( -type d -name __pycache__ -o -type f -name '*.pyc' \) -print`: clean。
+- Post-commit clean evidence:
+  - committed and pushed `1475467 Add platform health entrypoint` to `origin/main`；
+  - after push, `python3 -m sim_plane platform-health --artifact-root runs --json`: PASS，`8/8` components passed，`0` warnings，`0` failed，report `/home/coco/sim_plane/runs/platform_health/sim_plane_platform_health_20260601_054840_286313/report.json`，git summary `commit=1475467`，`dirty=false`。
+- Pollution guard:
+  - after the final health proof, two unrelated human-follow Stage2 files appeared modified locally: `scripts/ros_stage2_integrated_probe.py` and `sim_plane/ros/human_follow_stage2_real_ego_managed.launch`；
+  - these files were not changed, staged, or committed by the platform-health round。
 
 ### Current Frontier 2026-06-01 quadrotor-exam acceptance
 
