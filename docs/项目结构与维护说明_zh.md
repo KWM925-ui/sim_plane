@@ -69,6 +69,8 @@
   planner 验收报告
 - `runs/platform_acceptance/`
   平台顶层验收报告
+- `runs/platform_health/`
+  全平台总健康报告，聚合 git、doctor、卫生检查、latest acceptance、suite/fuzz/flight-log/autotest 摘要和下一阶段候选计划
 - `runs/suites/`
   `run-suite` 功能套件报告，包括退化测试、任务族测试、参数扫描和 KPI 排名
 - `runs/algorithm_ingress/`
@@ -109,6 +111,7 @@
 ### 4.1 检查严格基线
 
 ```bash
+python3 -m sim_plane platform-health --artifact-root runs
 python3 -m sim_plane planner-acceptance
 python3 -m sim_plane planner-acceptance --latest --artifact-root runs
 python3 -m sim_plane human-follow-stage1-acceptance
@@ -116,6 +119,14 @@ python3 -m sim_plane human-follow-stage1-acceptance --latest --artifact-root run
 python3 -m sim_plane platform-acceptance
 python3 -m sim_plane platform-acceptance --latest --artifact-root runs
 ```
+
+`platform-health` 是进入维护工作的总入口。它不重新跑重仿真，也不放宽任何验收语义；它读取现有报告和 artifact，把当前状态、风险边界、下一阶段候选计划汇总到：
+
+```text
+runs/platform_health/
+```
+
+如果它失败，先看失败组件；如果它通过但有 warning，通常说明工作区未提交或存在需要人工确认的非功能风险。
 
 ### 4.2 检查 artifact 根目录整洁性
 

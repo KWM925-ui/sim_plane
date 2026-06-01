@@ -24,6 +24,7 @@ DEFAULT_RESERVED_ROOT_NAMES = {
     "live_smoke",
     "manual_probes",
     "platform_acceptance",
+    "platform_health",
     "px4_failure_injection_acceptance",
     "quadrotor_exam_acceptance",
     "scenario_fuzz",

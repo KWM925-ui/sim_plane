@@ -74,6 +74,7 @@ class ArtifactHygieneTest(unittest.TestCase):
                 "human_follow_stage2_integrated_acceptance",
                 "live_smoke",
                 "platform_acceptance",
+                "platform_health",
                 "quadrotor_exam_acceptance",
             ]
             for root_name in report_roots:

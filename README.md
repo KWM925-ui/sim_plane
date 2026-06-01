@@ -13,6 +13,9 @@ The repository now has a runnable MVP skeleton with:
 - a built-in demo backend,
 - artifact output for each run,
 - and a lightweight local web dashboard for visualization,
+- a top-level `platform-health` entrypoint that aggregates git state,
+  readiness, artifact hygiene, latest acceptance, latest professional test
+  reports, objective boundaries, and next-stage priorities,
 - a validated legacy `EGO-Planner` ROS1 backend path,
 - a validated scene-backed `EGO-Planner + MARSIM` ROS1 planner path,
 - a validated scene-backed `EGO-Planner-Swarm + MARSIM` ROS1 planner path,

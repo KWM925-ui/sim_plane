@@ -8,6 +8,69 @@
 
 ## Current Frontier 2026-06-01
 
+### Current Frontier 2026-06-01 platform-health system entrypoint
+
+#### 已锁定事实
+
+- 当前主线是通用 `sim_plane` 无人机仿真评测平台，不是 human-follow Stage1/Stage2。
+- 不碰 `/home/coco/follwer_ws`。
+- 最近已推送提交：`29b3016 Add quadrotor exam acceptance surface`。
+- 已有能力面包括 `doctor`、artifact/manual-probe hygiene、platform/planner/PX4 failure/quadrotor exam acceptance、suite/fuzz/autotest/dashboard 等。
+- 当前短板不是缺另一个仿真后端，而是全平台状态分散在多个命令和报告里，不利于下一轮从系统全局做决策。
+
+#### 当前要解的问题
+
+- 新增一个总状态入口：`python3 -m sim_plane platform-health --artifact-root runs`。
+- 该入口只聚合和落盘报告，不重新定义已有 acceptance 语义，不新增重后端。
+- 报告必须覆盖：
+  - git 工作区状态；
+  - `doctor` readiness；
+  - artifact hygiene；
+  - manual probe hygiene；
+  - latest platform/planner/PX4 failure/quadrotor exam acceptance；
+  - latest suite/fuzz/flight-log/autotest/test-surface 摘要；
+  - 当前客观边界与下一阶段候选计划。
+
+#### 本轮不能做的事
+
+- 不改 `/home/coco/follwer_ws`；
+- 不重开 human-follow Stage1/Stage2；
+- 不新增 AirSim/Isaac/Gazebo Harmonic 等重后端；
+- 不改变 platform/planner/PX4 failure/quadrotor exam acceptance 阈值或语义；
+- 不把 demo 退化、sensor_stream_faults、fuzz 说成 PX4-native failure；
+- 不抢跑下一阶段功能补强，只把候选计划写清楚。
+
+#### 验收门槛
+
+- 新 CLI 可输出文本和 JSON；
+- 总报告持久化到 `runs/platform_health/`，并纳入 artifact hygiene reserved roots；
+- 单测覆盖聚合 PASS、子检查失败传播、报告写入；
+- fresh 运行 `platform-health`、artifact hygiene、manual-probe hygiene、platform acceptance、quadrotor exam acceptance；
+- 全量单测、compileall、JSON、shell syntax、diff check 通过；
+- 收口前清理 `__pycache__` / `*.pyc` 噪声。
+
+#### 收口证据
+
+- 新增命令：`python3 -m sim_plane platform-health --artifact-root runs`。
+- 新增实现：`sim_plane/platform_health.py`。
+- 新增报告根目录：`runs/platform_health/`，已加入 artifact hygiene reserved roots。
+- 新增/更新测试：`tests/test_platform_health.py`，`tests/test_artifact_hygiene.py`。
+- 文档入口已更新：`README.md`、`docs/平台总入口_zh.md`、`docs/项目结构与维护说明_zh.md`、`.agent/PLANS.md`。
+- Fresh evidence:
+  - `python3 -m unittest discover -s tests`: PASS，`170` tests；
+  - `python3 -m compileall -q sim_plane scripts tests examples`: PASS；
+  - shell syntax check: PASS；
+  - JSON syntax check: PASS，`68` config/scenario JSON files；
+  - `git diff --check`: PASS；
+  - `python3 -m sim_plane platform-health --artifact-root runs --json`: PASS-level warning only because worktree was dirty during development，8 components total，7 passed，1 git warning，0 failed，report `/home/coco/sim_plane/runs/platform_health/sim_plane_platform_health_20260601_054533_825180/report.json`；
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: PASS，`status=clean`，`reserved_root_count=16`，`complete_artifact_count=345`，`attention_count=0`；
+  - `python3 -m sim_plane manual-probe-hygiene --artifact-root runs --json`: PASS，`status=clean`，`retained_manual_probe_count=3`，`attention_count=0`；
+  - `python3 -m sim_plane planner-acceptance --latest --artifact-root runs --json`: PASS，report `/home/coco/sim_plane/runs/acceptance/planner_acceptance_baseline_latest_20260601_054601_023626/report.json`，`4/4` rows；
+  - `python3 -m sim_plane px4-failure-acceptance --latest --artifact-root runs --json`: PASS，report `/home/coco/sim_plane/runs/px4_failure_injection_acceptance/px4_failure_injection_acceptance_latest_20260601_054600_947671/report.json`，`1/1` rows；
+  - `python3 -m sim_plane quadrotor-exam-acceptance --latest --artifact-root runs --json`: PASS，report `/home/coco/sim_plane/runs/quadrotor_exam_acceptance/quadrotor_exam_acceptance_latest_20260601_054600_925808/report.json`，`8/8` rows，`success_rate=1.0`；
+  - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: PASS，report `/home/coco/sim_plane/runs/platform_acceptance/platform_acceptance_baseline_latest_20260601_054601_238111/report.json`，`23/23` rows，nested planner PASS；
+  - `find sim_plane scripts tests examples \( -type d -name __pycache__ -o -type f -name '*.pyc' \) -print`: clean。
+
 ### Current Frontier 2026-06-01 quadrotor-exam acceptance
 
 #### 已锁定事实

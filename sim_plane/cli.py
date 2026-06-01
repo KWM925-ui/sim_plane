@@ -107,6 +107,12 @@ from sim_plane.quadrotor_exam_acceptance import (
     validate_matrix as validate_quadrotor_exam_acceptance_matrix,
     write_report as write_quadrotor_exam_acceptance_report,
 )
+from sim_plane.platform_health import (
+    DEFAULT_REPORT_ROOT as DEFAULT_PLATFORM_HEALTH_REPORT_ROOT,
+    collect_platform_health,
+    format_platform_health_report,
+    write_platform_health_report,
+)
 
 
 def build_parser():
@@ -191,6 +197,37 @@ def build_parser():
         "--json",
         action="store_true",
         help="Print the doctor report as JSON",
+    )
+
+    platform_health_parser = subparsers.add_parser(
+        "platform-health",
+        help="Aggregate current platform readiness, hygiene, acceptance, and next-stage boundaries",
+    )
+    platform_health_parser.add_argument(
+        "--artifact-root",
+        default="runs",
+        help="Artifact root to inspect for latest evidence",
+    )
+    platform_health_parser.add_argument(
+        "--report-root",
+        default=str(DEFAULT_PLATFORM_HEALTH_REPORT_ROOT),
+        help="Where platform health reports should be written",
+    )
+    platform_health_parser.add_argument(
+        "--no-save-report",
+        action="store_true",
+        help="Do not persist the platform health report",
+    )
+    platform_health_parser.add_argument(
+        "--keep-last-reports",
+        type=int,
+        default=10,
+        help="Keep only the newest N timestamped platform health report directories; 0 disables pruning",
+    )
+    platform_health_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print the platform health report as JSON",
     )
 
     acceptance_parser = subparsers.add_parser(
@@ -1064,6 +1101,20 @@ def main(argv=None):
         else:
             print(format_platform_doctor_report(report))
         return 0
+
+    if args.command == "platform-health":
+        report = collect_platform_health(artifact_root=args.artifact_root)
+        if not args.no_save_report:
+            report["saved_report"] = write_platform_health_report(
+                report,
+                report_root=args.report_root,
+                keep_last=args.keep_last_reports,
+            )
+        if args.json:
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+        else:
+            print(format_platform_health_report(report))
+        return 0 if report["status"] in {"passed", "warning"} else 1
 
     if args.command == "show-scenario":
         scenario = load_scenario(args.scenario)

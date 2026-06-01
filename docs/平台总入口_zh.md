@@ -26,6 +26,12 @@
 python3 -m sim_plane doctor
 ```
 
+从系统全局看当前平台是否健康、证据是否干净、下一阶段该优先补哪里：
+
+```bash
+python3 -m sim_plane platform-health --artifact-root runs
+```
+
 跑最快的本机健康检查：
 
 ```bash
@@ -150,11 +156,14 @@ ROS1 Noetic 和 Gazebo Classic 都已经 EOL。当前因为主机是 Ubuntu 20.0
 按这个顺序排查：
 
 ```bash
+python3 -m sim_plane platform-health --artifact-root runs --json
 python3 -m sim_plane doctor --json
 python3 -m sim_plane artifact-hygiene --artifact-root runs --json
 python3 -m sim_plane live-smoke --profile fast
 python3 -m sim_plane autotest-pack --profile fast --artifact-root runs
 ```
+
+`platform-health` 不替代真正的仿真运行，也不改变任何 acceptance 阈值。它的作用是把 git 状态、doctor、artifact hygiene、manual probe hygiene、latest acceptance、suite/fuzz/flight-log/autotest 报告和当前客观边界聚合到一个报告里，方便每次优化前先判断平台整体状态。
 
 如果只是自己的算法接不上，优先跑：
 
