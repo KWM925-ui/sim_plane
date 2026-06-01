@@ -415,11 +415,32 @@ class DashboardReplayTest(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
+            exam_root = root / "quadrotor_exam_acceptance"
+            exam_root.mkdir(parents=True)
+            (exam_root / "latest_latest.json").write_text(
+                json.dumps(
+                    {
+                        "matrix_name": "quadrotor_exam_acceptance",
+                        "status": "passed",
+                        "summary": {
+                            "scene_count": 8,
+                            "passed_scene_count": 8,
+                            "success_rate": 1.0,
+                        },
+                        "rows": [{"status": "passed"} for _ in range(8)],
+                        "issues": [],
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
 
             report = list_test_surface_reports(root)
 
             self.assertTrue(report["available"])
             surfaces = {item["surface"]: item for item in report["items"]}
+            self.assertEqual(surfaces["quadrotor exam"]["key_metrics"]["success_rate"], 1.0)
             self.assertEqual(surfaces["flight log"]["key_metrics"]["telemetry_count"], 10)
             self.assertEqual(surfaces["scenario fuzz"]["profile"], "demo_fast")
             self.assertEqual(surfaces["scenario fuzz"]["worst_cases"][0]["metric"], "kpi_sensor_dropout_ratio")

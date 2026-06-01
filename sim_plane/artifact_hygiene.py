@@ -25,6 +25,7 @@ DEFAULT_RESERVED_ROOT_NAMES = {
     "manual_probes",
     "platform_acceptance",
     "px4_failure_injection_acceptance",
+    "quadrotor_exam_acceptance",
     "scenario_fuzz",
     "suites",
 }

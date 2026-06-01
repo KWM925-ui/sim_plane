@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from sim_plane.run_suite import DEFAULT_SUITE_REPORT_ROOT, format_suite_report, run_suite
+from sim_plane.run_suite import DEFAULT_SUITE_REPORT_ROOT, format_suite_report, run_suite, write_suite_report
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -22,11 +22,17 @@ def run_quadrotor_exam(
         scenario_path=scenario,
         suite_path=suite,
         artifact_root=artifact_root,
-        report_root=report_root,
+        report_root=None,
         keep_last=keep_last,
         runtime_options=runtime_options or {},
     )
     report["exam"] = build_exam_summary(report)
+    if report_root is not None:
+        report["saved_report"] = write_suite_report(
+            report,
+            report_root=report_root,
+            keep_last=keep_last,
+        )
     return report
 
 

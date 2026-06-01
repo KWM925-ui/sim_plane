@@ -190,6 +190,12 @@ PX4 SIH 路径仍只使用真实支持的参数/命令，不把 demo 里的 wind
 python3 -m sim_plane quadrotor-exam --artifact-root runs
 ```
 
+标准四旋翼实验回归验收入口：
+
+```bash
+python3 -m sim_plane quadrotor-exam-acceptance --latest --artifact-root runs
+```
+
 默认使用：
 
 ```text
@@ -208,6 +214,8 @@ configs/paper_quadrotor_exam_suite.json
 - `planner_compare`
 
 每个场景都会产出统一 `kpi_*` 指标，报告里额外有 `exam.success_rate` 和关键 KPI 汇总，便于做论文表格、项目验收表和版本对比。
+
+`quadrotor-exam-acceptance` 不重新跑仿真，而是读取最新 suite report 并和冻结 reference report 对比。它检查成功率、场景全集、每个场景状态，以及轨迹长度、速度、加速度、控制平滑度、安全违规、最终误差、恢复时间等 KPI 是否退化。
 
 ### 4.4.2 数据流层面传感器故障
 

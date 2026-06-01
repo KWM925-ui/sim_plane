@@ -44,6 +44,12 @@ python3 -m sim_plane autotest-pack --profile fast --artifact-root runs
 python3 -m sim_plane quadrotor-exam --artifact-root runs
 ```
 
+检查最新四旋翼实验是否相对冻结 reference 退化：
+
+```bash
+python3 -m sim_plane quadrotor-exam-acceptance --latest --artifact-root runs
+```
+
 查看内置 baseline 算法入口：
 
 ```bash
@@ -126,6 +132,7 @@ PX4/QGroundControl/JSBSim/Gazebo Classic 路径仍是可选视觉面，不是所
 - artifact / `.ulg` flight-log replay
 - local `autotest-pack`
 - paper/project-style `quadrotor-exam`
+- latest-vs-reference `quadrotor-exam-acceptance`
 - baseline algorithm catalog
 
 `SUPER`、`visPlanner` 等前沿算法目前属于标准探针层，已有保留证据，但不等同于顶层严格基线。

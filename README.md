@@ -263,6 +263,15 @@ The exam writes a normal suite report under `runs/suites/` and adds a compact
 `exam` summary with success rate and fixed KPI names for repeatable
 paper/project tables.
 
+Validate the latest quadrotor exam against the frozen reference report:
+
+```bash
+python3 -m sim_plane quadrotor-exam-acceptance --latest --artifact-root runs
+```
+
+This turns the exam into a regression surface: fixed scenes, fixed KPI budgets,
+latest-vs-reference comparison, persisted reports, history, and deltas.
+
 Run data-stream-level sensor fault checks on the lightweight demo backend:
 
 ```bash

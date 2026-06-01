@@ -100,6 +100,13 @@ from sim_plane.quadrotor_exam import (
     format_quadrotor_exam_report,
     run_quadrotor_exam,
 )
+from sim_plane.quadrotor_exam_acceptance import (
+    DEFAULT_MATRIX_PATH as DEFAULT_QUADROTOR_EXAM_ACCEPTANCE_MATRIX,
+    DEFAULT_REPORT_ROOT as DEFAULT_QUADROTOR_EXAM_ACCEPTANCE_REPORT_ROOT,
+    format_report as format_quadrotor_exam_acceptance_report,
+    validate_matrix as validate_quadrotor_exam_acceptance_matrix,
+    write_report as write_quadrotor_exam_acceptance_report,
+)
 
 
 def build_parser():
@@ -655,6 +662,42 @@ def build_parser():
     exam_parser.add_argument("--ros-workspace", help="Override ROS workspace path for ROS-based exam rows")
     exam_parser.add_argument("--connect-timeout", type=float, help="Override MAVLink heartbeat wait timeout in seconds")
     exam_parser.add_argument("--json", action="store_true", help="Print the exam report as JSON")
+
+    exam_acceptance_parser = subparsers.add_parser(
+        "quadrotor-exam-acceptance",
+        help="Validate quadrotor-exam reports against a frozen reference report",
+    )
+    exam_acceptance_parser.add_argument(
+        "--matrix",
+        default=str(DEFAULT_QUADROTOR_EXAM_ACCEPTANCE_MATRIX),
+        help="Quadrotor exam acceptance matrix JSON",
+    )
+    exam_acceptance_parser.add_argument(
+        "--artifact-root",
+        help="Artifact root to search when --latest is used",
+    )
+    exam_acceptance_parser.add_argument(
+        "--latest",
+        action="store_true",
+        help="Validate latest_paper_quadrotor_exam_suite.json instead of the frozen reference report",
+    )
+    exam_acceptance_parser.add_argument(
+        "--report-root",
+        default=str(DEFAULT_QUADROTOR_EXAM_ACCEPTANCE_REPORT_ROOT),
+        help="Where quadrotor exam acceptance reports should be written",
+    )
+    exam_acceptance_parser.add_argument(
+        "--no-save-report",
+        action="store_true",
+        help="Do not persist the acceptance report under the report root",
+    )
+    exam_acceptance_parser.add_argument(
+        "--keep-last-reports",
+        type=int,
+        default=10,
+        help="Keep only the newest N timestamped acceptance report directories per mode; 0 disables pruning",
+    )
+    exam_acceptance_parser.add_argument("--json", action="store_true", help="Print the acceptance report as JSON")
 
     flight_log_parser = subparsers.add_parser(
         "flight-log-analyze",
@@ -1351,6 +1394,34 @@ def main(argv=None):
             print(json.dumps(report, indent=2, ensure_ascii=False))
         else:
             print(format_quadrotor_exam_report(report))
+        return 0 if report["status"] == "passed" else 1
+
+    if args.command == "quadrotor-exam-acceptance":
+        try:
+            report = validate_quadrotor_exam_acceptance_matrix(
+                path=args.matrix,
+                artifact_root=args.artifact_root,
+                use_latest=args.latest,
+            )
+            if not args.no_save_report:
+                report["saved_report"] = write_quadrotor_exam_acceptance_report(
+                    report,
+                    report_root=args.report_root,
+                    keep_last=args.keep_last_reports,
+                )
+        except ValueError as exc:
+            parser.error(str(exc))
+        if args.json:
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+        else:
+            print(format_quadrotor_exam_acceptance_report(report))
+            if report.get("saved_report"):
+                saved_report = report["saved_report"]
+                print("")
+                print("report_json: {0}".format(saved_report["report_json"]))
+                print("latest_report_json: {0}".format(saved_report["latest_report_json"]))
+                print("latest_delta_json: {0}".format(saved_report["latest_delta_json"]))
+                print("history_jsonl: {0}".format(saved_report["history_jsonl"]))
         return 0 if report["status"] == "passed" else 1
 
     if args.command == "flight-log-analyze":

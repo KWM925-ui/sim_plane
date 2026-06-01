@@ -1,0 +1,33 @@
+{
+  "matrix_name": "quadrotor_exam_acceptance",
+  "suite_name": "paper_quadrotor_exam_suite",
+  "reference_report": "runs/suites/paper_quadrotor_exam_suite_20260531_183803_761883/report.json",
+  "latest_report": "runs/suites/latest_paper_quadrotor_exam_suite.json",
+  "required_scene_count": 8,
+  "required_success_rate": 1.0,
+  "required_row_status": "passed",
+  "required_scene_names": [
+    "hover",
+    "waypoint",
+    "obstacle_avoidance_proxy",
+    "corridor",
+    "sensor_dropout",
+    "dynamic_target",
+    "failure_motor_proxy",
+    "planner_compare"
+  ],
+  "exam_regression_budgets": {
+    "success_rate": { "max_drop": 0.0 },
+    "passed_scene_count": { "max_drop": 0.0 }
+  },
+  "row_metric_regression_budgets": {
+    "kpi_distance_m": { "max_increase": 5.0 },
+    "kpi_max_speed_mps": { "max_increase": 0.5 },
+    "kpi_max_acceleration_mps2": { "max_increase": 2.0 },
+    "kpi_speed_roughness_mps": { "max_increase": 0.25 },
+    "kpi_safety_violation_count": { "max_increase": 0.0 },
+    "kpi_final_goal_distance_m": { "max_increase": 0.5 },
+    "kpi_sensor_recovery_time_s": { "max_increase": 0.5 },
+    "kpi_measurement_horizontal_error_max_m": { "max_increase": 0.5 }
+  }
+}

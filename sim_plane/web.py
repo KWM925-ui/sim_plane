@@ -433,6 +433,7 @@ def list_test_surface_reports(artifact_root, limit=20):
     root = Path(artifact_root)
     surface_specs = [
         ("PX4 failure", root / "px4_failure_injection_acceptance", "latest_latest.json"),
+        ("quadrotor exam", root / "quadrotor_exam_acceptance", "latest_latest.json"),
         ("flight log", root / "flight_log_analysis", "latest_artifact.json"),
         ("ULog", root / "flight_log_analysis", "latest_ulog.json"),
         ("scenario fuzz", root / "scenario_fuzz", "latest_*.json"),
@@ -459,6 +460,7 @@ def list_test_surface_reports(artifact_root, limit=20):
 
 def summarize_test_surface_report(label, report, path):
     metrics = report.get("metrics", {}) if isinstance(report.get("metrics"), dict) else {}
+    summary = report.get("summary", {}) if isinstance(report.get("summary"), dict) else {}
     rows = report.get("rows", []) if isinstance(report.get("rows"), list) else []
     steps = report.get("steps", []) if isinstance(report.get("steps"), list) else []
     return {
@@ -480,24 +482,34 @@ def summarize_test_surface_report(label, report, path):
         "passed_row_count": len([row for row in rows if row.get("status") == "passed"]),
         "step_count": len(steps),
         "passed_step_count": len([step for step in steps if step.get("status") == "passed"]),
-        "key_metrics": {
-            key: metrics.get(key)
-            for key in (
-                "telemetry_count",
-                "duration_s",
-                "max_altitude_m",
-                "max_speed_mps",
-                "mode_change_count",
-                "armed_transition_count",
-                "anomaly_event_count",
-                "ulog_dropout_count",
-                "ulog_warning_message_count",
-            )
-            if key in metrics
-        },
+        "key_metrics": build_test_surface_key_metrics(metrics, summary),
         "worst_cases": list(report.get("worst_cases", []))[:4],
         "issues": list(report.get("issues", []))[:4],
-    }
+}
+
+
+def build_test_surface_key_metrics(metrics, summary):
+    keys = (
+        "scene_count",
+        "passed_scene_count",
+        "success_rate",
+        "telemetry_count",
+        "duration_s",
+        "max_altitude_m",
+        "max_speed_mps",
+        "mode_change_count",
+        "armed_transition_count",
+        "anomaly_event_count",
+        "ulog_dropout_count",
+        "ulog_warning_message_count",
+    )
+    values = {}
+    for key in keys:
+        if key in metrics:
+            values[key] = metrics.get(key)
+        elif key in summary:
+            values[key] = summary.get(key)
+    return values
 
 
 def summarize_suite_report(report, report_path):

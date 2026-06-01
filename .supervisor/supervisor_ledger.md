@@ -8,6 +8,58 @@
 
 ## Current Frontier 2026-06-01
 
+### Current Frontier 2026-06-01 quadrotor-exam acceptance
+
+#### 已锁定事实
+
+- 上一轮平台主线补强已提交并推送：`bb1e042 Add paper-grade quadrotor evaluation surfaces`。
+- `quadrotor-exam` 已经能 fresh 跑 8 个固定场景并生成 `runs/suites/paper_quadrotor_exam_suite_*` 报告。
+- 当前新增目标不是再加后端，也不是改 `platform-acceptance`，而是把 `quadrotor-exam` 升级成可 reference/latest 对比的正式验收面。
+
+#### 当前要解的问题
+
+- 增加 `quadrotor-exam-acceptance`：
+  - 能读冻结 reference suite report；
+  - 能用 `--latest` 找 `runs/suites/latest_paper_quadrotor_exam_suite.json`；
+  - 能检查成功率、场景状态和关键 KPI 回归预算；
+  - 能写独立报告、latest snapshot、history 和 delta。
+
+#### 本轮不能做的事
+
+- 不碰 `/home/coco/follwer_ws`；
+- 不重开 human-follow Stage1/Stage2；
+- 不新增重后端；
+- 不改变 `platform-acceptance`、`planner-acceptance`、`px4-failure-acceptance` 语义；
+- 不把 demo 传感器退化说成 PX4-native failure。
+
+#### 验收门槛
+
+- 新 CLI 标准命令可跑；
+- 单测覆盖 PASS、latest 选择、KPI 回归失败；
+- fresh 跑一次 `quadrotor-exam` 和 `quadrotor-exam-acceptance --latest`；
+- 保持全量单测、compileall、JSON、diff check、artifact hygiene 通过。
+
+#### 收口证据
+
+- 新增正式命令：`python3 -m sim_plane quadrotor-exam-acceptance --latest --artifact-root runs`。
+- 新增报告根目录：`runs/quadrotor_exam_acceptance`，已加入 artifact hygiene reserved roots。
+- 新增矩阵：`configs/quadrotor_exam_acceptance_matrix.json`。
+- 新增实现：`sim_plane/quadrotor_exam_acceptance.py`。
+- 修复 `quadrotor-exam` 持久化顺序：`exam` summary 现在会写入 `runs/suites/.../report.json`。
+- dashboard `Professional Test Surfaces` 现在能展示 `quadrotor exam` latest acceptance。
+- Fresh evidence:
+  - `python3 -m unittest discover -s tests`: PASS，`166` tests；
+  - `python3 -m compileall -q sim_plane scripts tests examples`: PASS；
+  - shell syntax check: PASS；
+  - JSON syntax check: PASS，`68` files；
+  - `git diff --check`: PASS；
+  - `python3 -m sim_plane quadrotor-exam --artifact-root runs --report-root runs/suites --json`: PASS，report `runs/suites/paper_quadrotor_exam_suite_20260601_051301_064419/report.json`；
+  - `python3 -m sim_plane quadrotor-exam-acceptance --latest --artifact-root runs --json`: PASS，report `/home/coco/sim_plane/runs/quadrotor_exam_acceptance/quadrotor_exam_acceptance_latest_20260601_051301_055520/report.json`，`8` rows，`success_rate=1.0`；
+  - `python3 -m sim_plane platform-acceptance --latest --artifact-root runs --json`: PASS，report `/home/coco/sim_plane/runs/platform_acceptance/platform_acceptance_baseline_latest_20260601_051301_363240/report.json`，`23` rows；
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json`: PASS，`status=clean`，`reserved_root_count=15`，`complete_artifact_count=345`，`attention_count=0`；
+  - `python3 -m sim_plane manual-probe-hygiene --artifact-root runs --json`: PASS，`status=clean`；
+  - dashboard API `list_test_surface_reports('runs')`: includes `quadrotor exam` with `scene_count=8`，`passed_scene_count=8`，`success_rate=1.0`。
+
 ### Resume Frontier 2026-06-01 platform-mainline paper-grade closure
 
 #### 已锁定事实
