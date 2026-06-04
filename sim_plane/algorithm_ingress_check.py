@@ -142,8 +142,6 @@ def control_or_command_observed(metrics):
         return True
     if numeric_metric(metrics, "algorithm_adapter_nonzero_setpoint_count") > 0:
         return True
-    if numeric_metric(metrics, "algorithm_adapter_stage2_ego_cmd_count") > 0:
-        return True
     if numeric_metric(metrics, "template_reached_altitude_m") > 0:
         return True
     return False
@@ -160,7 +158,6 @@ def summarize_control_command(metrics):
         "ever_armed",
         "position_cmd_seen",
         "algorithm_adapter_nonzero_setpoint_count",
-        "algorithm_adapter_stage2_ego_cmd_count",
     ]
     return ", ".join("{0}={1}".format(field, metrics.get(field)) for field in fields if field in metrics) or "no known control metric"
 

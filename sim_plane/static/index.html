@@ -8,13 +8,24 @@
   </head>
   <body>
     <main class="shell">
-      <section class="hero">
-        <div>
-          <p class="eyebrow">sim_plane</p>
-          <h1 id="scenario-name">Loading scenario...</h1>
+      <section class="hero command-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">sim_plane console</p>
+          <h1 id="scenario-name">Control Center</h1>
           <p id="scenario-description" class="subtle"></p>
+          <nav class="hero-nav" aria-label="Dashboard sections">
+            <a href="#console">控制台</a>
+            <a href="#evidence">证据</a>
+            <a href="#replay">回放</a>
+            <a href="#diagnostics">诊断</a>
+          </nav>
         </div>
-        <div class="status-pill" id="status-pill">starting</div>
+        <aside class="hero-status-card">
+          <div class="status-pill" id="status-pill">starting</div>
+          <p class="card-label">active artifact</p>
+          <strong id="active-artifact-name">-</strong>
+          <span id="active-artifact-path">-</span>
+        </aside>
       </section>
 
       <section class="grid metrics">
@@ -36,7 +47,79 @@
         </article>
       </section>
 
-      <section class="grid browser-panels">
+      <section class="card console-card" id="console">
+        <div class="card-header">
+          <div>
+            <h3>Platform Console</h3>
+            <p class="subtle">每个按钮都严格对应一条白名单命令，先看说明再执行。</p>
+          </div>
+          <div class="console-status" id="console-status">idle</div>
+        </div>
+        <div class="console-layout">
+          <aside class="console-command-list" id="console-command-list"></aside>
+          <article class="console-detail">
+            <div class="console-detail-head">
+              <div>
+                <p class="card-label" id="console-category">-</p>
+                <h2 id="console-title">选择一个平台操作</h2>
+              </div>
+              <div class="artifact-status" id="console-risk">-</div>
+            </div>
+            <p id="console-description" class="console-text">左侧选择操作后，这里会显示准确说明、适用场景、价值和真实命令。</p>
+            <div class="console-facts">
+              <div>
+                <strong>后端命令</strong>
+                <span id="console-cli-command">-</span>
+              </div>
+              <div>
+                <strong>意义</strong>
+                <span id="console-value">-</span>
+              </div>
+              <div>
+                <strong>什么时候用</strong>
+                <span id="console-when">-</span>
+              </div>
+              <div>
+                <strong>输出位置</strong>
+                <span id="console-outputs">-</span>
+              </div>
+              <div>
+                <strong>预计耗时</strong>
+                <span id="console-duration">-</span>
+              </div>
+            </div>
+            <div class="command-box">
+              <code id="console-command">-</code>
+            </div>
+            <div class="console-actions">
+              <button id="copy-command-button" type="button">复制命令</button>
+              <button id="run-command-button" type="button">运行这条白名单命令</button>
+              <button id="clear-log-button" type="button">清空日志显示</button>
+            </div>
+            <div class="console-run-panel">
+              <div class="console-run-head">
+                <strong>最近一次前端启动任务</strong>
+                <span id="console-run-summary">还没有启动</span>
+              </div>
+              <pre id="console-log-box" class="console-log-box">No console command log yet.</pre>
+              <div id="console-output-list" class="console-output-list"></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="card coverage-card">
+        <div class="card-header">
+          <div>
+            <h3>Backend / Frontend Coverage</h3>
+            <p class="subtle">朴素列出后端 CLI 能力是否已有前端入口，不隐藏缺口。</p>
+          </div>
+          <p id="coverage-summary" class="compare-summary">Loading coverage...</p>
+        </div>
+        <div id="coverage-list" class="coverage-list"></div>
+      </section>
+
+      <section class="grid browser-panels" id="evidence">
         <article class="card">
           <div class="card-header">
             <h3>Artifact Browser</h3>
@@ -92,6 +175,14 @@
         </article>
       </section>
 
+      <section class="section-title" id="replay">
+        <div>
+          <p class="eyebrow">replay</p>
+          <h2>Trajectory Replay</h2>
+        </div>
+        <p class="subtle">轻量轨迹、海拔和状态回放；需要真实 3D 传感器时再打开 RViz/Gazebo。</p>
+      </section>
+
       <section class="grid main-panels">
         <article class="card canvas-card">
           <div class="card-header">
@@ -108,6 +199,14 @@
           </div>
           <canvas id="altitude-canvas" width="720" height="360"></canvas>
         </article>
+      </section>
+
+      <section class="section-title" id="diagnostics">
+        <div>
+          <p class="eyebrow">diagnostics</p>
+          <h2>Run Diagnostics</h2>
+        </div>
+        <p class="subtle">状态、差异、结果 JSON 和事件流。</p>
       </section>
 
       <section class="grid secondary-panels">

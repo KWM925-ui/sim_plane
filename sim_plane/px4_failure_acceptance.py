@@ -13,10 +13,10 @@ from sim_plane.planner_acceptance import (
 from sim_plane.acceptance_common import (
     build_acceptance_delta,
     evaluate_metric_regression_budgets,
+    format_delta_lines,
     load_reference_result,
     merge_metric_regression_budgets,
 )
-from sim_plane.human_follow_stage2_integrated_acceptance import format_delta_lines
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

@@ -68,14 +68,17 @@ class ArtifactHygieneTest(unittest.TestCase):
             report_roots = [
                 "acceptance",
                 "algorithm_ingress",
-                "human_follow_stage1_acceptance",
-                "human_follow_stage1_detector_tracker_acceptance",
-                "human_follow_stage2_acceptance",
-                "human_follow_stage2_integrated_acceptance",
+                "autotest",
+                "console_commands",
+                "flight_log_analysis",
                 "live_smoke",
+                "manual_probes",
                 "platform_acceptance",
                 "platform_health",
+                "px4_failure_injection_acceptance",
                 "quadrotor_exam_acceptance",
+                "scenario_fuzz",
+                "suites",
             ]
             for root_name in report_roots:
                 (runs_root / root_name).mkdir(parents=True, exist_ok=True)

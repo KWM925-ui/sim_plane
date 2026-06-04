@@ -1,5 +1,7 @@
 import argparse
 import json
+import os
+from pathlib import Path
 
 from sim_plane.adapters import available_adapters
 from sim_plane.artifact_hygiene import (
@@ -27,30 +29,6 @@ from sim_plane.px4_failure_acceptance import (
     format_report as format_px4_failure_acceptance_report,
     validate_matrix as validate_px4_failure_acceptance_matrix,
     write_report as write_px4_failure_acceptance_report,
-)
-from sim_plane.human_follow_stage1_acceptance import (
-    DEFAULT_REPORT_ROOT as DEFAULT_HF_STAGE1_REPORT_ROOT,
-    format_report as format_hf_stage1_acceptance_report,
-    validate_matrix as validate_hf_stage1_acceptance_matrix,
-    write_report as write_hf_stage1_acceptance_report,
-)
-from sim_plane.human_follow_stage1_detector_tracker_acceptance import (
-    DEFAULT_REPORT_ROOT as DEFAULT_HF_STAGE1_DETECTOR_TRACKER_REPORT_ROOT,
-    format_report as format_hf_stage1_detector_tracker_acceptance_report,
-    validate_matrix as validate_hf_stage1_detector_tracker_acceptance_matrix,
-    write_report as write_hf_stage1_detector_tracker_acceptance_report,
-)
-from sim_plane.human_follow_stage2_acceptance import (
-    DEFAULT_REPORT_ROOT as DEFAULT_HF_STAGE2_REPORT_ROOT,
-    format_report as format_hf_stage2_acceptance_report,
-    validate_matrix as validate_hf_stage2_acceptance_matrix,
-    write_report as write_hf_stage2_acceptance_report,
-)
-from sim_plane.human_follow_stage2_integrated_acceptance import (
-    DEFAULT_REPORT_ROOT as DEFAULT_HF_STAGE2_INTEGRATED_REPORT_ROOT,
-    format_report as format_hf_stage2_integrated_acceptance_report,
-    validate_matrix as validate_hf_stage2_integrated_acceptance_matrix,
-    write_report as write_hf_stage2_integrated_acceptance_report,
 )
 from sim_plane.live_smoke import (
     DEFAULT_LIVE_SMOKE_REPORT_ROOT,
@@ -113,6 +91,9 @@ from sim_plane.platform_health import (
     format_platform_health_report,
     write_platform_health_report,
 )
+
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def build_parser():
@@ -345,162 +326,6 @@ def build_parser():
         type=int,
         default=5,
         help="Keep only the newest N timestamped PX4 failure-injection acceptance report directories per mode; 0 disables pruning",
-    )
-
-    human_follow_stage1_acceptance_parser = subparsers.add_parser(
-        "human-follow-stage1-acceptance",
-        help="Validate the project-specific Stage1 human-follow behavior acceptance baseline",
-    )
-    human_follow_stage1_acceptance_parser.add_argument(
-        "--matrix",
-        help="Path to the human-follow Stage1 acceptance matrix JSON",
-    )
-    human_follow_stage1_acceptance_parser.add_argument(
-        "--artifact-root",
-        help="Artifact root to search when --latest is used",
-    )
-    human_follow_stage1_acceptance_parser.add_argument(
-        "--latest",
-        action="store_true",
-        help="Validate the latest matching artifacts instead of the frozen reference artifacts",
-    )
-    human_follow_stage1_acceptance_parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Print the human-follow Stage1 acceptance report as JSON",
-    )
-    human_follow_stage1_acceptance_parser.add_argument(
-        "--report-root",
-        default=str(DEFAULT_HF_STAGE1_REPORT_ROOT),
-        help="Where human-follow Stage1 acceptance reports should be written",
-    )
-    human_follow_stage1_acceptance_parser.add_argument(
-        "--no-save-report",
-        action="store_true",
-        help="Do not persist the human-follow Stage1 acceptance report under the report root",
-    )
-    human_follow_stage1_acceptance_parser.add_argument(
-        "--keep-last-reports",
-        type=int,
-        default=5,
-        help="Keep only the newest N timestamped human-follow Stage1 acceptance report directories per mode; 0 disables pruning",
-    )
-
-    human_follow_stage1_detector_tracker_acceptance_parser = subparsers.add_parser(
-        "human-follow-stage1-detector-tracker-acceptance",
-        help="Validate the project-specific Stage1 detector/tracker-in-loop managed acceptance baseline",
-    )
-    human_follow_stage1_detector_tracker_acceptance_parser.add_argument(
-        "--matrix",
-        help="Path to the human-follow Stage1 detector/tracker acceptance matrix JSON",
-    )
-    human_follow_stage1_detector_tracker_acceptance_parser.add_argument(
-        "--artifact-root",
-        help="Artifact root to search when --latest is used",
-    )
-    human_follow_stage1_detector_tracker_acceptance_parser.add_argument(
-        "--latest",
-        action="store_true",
-        help="Validate the latest matching artifacts instead of the frozen reference artifacts",
-    )
-    human_follow_stage1_detector_tracker_acceptance_parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Print the human-follow Stage1 detector/tracker acceptance report as JSON",
-    )
-    human_follow_stage1_detector_tracker_acceptance_parser.add_argument(
-        "--report-root",
-        default=str(DEFAULT_HF_STAGE1_DETECTOR_TRACKER_REPORT_ROOT),
-        help="Where human-follow Stage1 detector/tracker acceptance reports should be written",
-    )
-    human_follow_stage1_detector_tracker_acceptance_parser.add_argument(
-        "--no-save-report",
-        action="store_true",
-        help="Do not persist the human-follow Stage1 detector/tracker acceptance report under the report root",
-    )
-    human_follow_stage1_detector_tracker_acceptance_parser.add_argument(
-        "--keep-last-reports",
-        type=int,
-        default=5,
-        help="Keep only the newest N timestamped human-follow Stage1 detector/tracker acceptance report directories per mode; 0 disables pruning",
-    )
-
-    human_follow_stage2_acceptance_parser = subparsers.add_parser(
-        "human-follow-stage2-acceptance",
-        help="Validate the project-specific Stage2 real-EGO managed acceptance baseline",
-    )
-    human_follow_stage2_acceptance_parser.add_argument(
-        "--matrix",
-        help="Path to the human-follow Stage2 acceptance matrix JSON",
-    )
-    human_follow_stage2_acceptance_parser.add_argument(
-        "--artifact-root",
-        help="Artifact root to search when --latest is used",
-    )
-    human_follow_stage2_acceptance_parser.add_argument(
-        "--latest",
-        action="store_true",
-        help="Validate the latest matching artifacts instead of the frozen reference artifacts",
-    )
-    human_follow_stage2_acceptance_parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Print the human-follow Stage2 acceptance report as JSON",
-    )
-    human_follow_stage2_acceptance_parser.add_argument(
-        "--report-root",
-        default=str(DEFAULT_HF_STAGE2_REPORT_ROOT),
-        help="Where human-follow Stage2 acceptance reports should be written",
-    )
-    human_follow_stage2_acceptance_parser.add_argument(
-        "--no-save-report",
-        action="store_true",
-        help="Do not persist the human-follow Stage2 acceptance report under the report root",
-    )
-    human_follow_stage2_acceptance_parser.add_argument(
-        "--keep-last-reports",
-        type=int,
-        default=5,
-        help="Keep only the newest N timestamped human-follow Stage2 acceptance report directories per mode; 0 disables pruning",
-    )
-
-    human_follow_stage2_integrated_acceptance_parser = subparsers.add_parser(
-        "human-follow-stage2-integrated-acceptance",
-        help="Validate the project-specific Stage2 real-EGO integrated managed acceptance baseline",
-    )
-    human_follow_stage2_integrated_acceptance_parser.add_argument(
-        "--matrix",
-        help="Path to the human-follow Stage2 integrated acceptance matrix JSON",
-    )
-    human_follow_stage2_integrated_acceptance_parser.add_argument(
-        "--artifact-root",
-        help="Artifact root to search when --latest is used",
-    )
-    human_follow_stage2_integrated_acceptance_parser.add_argument(
-        "--latest",
-        action="store_true",
-        help="Validate the latest matching artifacts instead of the frozen reference artifacts",
-    )
-    human_follow_stage2_integrated_acceptance_parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Print the human-follow Stage2 integrated acceptance report as JSON",
-    )
-    human_follow_stage2_integrated_acceptance_parser.add_argument(
-        "--report-root",
-        default=str(DEFAULT_HF_STAGE2_INTEGRATED_REPORT_ROOT),
-        help="Where human-follow Stage2 integrated acceptance reports should be written",
-    )
-    human_follow_stage2_integrated_acceptance_parser.add_argument(
-        "--no-save-report",
-        action="store_true",
-        help="Do not persist the human-follow Stage2 integrated acceptance report under the report root",
-    )
-    human_follow_stage2_integrated_acceptance_parser.add_argument(
-        "--keep-last-reports",
-        type=int,
-        default=5,
-        help="Keep only the newest N timestamped human-follow Stage2 integrated acceptance report directories per mode; 0 disables pruning",
     )
 
     artifact_hygiene_parser = subparsers.add_parser(
@@ -1027,6 +852,7 @@ def build_parser():
 
 
 def main(argv=None):
+    os.chdir(REPO_ROOT)
     parser = build_parser()
     args = parser.parse_args(argv)
 
@@ -1245,110 +1071,6 @@ def main(argv=None):
             print(json.dumps(report, indent=2, ensure_ascii=False))
         else:
             print(format_px4_failure_acceptance_report(report))
-            if saved_report is not None:
-                print("report_dir: {0}".format(saved_report["report_dir"]))
-                print("latest_report_json: {0}".format(saved_report["latest_report_json"]))
-                print("latest_delta_json: {0}".format(saved_report["latest_delta_json"]))
-                print("history_jsonl: {0}".format(saved_report["history_jsonl"]))
-        return 0 if report["status"] == "passed" else 1
-
-    if args.command == "human-follow-stage1-acceptance":
-        report = validate_hf_stage1_acceptance_matrix(
-            path=args.matrix,
-            artifact_root=args.artifact_root,
-            use_latest=args.latest,
-        )
-        saved_report = None
-        if not args.no_save_report:
-            saved_report = write_hf_stage1_acceptance_report(
-                report,
-                report_root=args.report_root,
-                keep_last=args.keep_last_reports,
-            )
-            report["saved_report"] = saved_report
-            report["delta_from_previous"] = saved_report["delta"]
-        if args.json:
-            print(json.dumps(report, indent=2, ensure_ascii=False))
-        else:
-            print(format_hf_stage1_acceptance_report(report))
-            if saved_report is not None:
-                print("report_dir: {0}".format(saved_report["report_dir"]))
-                print("latest_report_json: {0}".format(saved_report["latest_report_json"]))
-                print("latest_delta_json: {0}".format(saved_report["latest_delta_json"]))
-                print("history_jsonl: {0}".format(saved_report["history_jsonl"]))
-        return 0 if report["status"] == "passed" else 1
-
-    if args.command == "human-follow-stage2-acceptance":
-        report = validate_hf_stage2_acceptance_matrix(
-            path=args.matrix,
-            artifact_root=args.artifact_root,
-            use_latest=args.latest,
-        )
-        saved_report = None
-        if not args.no_save_report:
-            saved_report = write_hf_stage2_acceptance_report(
-                report,
-                report_root=args.report_root,
-                keep_last=args.keep_last_reports,
-            )
-            report["saved_report"] = saved_report
-            report["delta_from_previous"] = saved_report["delta"]
-        if args.json:
-            print(json.dumps(report, indent=2, ensure_ascii=False))
-        else:
-            print(format_hf_stage2_acceptance_report(report))
-            if saved_report is not None:
-                print("report_dir: {0}".format(saved_report["report_dir"]))
-                print("latest_report_json: {0}".format(saved_report["latest_report_json"]))
-                print("latest_delta_json: {0}".format(saved_report["latest_delta_json"]))
-                print("history_jsonl: {0}".format(saved_report["history_jsonl"]))
-        return 0 if report["status"] == "passed" else 1
-
-    if args.command == "human-follow-stage2-integrated-acceptance":
-        report = validate_hf_stage2_integrated_acceptance_matrix(
-            path=args.matrix,
-            artifact_root=args.artifact_root,
-            use_latest=args.latest,
-        )
-        saved_report = None
-        if not args.no_save_report:
-            saved_report = write_hf_stage2_integrated_acceptance_report(
-                report,
-                report_root=args.report_root,
-                keep_last=args.keep_last_reports,
-            )
-            report["saved_report"] = saved_report
-            report["delta_from_previous"] = saved_report["delta"]
-        if args.json:
-            print(json.dumps(report, indent=2, ensure_ascii=False))
-        else:
-            print(format_hf_stage2_integrated_acceptance_report(report))
-            if saved_report is not None:
-                print("report_dir: {0}".format(saved_report["report_dir"]))
-                print("latest_report_json: {0}".format(saved_report["latest_report_json"]))
-                print("latest_delta_json: {0}".format(saved_report["latest_delta_json"]))
-                print("history_jsonl: {0}".format(saved_report["history_jsonl"]))
-        return 0 if report["status"] == "passed" else 1
-
-    if args.command == "human-follow-stage1-detector-tracker-acceptance":
-        report = validate_hf_stage1_detector_tracker_acceptance_matrix(
-            path=args.matrix,
-            artifact_root=args.artifact_root,
-            use_latest=args.latest,
-        )
-        saved_report = None
-        if not args.no_save_report:
-            saved_report = write_hf_stage1_detector_tracker_acceptance_report(
-                report,
-                report_root=args.report_root,
-                keep_last=args.keep_last_reports,
-            )
-            report["saved_report"] = saved_report
-            report["delta_from_previous"] = saved_report["delta"]
-        if args.json:
-            print(json.dumps(report, indent=2, ensure_ascii=False))
-        else:
-            print(format_hf_stage1_detector_tracker_acceptance_report(report))
             if saved_report is not None:
                 print("report_dir: {0}".format(saved_report["report_dir"]))
                 print("latest_report_json: {0}".format(saved_report["latest_report_json"]))

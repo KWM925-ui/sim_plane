@@ -80,6 +80,16 @@ python3 -m sim_plane artifact-hygiene --artifact-root runs
 python3 -m sim_plane serve runs
 ```
 
+这条命令已经支持从任意目录启动。平台入口会自动切回 `/home/coco/sim_plane` 仓库根目录，所以 `runs`、`scenarios`、`configs` 这些相对路径仍然指向本仓库内的对应目录。安装后的简写命令也可用：
+
+```bash
+sim-plane serve runs
+```
+
+这个网页现在也是本地平台控制台。页面里的 `Platform Console` 会列出一组白名单操作按钮；每个按钮都显示准确命令、适用场景、输出位置和风险说明。点击运行时，后端只按白名单 ID 执行对应命令，不接受网页传入任意 shell 命令。
+
+`python3 -m unittest ...` 是开发自检命令，只会输出测试结果，不会打开网页。要看到前端，运行上面的 `serve` 命令。
+
 ## 3. 接自己的算法怎么选
 
 控制类算法走 `external_command`。典型对象是 MAVSDK、MAVROS、MAVLink、普通 Python/C++ 控制程序：

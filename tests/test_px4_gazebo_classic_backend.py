@@ -173,7 +173,7 @@ class PX4GazeboClassicBackendTest(unittest.TestCase):
         context = build_algorithm_adapter_context(
             {
                 "vehicle": "quadrotor",
-                "name": "gazebo_stage2_visual",
+                "name": "gazebo_visual_probe",
                 "duration_s": 12.0,
                 "target_altitude_m": 0.0,
             },

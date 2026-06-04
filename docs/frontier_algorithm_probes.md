@@ -4,7 +4,7 @@
 
 This note records fresh `2026-04-29` managed bring-up evidence for additional
 open-source frontier algorithms that are not yet part of the strict
-twenty-three-row platform acceptance gate.
+twenty-one-row platform acceptance gate.
 
 These probes follow the repo-wide rules:
 

@@ -157,3 +157,26 @@ def build_acceptance_delta(current_report, previous_report, tracked_metrics):
 
     delta["changed_rows_count"] = changed_rows_count
     return delta
+
+
+def format_delta_lines(delta):
+    lines = [
+        "delta_from_previous:",
+        "  previous_report_dir: {0}".format(delta.get("previous_report_dir") or "-"),
+        "  status_changed: {0}".format(delta.get("status_changed")),
+        "  issues_count_delta: {0}".format(delta.get("issues_count_delta")),
+        "  changed_rows_count: {0}".format(delta.get("changed_rows_count")),
+    ]
+    for row_delta in delta.get("row_deltas", []):
+        if not row_delta.get("changed"):
+            continue
+        lines.append(
+            "  row {0}: {1}->{2}, issues_delta={3}, metric_delta={4}".format(
+                row_delta.get("name"),
+                row_delta.get("previous_status"),
+                row_delta.get("current_status"),
+                row_delta.get("issues_count_delta"),
+                json.dumps(row_delta.get("metric_delta", {}), sort_keys=True, ensure_ascii=False),
+            )
+        )
+    return lines

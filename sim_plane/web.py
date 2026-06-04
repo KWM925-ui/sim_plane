@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from sim_plane.artifacts import read_jsonl
+from sim_plane.console_commands import ConsoleCommandRunner, build_cli_coverage
 
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -74,6 +75,10 @@ class ArtifactReplay:
     def __init__(self, artifact_dir):
         self.artifact_dir = Path(artifact_dir)
         self.artifact_root = self.artifact_dir.parent
+        self.console_runner = ConsoleCommandRunner(
+            run_root=self.artifact_root / "console_commands",
+            repo_root=Path(__file__).resolve().parent.parent,
+        )
         self.manifest = load_json(self.artifact_dir / "manifest.json")
         self.scenario = load_json(self.artifact_dir / "scenario.json")
         self.result = load_json(self.artifact_dir / "result.json")
@@ -126,10 +131,32 @@ class ArtifactReplay:
     def list_test_surface_reports(self, limit=20):
         return list_test_surface_reports(self.artifact_root, limit=limit)
 
+    def list_console_commands(self):
+        return self.console_runner.list_commands()
+
+    def cli_coverage(self):
+        return build_cli_coverage(get_cli_command_names())
+
+    def start_console_command(self, command_id):
+        return self.console_runner.start(command_id)
+
+    def list_console_runs(self, limit=20):
+        return self.console_runner.list_runs(limit=limit)
+
+    def get_console_run(self, run_id):
+        return self.console_runner.get_run(run_id)
+
+    def get_console_log(self, run_id, tail_bytes=20000):
+        return self.console_runner.get_log(run_id, tail_bytes=tail_bytes)
+
 
 class ArtifactRootBrowser:
     def __init__(self, artifact_root):
         self.artifact_root = Path(artifact_root)
+        self.console_runner = ConsoleCommandRunner(
+            run_root=self.artifact_root / "console_commands",
+            repo_root=Path(__file__).resolve().parent.parent,
+        )
         artifacts = list_complete_artifacts(self.artifact_root, limit=1)
         self.active_artifact_dir = Path(artifacts[0]["path"]) if artifacts else None
         self.active_replay = ArtifactReplay(self.active_artifact_dir) if self.active_artifact_dir else None
@@ -199,6 +226,24 @@ class ArtifactRootBrowser:
 
     def list_test_surface_reports(self, limit=20):
         return list_test_surface_reports(self.artifact_root, limit=limit)
+
+    def list_console_commands(self):
+        return self.console_runner.list_commands()
+
+    def cli_coverage(self):
+        return build_cli_coverage(get_cli_command_names())
+
+    def start_console_command(self, command_id):
+        return self.console_runner.start(command_id)
+
+    def list_console_runs(self, limit=20):
+        return self.console_runner.list_runs(limit=limit)
+
+    def get_console_run(self, run_id):
+        return self.console_runner.get_run(run_id)
+
+    def get_console_log(self, run_id, tail_bytes=20000):
+        return self.console_runner.get_log(run_id, tail_bytes=tail_bytes)
 
 
 def load_json(path):
@@ -677,6 +722,47 @@ class DashboardServer:
                     limit = int(query.get("limit", ["20"])[0])
                     self._json(call_optional(data_source, "list_test_surface_reports", {"available": False}, limit=limit))
                     return
+                if parsed.path == "/api/console/commands":
+                    self._json({"items": call_optional(data_source, "list_console_commands", [])})
+                    return
+                if parsed.path == "/api/console/coverage":
+                    self._json(call_optional(data_source, "cli_coverage", {"summary": {}, "rows": []}))
+                    return
+                if parsed.path == "/api/console/runs":
+                    query = urllib.parse.parse_qs(parsed.query)
+                    limit = int(query.get("limit", ["20"])[0])
+                    self._json({"items": call_optional(data_source, "list_console_runs", [], limit=limit)})
+                    return
+                if parsed.path == "/api/console/run":
+                    query = urllib.parse.parse_qs(parsed.query)
+                    run_id = first_query_value(query, "id")
+                    self._json(call_optional(data_source, "get_console_run", {}, run_id))
+                    return
+                if parsed.path == "/api/console/log":
+                    query = urllib.parse.parse_qs(parsed.query)
+                    run_id = first_query_value(query, "id")
+                    tail = int(query.get("tail_bytes", ["20000"])[0])
+                    self._json({"run_id": run_id, "log": call_optional(data_source, "get_console_log", "", run_id, tail_bytes=tail)})
+                    return
+
+                self.send_error(404, "Not found")
+
+            def do_POST(self):
+                parsed = urllib.parse.urlparse(self.path)
+                if parsed.path == "/api/console/start":
+                    try:
+                        payload = self._read_json_body()
+                        command_id = payload.get("id")
+                        if not command_id:
+                            raise ValueError("missing console command id")
+                        result = call_optional(data_source, "start_console_command", {}, command_id)
+                        if isinstance(result, dict) and result.get("error"):
+                            self._json(result, status=400)
+                        else:
+                            self._json(result)
+                    except Exception as exc:
+                        self._json({"status": "failed", "error": str(exc)}, status=400)
+                    return
 
                 self.send_error(404, "Not found")
 
@@ -695,9 +781,16 @@ class DashboardServer:
                 except (BrokenPipeError, ConnectionResetError):
                     return
 
-            def _json(self, payload):
+            def _read_json_body(self):
+                length = int(self.headers.get("Content-Length", "0"))
+                if length <= 0:
+                    return {}
+                raw = self.rfile.read(length)
+                return json.loads(raw.decode("utf-8"))
+
+            def _json(self, payload, status=200):
                 raw = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-                self.send_response(200)
+                self.send_response(status)
                 self.send_header("Content-Type", "application/json; charset=utf-8")
                 self.send_header("Content-Length", str(len(raw)))
                 self.end_headers()
@@ -710,7 +803,8 @@ class DashboardServer:
 
     @property
     def url(self):
-        return "http://{0}:{1}".format(self.host, self.port)
+        host, port = self.httpd.server_address[:2]
+        return "http://{0}:{1}".format(host, port)
 
     def start(self, open_browser=False):
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
@@ -736,5 +830,11 @@ def call_optional(data_source, method_name, default, *args, **kwargs):
         return default
     try:
         return method(*args, **kwargs)
-    except ValueError as exc:
+    except (KeyError, RuntimeError, ValueError) as exc:
         return {"error": str(exc)}
+
+
+def get_cli_command_names():
+    from sim_plane.cli import build_parser
+
+    return set(build_parser()._subparsers._group_actions[0].choices)

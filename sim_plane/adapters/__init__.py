@@ -5,16 +5,12 @@ from sim_plane.adapters.base import AdapterError
 
 def available_adapters():
     from sim_plane.adapters.external_command import ExternalCommandAdapter
-    from sim_plane.adapters.human_follow_ros import HumanFollowROSStage1Adapter
-    from sim_plane.adapters.human_follow_ros_stage2 import HumanFollowROSStage2Adapter
     from sim_plane.adapters.mavsdk_action import MAVSDKActionAdapter
     from sim_plane.adapters.mavsdk_failure import MAVSDKFailureInjectionAdapter
     from sim_plane.adapters.ros_command import ROSCommandAdapter
 
     return {
         ExternalCommandAdapter.name: ExternalCommandAdapter,
-        HumanFollowROSStage1Adapter.name: HumanFollowROSStage1Adapter,
-        HumanFollowROSStage2Adapter.name: HumanFollowROSStage2Adapter,
         MAVSDKActionAdapter.name: MAVSDKActionAdapter,
         MAVSDKFailureInjectionAdapter.name: MAVSDKFailureInjectionAdapter,
         ROSCommandAdapter.name: ROSCommandAdapter,

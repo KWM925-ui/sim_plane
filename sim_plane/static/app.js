@@ -9,12 +9,19 @@ const state = {
   platformAcceptance: null,
   suiteReports: null,
   testSurfaceReports: null,
+  consoleCommands: [],
+  consoleCoverage: null,
+  selectedConsoleCommand: null,
+  consoleRuns: [],
+  activeConsoleRunId: null,
 };
 
 const elements = {
   scenarioName: document.getElementById("scenario-name"),
   scenarioDescription: document.getElementById("scenario-description"),
   statusPill: document.getElementById("status-pill"),
+  activeArtifactName: document.getElementById("active-artifact-name"),
+  activeArtifactPath: document.getElementById("active-artifact-path"),
   backendName: document.getElementById("backend-name"),
   vehicleName: document.getElementById("vehicle-name"),
   artifactDir: document.getElementById("artifact-dir"),
@@ -43,6 +50,26 @@ const elements = {
   suiteList: document.getElementById("suite-list"),
   testSurfaceSummary: document.getElementById("test-surface-summary"),
   testSurfaceList: document.getElementById("test-surface-list"),
+  consoleStatus: document.getElementById("console-status"),
+  consoleCommandList: document.getElementById("console-command-list"),
+  consoleCategory: document.getElementById("console-category"),
+  consoleCliCommand: document.getElementById("console-cli-command"),
+  consoleTitle: document.getElementById("console-title"),
+  consoleRisk: document.getElementById("console-risk"),
+  consoleDescription: document.getElementById("console-description"),
+  consoleValue: document.getElementById("console-value"),
+  consoleWhen: document.getElementById("console-when"),
+  consoleOutputs: document.getElementById("console-outputs"),
+  consoleDuration: document.getElementById("console-duration"),
+  consoleCommand: document.getElementById("console-command"),
+  copyCommandButton: document.getElementById("copy-command-button"),
+  runCommandButton: document.getElementById("run-command-button"),
+  clearLogButton: document.getElementById("clear-log-button"),
+  consoleRunSummary: document.getElementById("console-run-summary"),
+  consoleLogBox: document.getElementById("console-log-box"),
+  consoleOutputList: document.getElementById("console-output-list"),
+  coverageSummary: document.getElementById("coverage-summary"),
+  coverageList: document.getElementById("coverage-list"),
 };
 
 async function fetchJson(url) {
@@ -53,31 +80,59 @@ async function fetchJson(url) {
   return response.json();
 }
 
+async function postJson(url, payload) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload || {}),
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.error || `Request failed: ${url}`);
+  }
+  return result;
+}
+
 async function hydrateMeta() {
   state.meta = await fetchJson("/api/meta");
   const scenario = state.meta.scenario || {};
-  elements.scenarioName.textContent = scenario.name || "Artifact dashboard";
-  elements.scenarioDescription.textContent = scenario.description || "No description";
+  const isBrowser = state.meta.mode === "browser";
+  elements.scenarioName.textContent = isBrowser ? "UAV Simulation Control Center" : compactName(scenario.name || "Artifact replay", 48);
+  elements.scenarioDescription.textContent = isBrowser
+    ? "统一启动仿真任务、查看验收证据、对比 KPI、回放轨迹和定位日志。"
+    : (scenario.description || "Replay one retained run artifact.");
   elements.backendName.textContent = scenario.backend || "-";
   elements.vehicleName.textContent = scenario.vehicle || "-";
-  elements.artifactDir.textContent = state.meta.active_artifact_dir || state.meta.artifact_dir || state.meta.artifact_root || "-";
+  const activeArtifact = state.meta.active_artifact_dir || state.meta.artifact_dir || state.meta.artifact_root || "-";
+  elements.artifactDir.textContent = activeArtifact;
+  elements.activeArtifactName.textContent = compactName(pathLeaf(activeArtifact), 46);
+  elements.activeArtifactPath.textContent = activeArtifact;
 }
 
 async function hydrateBrowser() {
-  const [artifacts, platformAcceptance, suiteReports, testSurfaceReports] = await Promise.all([
+  const [artifacts, platformAcceptance, suiteReports, testSurfaceReports, consoleCommands, consoleCoverage, consoleRuns] = await Promise.all([
     fetchJson("/api/artifacts?limit=120").catch(() => ({ items: [] })),
     fetchJson("/api/platform-acceptance/latest").catch(() => ({ available: false })),
     fetchJson("/api/suites/latest?limit=12").catch(() => ({ available: false, items: [] })),
     fetchJson("/api/test-surfaces/latest?limit=12").catch(() => ({ available: false, items: [] })),
+    fetchJson("/api/console/commands").catch(() => ({ items: [] })),
+    fetchJson("/api/console/coverage").catch(() => ({ summary: {}, rows: [] })),
+    fetchJson("/api/console/runs?limit=8").catch(() => ({ items: [] })),
   ]);
   state.artifacts = artifacts.items || [];
   state.platformAcceptance = platformAcceptance;
   state.suiteReports = suiteReports;
   state.testSurfaceReports = testSurfaceReports;
+  state.consoleCommands = consoleCommands.items || [];
+  state.consoleCoverage = consoleCoverage;
+  state.consoleRuns = consoleRuns.items || [];
   renderArtifacts();
   renderPlatformAcceptance();
   renderSuiteReports();
   renderTestSurfaceReports();
+  renderConsoleCommands();
+  renderConsoleCoverage();
+  renderConsoleRunSummary();
   if (state.artifacts.length >= 2) {
     elements.leftArtifact.value = state.artifacts[1].name;
     elements.rightArtifact.value = state.artifacts[0].name;
@@ -143,7 +198,7 @@ function renderArtifacts() {
     row.className = `artifact-row ${artifact.active ? "active" : ""}`;
     row.innerHTML = `
       <div>
-        <strong>${escapeHtml(artifact.name)}</strong>
+        <strong title="${escapeHtml(artifact.name)}">${escapeHtml(compactName(artifact.name, 42))}</strong>
         <span>${escapeHtml(artifact.scenario_name || "-")} · ${escapeHtml(artifact.backend || "-")}</span>
       </div>
       <div class="artifact-status" data-status="${escapeHtml(artifact.status || "unknown")}">${escapeHtml(artifact.status || "unknown")}</div>
@@ -380,6 +435,177 @@ function renderTestSurfaceReports() {
     `;
     elements.testSurfaceList.appendChild(item);
   });
+}
+
+function renderConsoleCommands() {
+  elements.consoleCommandList.innerHTML = "";
+  if (!state.consoleCommands.length) {
+    elements.consoleCommandList.textContent = "No console commands available.";
+    return;
+  }
+  const grouped = groupBy(state.consoleCommands, (command) => command.category || "其他");
+  Object.entries(grouped).forEach(([category, commands]) => {
+    const group = document.createElement("div");
+    group.className = "console-command-group";
+    const heading = document.createElement("h4");
+    heading.textContent = category;
+    group.appendChild(heading);
+    commands.forEach((command) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "console-command-button";
+      button.dataset.commandId = command.id;
+      button.innerHTML = `
+        <strong>${escapeHtml(command.title)}</strong>
+        <span>${escapeHtml(command.risk || "-")} · ${escapeHtml(command.duration_hint || "-")}</span>
+      `;
+      button.addEventListener("click", () => selectConsoleCommand(command.id));
+      group.appendChild(button);
+    });
+    elements.consoleCommandList.appendChild(group);
+  });
+  selectConsoleCommand((state.selectedConsoleCommand || state.consoleCommands[0]).id);
+}
+
+function selectConsoleCommand(commandId) {
+  const command = state.consoleCommands.find((item) => item.id === commandId);
+  if (!command) {
+    return;
+  }
+  state.selectedConsoleCommand = command;
+  document.querySelectorAll(".console-command-button").forEach((button) => {
+    button.classList.toggle("active", button.dataset.commandId === commandId);
+  });
+  elements.consoleCategory.textContent = command.category || "-";
+  elements.consoleCliCommand.textContent = command.cli_command || "-";
+  elements.consoleTitle.textContent = command.title || "-";
+  elements.consoleRisk.textContent = command.risk || "-";
+  elements.consoleDescription.textContent = command.description || "-";
+  elements.consoleValue.textContent = command.value || "-";
+  elements.consoleWhen.textContent = command.when_to_use || "-";
+  elements.consoleOutputs.textContent = (command.outputs || []).join(", ") || "-";
+  elements.consoleDuration.textContent = command.duration_hint || "-";
+  elements.consoleCommand.textContent = command.command_display || "-";
+}
+
+async function copySelectedConsoleCommand() {
+  if (!state.selectedConsoleCommand) {
+    return;
+  }
+  const text = state.selectedConsoleCommand.command_display || "";
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    await navigator.clipboard.writeText(text);
+    elements.consoleStatus.textContent = "copied";
+  } else {
+    elements.consoleStatus.textContent = "copy unavailable";
+  }
+}
+
+async function runSelectedConsoleCommand() {
+  if (!state.selectedConsoleCommand) {
+    return;
+  }
+  elements.consoleStatus.textContent = "starting";
+  try {
+    const run = await postJson("/api/console/start", { id: state.selectedConsoleCommand.id });
+    state.activeConsoleRunId = run.run_id;
+    elements.consoleStatus.textContent = "running";
+    await refreshConsoleRuns();
+  } catch (error) {
+    elements.consoleStatus.textContent = "failed";
+    elements.consoleRunSummary.textContent = error.message;
+  }
+}
+
+async function refreshConsoleRuns() {
+  const runs = await fetchJson("/api/console/runs?limit=8").catch(() => ({ items: [] }));
+  state.consoleRuns = runs.items || [];
+  if (!state.activeConsoleRunId && state.consoleRuns.length) {
+    state.activeConsoleRunId = state.consoleRuns[0].run_id;
+  }
+  renderConsoleRunSummary();
+  await refreshConsoleLog();
+}
+
+function renderConsoleRunSummary() {
+  const active = state.consoleRuns.find((run) => run.run_id === state.activeConsoleRunId) || state.consoleRuns[0];
+  if (!active) {
+    elements.consoleStatus.textContent = "idle";
+    elements.consoleRunSummary.textContent = "还没有启动";
+    return;
+  }
+  state.activeConsoleRunId = active.run_id;
+  elements.consoleStatus.textContent = active.status || "unknown";
+  elements.consoleRunSummary.textContent = `${active.title || active.command_id} · ${active.status || "unknown"} · ${compactName(active.run_dir || "-", 72)}`;
+  renderConsoleOutputs(active);
+}
+
+async function refreshConsoleLog() {
+  if (!state.activeConsoleRunId) {
+    return;
+  }
+  const payload = await fetchJson(`/api/console/log?id=${encodeURIComponent(state.activeConsoleRunId)}&tail_bytes=20000`).catch(() => ({ log: "" }));
+  elements.consoleLogBox.textContent = payload.log || "No console command log yet.";
+}
+
+function renderConsoleOutputs(run) {
+  elements.consoleOutputList.innerHTML = "";
+  const outputs = run && run.detected_outputs ? run.detected_outputs : [];
+  if (!outputs.length) {
+    elements.consoleOutputList.textContent = "未检测到新的 artifact/report 路径；完整日志仍在 runs/console_commands/。";
+    return;
+  }
+  outputs.forEach((path) => {
+    const row = document.createElement("div");
+    row.className = "console-output-row";
+    row.textContent = path;
+    elements.consoleOutputList.appendChild(row);
+  });
+}
+
+function renderConsoleCoverage() {
+  const report = state.consoleCoverage || {};
+  const summary = report.summary || {};
+  const rows = report.rows || [];
+  elements.coverageSummary.textContent = `${summary.covered_count ?? 0}/${summary.cli_command_count ?? 0} 已有前端入口，${summary.hidden_count ?? 0} 个隐藏或待做`;
+  elements.coverageList.innerHTML = "";
+  rows.forEach((row) => {
+    const item = document.createElement("div");
+    item.className = "coverage-row";
+    item.innerHTML = `
+      <strong>${escapeHtml(row.cli_command || "-")}</strong>
+      <span class="artifact-status" data-status="${row.frontend_status === "covered" ? "passed" : "unknown"}">${escapeHtml(row.frontend_status || "-")}</span>
+      <p>${escapeHtml(row.reason || "-")}</p>
+    `;
+    elements.coverageList.appendChild(item);
+  });
+}
+
+function groupBy(items, keyFn) {
+  return items.reduce((groups, item) => {
+    const key = keyFn(item);
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+    groups[key].push(item);
+    return groups;
+  }, {});
+}
+
+function compactName(value, maxLength) {
+  const text = String(value || "-");
+  if (text.length <= maxLength) {
+    return text;
+  }
+  const head = Math.max(Math.floor(maxLength * 0.58), 8);
+  const tail = Math.max(maxLength - head - 3, 6);
+  return `${text.slice(0, head)}...${text.slice(-tail)}`;
+}
+
+function pathLeaf(value) {
+  const text = String(value || "-");
+  const parts = text.split("/").filter(Boolean);
+  return parts.length ? parts[parts.length - 1] : text;
 }
 
 function renderMetricChips(metrics) {
@@ -622,6 +848,19 @@ function escapeHtml(value) {
 }
 
 elements.compareButton.addEventListener("click", runComparison);
+elements.copyCommandButton.addEventListener("click", () => {
+  copySelectedConsoleCommand().catch((error) => {
+    elements.consoleStatus.textContent = error.message;
+  });
+});
+elements.runCommandButton.addEventListener("click", () => {
+  runSelectedConsoleCommand().catch((error) => {
+    elements.consoleStatus.textContent = error.message;
+  });
+});
+elements.clearLogButton.addEventListener("click", () => {
+  elements.consoleLogBox.textContent = "Log display cleared. Running commands still keep full logs under runs/console_commands/.";
+});
 
 hydrateMeta()
   .then(hydrateBrowser)
@@ -630,6 +869,9 @@ hydrateMeta()
     setInterval(() => {
       poll().catch((error) => console.error(error));
     }, 1000);
+    setInterval(() => {
+      refreshConsoleRuns().catch((error) => console.error(error));
+    }, 2000);
   })
   .catch((error) => {
     console.error(error);

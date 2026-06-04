@@ -53,8 +53,7 @@ The strict platform gate currently requires all of the following:
 - each row's shared event surface stays `info`-only
 - each row matches its required metrics and note substrings
 - each row also stays within the configured reference-artifact regression budgets
-  for tracked metrics such as `telemetry_count`, `mode_changes`, and the
-  bounded Stage1 follower envelope
+  for tracked metrics such as `telemetry_count` and `mode_changes`
 - the nested four-row planner baseline also passes through
   `python3 -m sim_plane planner-acceptance`
 
@@ -69,8 +68,6 @@ The strict platform gate currently requires all of the following:
 | `px4_sih_headless` | `px4_sih` | light closed-loop PX4 takeoff | `runs/px4_sih_quadx_headless_20260428_130601` | passed |
 | `px4_sih_3d` | `px4_sih` | SIH plus QGroundControl plus jMAVSim viewer | `runs/px4_sih_quadx_3d_20260428_130651` | passed |
 | `px4_sih_mavsdk_action` | `px4_sih` | SIH quadrotor driven by the repo-local MAVSDK action adapter | `runs/px4_sih_quadx_mavsdk_action_20260428_160345` | passed |
-| `px4_sih_human_follow_stage1` | `px4_sih` | SIH disarmed OFFBOARD cut-in driven by the repo-local Stage1 follower ROS adapter | `runs/px4_sih_quadx_human_follow_stage1_20260428_164845` | passed |
-| `px4_sih_human_follow_stage1_armed` | `px4_sih` | SIH armed OFFBOARD handoff driven by the repo-local Stage1 follower ROS adapter | `runs/px4_sih_quadx_human_follow_stage1_armed_20260428_164920` | passed |
 | `px4_jsbsim_headless` | `px4_jsbsim` | JSBSim quadrotor dynamics | `runs/px4_jsbsim_quadx_headless_20260428_130736` | passed |
 | `px4_jsbsim_mavsdk_action` | `px4_jsbsim` | JSBSim quadrotor dynamics driven by the repo-local MAVSDK action adapter | `runs/px4_jsbsim_quadx_mavsdk_action_20260428_161256` | passed |
 | `px4_jsbsim_mavsdk_action_visual` | `px4_jsbsim` | JSBSim quadrotor dynamics with FlightGear viewer driven by the repo-local MAVSDK action adapter | `runs/px4_jsbsim_quadx_mavsdk_action_visual_20260428_170517` | passed |
@@ -94,16 +91,6 @@ The strict platform gate currently requires all of the following:
 - The first local MAVSDK control surface landed on `PX4 SIH` first, because
   the platform blueprint treats `MAVSDK` as the primary narrow command/control
   adapter and keeps ROS optional for the core path.
-- The `px4_sih_human_follow_stage1` row is accepted as a disarmed
-  `OFFBOARD` cut-in and cleanup contract on top of `PX4 SIH`; it proves the
-  optional ROS follower boundary can connect, drive valid non-hold setpoints,
-  and return PX4 to `AUTO.LOITER` while staying below the bounded
-  `max_altitude_m` and `max_speed_mps` preflight envelope.
-- The `px4_sih_human_follow_stage1_armed` row is accepted as the next bounded
-  widening on top of the same managed ROS workspace; it proves the chain can
-  arm, cut into `OFFBOARD`, return to `AUTO.LOITER`, and still stay below the
-  bounded preflight envelope instead of drifting into an uncontrolled takeoff
-  claim.
 - The same repo-local MAVSDK adapter is now also proven on both headless and
   FlightGear-visual `PX4 + JSBSim`, but those surfaces only stayed clean
   after moving the shared telemetry collector to JSBSim's `Normal`-mode
@@ -117,9 +104,7 @@ The strict platform gate currently requires all of the following:
 - The platform gate now also treats silent quantitative drift as a failure,
   not only absolute threshold misses: globally tracked `telemetry_count`
   cannot drop by more than `10`, PX4-family `mode_changes` cannot regress
-  below their frozen reference count, and the two managed Stage1 follower
-  rows also enforce tighter reference-based budgets on `max_altitude_m`
-  and `max_speed_mps`.
+  below their frozen reference count.
 - `px4_gazebo_classic` is accepted only as a transitional Ubuntu 20.04 scene
   backend, not as the forever default simulator, because Gazebo Classic is
   already upstream end-of-life.
@@ -158,6 +143,4 @@ Why it was safe to promote them:
   row, the newly landed `PX4 + Gazebo Classic` headless plus native-GUI
   rows, the newly landed `PX4 + Gazebo Classic + MAVSDK` headless plus
   native-GUI rows, the newly landed `PX4 SIH + MAVSDK` action row,
-  the newly landed `PX4 SIH + human_follow_ros_stage1` preflight row,
-  the newly landed `PX4 SIH + human_follow_ros_stage1_armed` handoff row,
   and the newly landed headless `PX4 + JSBSim + MAVSDK` action row.

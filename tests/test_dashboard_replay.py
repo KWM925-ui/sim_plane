@@ -1,11 +1,15 @@
 import json
 import re
 import tempfile
+import time
 import unittest
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 from sim_plane.web import (
     ArtifactRootBrowser,
+    DashboardServer,
     compare_artifact_dirs,
     list_complete_artifacts,
     list_suite_reports,
@@ -216,6 +220,91 @@ class DashboardReplayTest(unittest.TestCase):
             self.assertEqual(len(browser.list_artifacts()), 2)
             self.assertEqual(browser.state()["status"], "passed")
             self.assertEqual(browser.meta()["mode"], "browser")
+            commands = browser.list_console_commands()
+            self.assertTrue(any(command["id"] == "platform_health" for command in commands))
+            platform_health = next(command for command in commands if command["id"] == "platform_health")
+            self.assertEqual(platform_health["command"][:3], ["python3", "-m", "sim_plane"])
+            self.assertIn("platform-health", platform_health["command_display"])
+
+    def test_console_runner_executes_only_catalog_command(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            write_artifact(root, "demo_20260526_170000", "demo", "demo", 2.0, 1.0, [(0, 0, 0), (1, 0, 1)])
+            browser = ArtifactRootBrowser(root)
+            browser.console_runner.commands = [
+                {
+                    "id": "echo_probe",
+                    "category": "test",
+                    "title": "Echo Probe",
+                    "risk": "test",
+                    "duration_hint": "fast",
+                    "command": ["python3", "-c", "print('console-probe-ok')"],
+                    "description": "test",
+                    "value": "test",
+                    "when_to_use": "test",
+                    "outputs": ["log"],
+                }
+            ]
+
+            started = browser.start_console_command("echo_probe")
+            deadline = time.time() + 5
+            record = started
+            while time.time() < deadline:
+                record = browser.get_console_run(started["run_id"])
+                if record["status"] != "running":
+                    break
+                time.sleep(0.05)
+
+            self.assertEqual(record["status"], "passed")
+            self.assertIn("console-probe-ok", browser.get_console_log(started["run_id"]))
+            with self.assertRaises(KeyError):
+                browser.start_console_command("not_in_catalog")
+
+    def test_dashboard_console_api_rejects_unknown_commands(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            write_artifact(root, "demo_20260526_170000", "demo", "demo", 2.0, 1.0, [(0, 0, 0), (1, 0, 1)])
+            browser = ArtifactRootBrowser(root)
+            browser.console_runner.commands = [
+                {
+                    "id": "echo_probe",
+                    "category": "test",
+                    "title": "Echo Probe",
+                    "risk": "test",
+                    "duration_hint": "fast",
+                    "command": ["python3", "-c", "print('ok')"],
+                    "description": "test",
+                    "value": "test",
+                    "when_to_use": "test",
+                    "outputs": ["log"],
+                }
+            ]
+            server = DashboardServer(browser, host="127.0.0.1", port=0)
+            server.start()
+            try:
+                commands = json.loads(
+                    urllib.request.urlopen(server.url + "/api/console/commands", timeout=2)
+                    .read()
+                    .decode("utf-8")
+                )
+                self.assertEqual(commands["items"][0]["id"], "echo_probe")
+                request = urllib.request.Request(
+                    server.url + "/api/console/start",
+                    data=json.dumps({"id": "missing"}).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with self.assertRaises(urllib.error.HTTPError) as context:
+                    urllib.request.urlopen(request, timeout=2)
+                self.assertEqual(context.exception.code, 400)
+                missing = json.loads(
+                    urllib.request.urlopen(server.url + "/api/console/run?id=missing", timeout=2)
+                    .read()
+                    .decode("utf-8")
+                )
+                self.assertIn("error", missing)
+            finally:
+                server.shutdown()
 
     def test_compare_artifacts_reports_metric_and_trajectory_deltas(self):
         with tempfile.TemporaryDirectory() as tmpdir:

@@ -23,8 +23,6 @@ The repository now has a runnable MVP skeleton with:
 - a validated planner-on-estimator `EGO-Planner-Swarm + FAST_LIO + MARSIM` ROS1 path,
 - a validated real `PX4 SIH` backend path,
 - validated repo-local `MAVSDK` action adapter paths on top of `PX4 SIH`, headless plus FlightGear-visual `PX4 + JSBSim`, and headless plus native-GUI `PX4 + Gazebo Classic`,
-- validated repo-local `human_follow_ros_stage1` preflight and armed-handoff adapter paths on top of `PX4 SIH`,
-- a validated repo-local `human_follow_ros_stage2` real-EGO managed adapter path on top of `PX4 SIH`,
 - validated generic repo-local `ros_command` adapter paths on top of `MARSIM` and `FAST_LIO + MARSIM` for user ROS planner/perception processes,
 - a validated real `PX4 + JSBSim` backend path in both headless and FlightGear visual modes,
 - a validated real `PX4 + Gazebo Classic` backend path in both headless and native GUI modes,
@@ -48,9 +46,6 @@ Fresh validated local evidence on `2026-04-27`, `2026-04-28`, and `2026-04-29`:
 - repeated main-surface visual `ego_planner_swarm` runs passed at `runs/ego_planner_swarm_single_visual_20260427_142328` and `runs/ego_planner_swarm_single_visual_20260427_142410`,
 - the main-surface headless `px4_jsbsim` quadrotor run passed at `runs/px4_jsbsim_quadx_headless_20260427_153027`,
 - the first shared-runner `px4_sih + mavsdk_action_takeoff` pass completed at `runs/px4_sih_quadx_mavsdk_action_20260428_160345` with `target_altitude_reached=true`, `algorithm_adapter_completed_successfully=true`, `algorithm_adapter_landed=true`, and an info-only event stream,
-- the managed shared-runner `px4_sih + human_follow_ros_stage1` preflight pass completed at `runs/px4_sih_quadx_human_follow_stage1_20260428_164845` with `algorithm_adapter_completed_successfully=true`, `algorithm_adapter_offboard_mode_reached=true`, `algorithm_adapter_cleanup_mode_reached=true`, `algorithm_adapter_nonzero_setpoint_count=80`, and an info-only event stream,
-- the managed shared-runner `px4_sih + human_follow_ros_stage1` armed handoff pass completed at `runs/px4_sih_quadx_human_follow_stage1_armed_20260428_164920` with `ever_armed=true`, `algorithm_adapter_arm_command_sent=true`, `algorithm_adapter_cleanup_mode_reached=true`, and an info-only event stream,
-- the managed shared-runner `px4_sih + human_follow_ros_stage2` real-EGO proof now passes at `runs/px4_sih_quadx_human_follow_stage2_real_ego_20260508_062640` with `ever_armed=true`, `algorithm_adapter_offboard_mode_reached=true`, `algorithm_adapter_stage2_search_goal_observed=true`, `algorithm_adapter_stage2_real_ego_path_observed=true`, `algorithm_adapter_stage2_waypoint_count=14`, `algorithm_adapter_stage2_ego_cmd_count=376`, and an info-only event stream,
 - the first shared-runner `px4_jsbsim + mavsdk_action_takeoff` pass completed at `runs/px4_jsbsim_quadx_mavsdk_action_20260428_161256` with `target_altitude_reached=true`, `algorithm_adapter_completed_successfully=true`, `algorithm_adapter_landed=true`, and an info-only event stream,
 - the first shared-runner `px4_jsbsim + FlightGear + mavsdk_action_takeoff` pass completed at `runs/px4_jsbsim_quadx_mavsdk_action_visual_20260428_170517` with `flightgear_viewer=true`, `target_altitude_reached=true`, `algorithm_adapter_completed_successfully=true`, and an info-only event stream,
 - the main-surface visual `px4_jsbsim` quadrotor run passed at `runs/px4_jsbsim_quadx_visual_20260428_145759` with `flightgear_viewer=true`, `headless=false`, and info-only shared events,
@@ -88,18 +83,17 @@ Fresh validated local evidence on `2026-04-27`, `2026-04-28`, and `2026-04-29`:
 - the planner acceptance gate now anchors that baseline to the frozen reference artifacts themselves and fails loudly if the copied matrix value drifts away from the reference artifact metric,
 - each acceptance run now writes durable reports under `runs/acceptance/`, including timestamped report directories, stable `latest_reference.json` / `latest_latest.json` snapshots, append-only `history_reference.jsonl` / `history_latest.jsonl`, and a default retention rule that keeps only the newest 5 timestamped directories per mode,
 - each acceptance run now also writes compact compare snapshots at `latest_reference_delta.json` / `latest_latest_delta.json`, and the CLI prints the previous-vs-current delta summary directly,
-- a strict quadrotor platform acceptance matrix now exists at `configs/platform_acceptance_matrix.json`, and fresh `2026-04-28` reference artifacts were frozen for `ego_planner` single-run headless plus visual, `ego_planner_swarm` single-run headless plus visual, `px4_sih` headless plus 3D plus MAVSDK-action control plus the managed Stage1 follower preflight and armed-handoff rows, `px4_jsbsim` quadrotor headless plus headless-MAVSDK plus FlightGear visual plus FlightGear-visual-MAVSDK, `px4_gazebo_classic` quadrotor headless plus native GUI visual plus headless-MAVSDK plus native-GUI-MAVSDK, `marsim` CPU headless plus visual, `marsim` GPU headless plus visual, and `fast_lio_marsim` headless plus visual,
+- a strict quadrotor platform acceptance matrix now exists at `configs/platform_acceptance_matrix.json`, and fresh `2026-04-28` reference artifacts were frozen for `ego_planner` single-run headless plus visual, `ego_planner_swarm` single-run headless plus visual, `px4_sih` headless plus 3D plus MAVSDK-action control, `px4_jsbsim` quadrotor headless plus headless-MAVSDK plus FlightGear visual plus FlightGear-visual-MAVSDK, `px4_gazebo_classic` quadrotor headless plus native GUI visual plus headless-MAVSDK plus native-GUI-MAVSDK, `marsim` CPU headless plus visual, `marsim` GPU headless plus visual, and `fast_lio_marsim` headless plus visual,
 - the strict top-level platform baseline now includes those upstream single-run legacy and swarm planner surfaces plus the clean GPU `MARSIM` sensor-stack rows because their shared event surfaces were normalized to `info`-only without relaxing true `EMERGENCY_STOP` handling,
-- the strict top-level platform baseline now also includes the clean managed `PX4 SIH + human_follow_ros_stage1` disarmed preflight row and the bounded armed-handoff row as optional ROS adapter contracts instead of leaving that surface as ungoverned one-off evidence,
 - the strict top-level platform baseline now also includes the clean headless and native-GUI `PX4 + Gazebo Classic + MAVSDK` rows, and those surfaces stay accepted only because the repo now isolates each Gazebo Classic run behind a dedicated local `GAZEBO_MASTER_URI` while keeping the shared telemetry collector on a GCS-facing UDP port such as `14550`,
-- the strict top-level platform gate now also rejects silent quantitative drift relative to the frozen reference artifacts: globally tracked `telemetry_count` cannot drop by more than `10`, PX4-family `mode_changes` cannot regress, and the two managed Stage1 follower rows also enforce tighter reference-based `max_altitude_m` and `max_speed_mps` budgets,
+- the strict top-level platform gate now also rejects silent quantitative drift relative to the frozen reference artifacts: globally tracked `telemetry_count` cannot drop by more than `10`, and PX4-family `mode_changes` cannot regress,
 - ROS-family backends now also treat stale-node cleanup as hygiene instead of failure noise: a successful preflight or shutdown cleanup stays on the shared `info` surface, and only failed or incomplete cleanup escalates to `warning`,
 - `python3 -m sim_plane artifact-hygiene` now classifies `runs/` into complete artifacts, reserved report roots, retained manual probes, and safe-to-prune stale probe directories so artifact hygiene stops depending on manual inspection,
 - `python3 -m sim_plane platform-acceptance` and `python3 -m sim_plane platform-acceptance --latest --artifact-root runs` now validate that strict top-level platform baseline while nesting the four-row planner acceptance gate underneath it,
 - each platform acceptance run now writes durable reports under `runs/platform_acceptance/`, including timestamped report directories, stable `latest_reference.json` / `latest_latest.json` snapshots, append-only `history_reference.jsonl` / `history_latest.jsonl`, and compact `latest_reference_delta.json` / `latest_latest_delta.json` compare snapshots,
 - the default stable `SUPER` probe now runs through `./scripts/run_super_benchmark.sh` with the cleaner `dense` profile, auto-selects a free ROS master port, and has retained canonical evidence at `runs/manual_probes/super_benchmark_dense_20260429_153853` with `click_goal_seen=true`, `pos_cmd_seen=true`, `planner_warn_count=3`, and `intensity_warn_count=0`,
 - the rerun `visPlanner` tracking probe now also auto-selects a free ROS master port and has retained canonical evidence at `runs/manual_probes/visplanner_tracking_20260429_153921` with both tracker and target command streams present, `tracker_exec_traj=true`, and `warn_count=5`,
-- `python3 -m sim_plane list-adapters` now reports `human_follow_ros_stage1: ready` and `mavsdk_action_takeoff: ready` on this host,
+- `python3 -m sim_plane list-adapters` reports the generic adapter surface, including `external_command`, `mavsdk_action_takeoff`, `mavsdk_failure_injection`, and `ros_command`,
 - and `python3 -m sim_plane list-backends` reports `demo: ready`, `ego_planner: ready`, `ego_planner_fast_lio_marsim: ready`, `ego_planner_marsim: ready`, `ego_planner_swarm: ready`, `ego_planner_swarm_fast_lio_marsim: ready`, `ego_planner_swarm_marsim: ready`, `fast_lio_marsim: ready`, `marsim: ready`, `px4_gazebo_classic: ready`, `px4_jsbsim: ready`, and `px4_sih: ready`.
 
 ## Current Recommendation
@@ -116,7 +110,7 @@ Use a layered approach instead of forcing one heavy simulator to do everything:
 - Second planner-on-scene backend: `EGO-Planner-Swarm + MARSIM` through the shared runner's direct-topic, manual-goal, cloud-only wrapper.
 - First planner-on-estimator backend: `legacy EGO-Planner + FAST_LIO + MARSIM` through the shared runner's aligned-odom adapter plus the stable MARSIM world cloud.
 - Second planner-on-estimator backend: `EGO-Planner-Swarm + FAST_LIO + MARSIM` through the same aligned-odom adapter plus the stable MARSIM world cloud.
-- Algorithm adapters: `external_command` for generic PX4-side host processes, `ros_command` for generic ROS-side planner/perception processes on `MARSIM` and `FAST_LIO + MARSIM`, plus the optional repo-local `human_follow_ros_stage1` path for managed Stage1 follower preflight and armed handoff on top of `PX4 SIH`.
+- Algorithm adapters: `external_command` for generic PX4-side host processes, `mavsdk_action_takeoff` / `mavsdk_failure_injection` for MAVSDK-based control and PX4-native failure surfaces, and `ros_command` for generic ROS-side planner/perception processes on `MARSIM` and `FAST_LIO + MARSIM`.
 - Ground-control UI: optional `QGroundControl`, not a hard dependency for the MVP.
 
 ## Why This Shape
@@ -142,10 +136,7 @@ Use a layered approach instead of forcing one heavy simulator to do everything:
 - [Platform validation matrix](docs/platform_validation_matrix.md)
 - [Platform acceptance matrix config](configs/platform_acceptance_matrix.json)
 - [Planner validation matrix](docs/planner_validation_matrix.md)
-- [human-follow Stage1 受管仿真说明（中文）](<docs/human_follow_stage1_managed_sim_zh.md>)
-- [human-follow Stage2 受管仿真说明（中文）](<docs/human_follow_stage2_managed_sim_zh.md>)
 - [Planner acceptance matrix config](configs/planner_acceptance_matrix.json)
-- [human-follow Stage2 acceptance matrix config](configs/human_follow_stage2_acceptance_matrix.json)
 - [Execution plan](.agent/PLANS.md)
 - [Repository guide](AGENTS.md)
 
@@ -442,24 +433,6 @@ Run the same ROS planner/perception template on top of FAST_LIO + MARSIM:
 python3 -m sim_plane run scenarios/fast_lio_marsim_ros_command_template.json --rviz --visualize --no-hold-open
 ```
 
-Run the Stage1 human-follow SIH preflight:
-
-```bash
-python3 -m sim_plane run scenarios/px4_sih_quadx_human_follow_stage1.json --no-hold-open
-```
-
-Run the bounded armed handoff variant:
-
-```bash
-python3 -m sim_plane run scenarios/px4_sih_quadx_human_follow_stage1_armed.json --no-hold-open
-```
-
-Run the managed `human_follow_user` planning ingress on PX4 SIH:
-
-```bash
-./scripts/run_px4_sih_human_follow_user_planning_ingress.sh
-```
-
 Validate the frozen four-row planner acceptance baseline:
 
 ```bash
@@ -476,18 +449,6 @@ Validate the latest matching planner artifacts against the same gate:
 
 ```bash
 python3 -m sim_plane planner-acceptance --latest --artifact-root runs
-```
-
-Validate the latest project-specific Stage1 human-follow behavior artifacts:
-
-```bash
-python3 -m sim_plane human-follow-stage1-acceptance --latest --artifact-root runs
-```
-
-Validate the latest managed Stage2 real-EGO artifacts:
-
-```bash
-python3 -m sim_plane human-follow-stage2-acceptance --latest --artifact-root runs
 ```
 
 Validate the frozen strict quadrotor platform baseline:
@@ -544,17 +505,6 @@ runs/live_smoke/latest_fast.json
 runs/live_smoke/latest_default.json
 runs/live_smoke/history_fast.jsonl
 runs/live_smoke/history_default.jsonl
-```
-
-The human-follow Stage1 stable snapshots are:
-
-```text
-runs/human_follow_stage1_acceptance/latest_reference.json
-runs/human_follow_stage1_acceptance/latest_latest.json
-runs/human_follow_stage1_acceptance/latest_reference_delta.json
-runs/human_follow_stage1_acceptance/latest_latest_delta.json
-runs/human_follow_stage1_acceptance/history_reference.jsonl
-runs/human_follow_stage1_acceptance/history_latest.jsonl
 ```
 
 The default retention rule keeps only the newest 5 timestamped report

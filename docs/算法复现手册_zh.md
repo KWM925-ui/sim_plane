@@ -23,14 +23,6 @@ python3 -m sim_plane platform-acceptance --latest --artifact-root runs
 python3 -m sim_plane planner-acceptance --latest --artifact-root runs
 ```
 
-### 2.3 human-follow Stage1 行为基线
-
-```bash
-python3 -m sim_plane human-follow-stage1-acceptance --latest --artifact-root runs
-```
-
-如果这条命令通过，说明当前 human-follow 项目的 Stage1 跟踪/丢失/搜索/重捕获行为矩阵没有退化。
-
 ## 3. 常用标准入口
 
 ### 3.1 共享 runner 路径
@@ -54,30 +46,30 @@ python3 -m sim_plane human-follow-stage1-acceptance --latest --artifact-root run
 
 这些脚本最终都会落到 `runs/<artifact_name>/`，并受 acceptance gate 保护。
 
-### 3.2 human-follow 用户算法受管入口
+### 3.2 自定义算法接入入口
 
-如果你要验证 `/home/coco/follwer_ws/src/human_follow_user` 里的用户规划入口已经被受管仿真工作区接住，直接跑：
+控制类算法优先走 `external_command`。平台会把 `SIM_PLANE_*` 环境变量注入给你的进程，并把你的 `SIM_PLANE_ADAPTER_RESULT_JSON` 汇总回统一 artifact。
 
 ```bash
-./scripts/run_px4_sih_human_follow_user_planning_ingress.sh
+python3 -m sim_plane run scenarios/px4_sih_quadx_external_command_template.json --no-hold-open
 ```
 
-这条脚本会自动做三件事：
+ROS 规划/感知类算法优先走 `ros_command`。平台会启动 ROS workspace、检查 topic，并把 `odom/cloud/map -> PositionCommand` 链路纳入 artifact。
 
-- 同步 `/home/coco/follwer_ws/src/human_follow_*` 的最小必要文件面到受管工作区 `/home/coco/sim_plane_ws/workspaces/ros1_human_follow_stage1`
-- 保留受管工作区里仿真专用的 `stage1_px4_mavros.launch`、`stage1_px4_mavros_sitl.launch`、`mavros_px4_pluginlists_sitl.yaml`
-- 重编受管工作区后，运行 `px4_sih_quadx_human_follow_user_planning_ingress`
+```bash
+python3 -m sim_plane run scenarios/marsim_ros_command_template.json --no-hold-open
+python3 -m sim_plane run scenarios/fast_lio_marsim_ros_command_template.json --no-hold-open
+```
 
-当前 canonical 证据：
+也可以先生成自己的显式 scenario：
 
-- `runs/px4_sih_quadx_human_follow_user_planning_ingress_20260505_151235/`
-
-关键检查项：
-
-- `result.json` 里 `status=passed`
-- `result.json` 里 `algorithm_adapter_offboard_mode_reached=true`
-- `result.json` 里 `algorithm_adapter_follow_state_name=follow`
-- `external_controller_ingress_monitor` 日志里出现 `external ingress PASS controller_type=user_planning_node.py`
+```bash
+python3 -m sim_plane generate-scenario \
+  --adapter ros_command \
+  --backend marsim \
+  --command "roslaunch my_pkg planner.launch" \
+  --name my_ros_planner
+```
 
 ## 4. 前沿算法标准探针
 

@@ -56,17 +56,6 @@ BASELINE_CATALOG = [
         ],
     },
     {
-        "name": "human_follow_stage1",
-        "family": "tracking",
-        "status": "ready",
-        "backend": "px4_sih",
-        "scenario": "scenarios/px4_sih_quadx_human_follow_stage1.json",
-        "command": "python3 -m sim_plane run scenarios/px4_sih_quadx_human_follow_stage1.json --artifact-root runs --no-hold-open",
-        "notes": [
-            "Optional retained human-follow Stage1 managed simulation baseline; not part of the generic platform mainline direction.",
-        ],
-    },
-    {
         "name": "a_star_minimum_snap",
         "family": "planner",
         "status": "planned",

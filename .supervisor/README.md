@@ -26,14 +26,9 @@ Read order at the start of every supervised round:
 3. `child_execution_protocol.md`
 4. `round_self_checklist.md`
 
-If the round touches the human-follow simulation branch, also read:
-
-5. `human_follow_collab_ledger.md`
-
 Use rules:
 
 - Treat `supervisor_ledger.md` as the live source of truth.
-- Treat `human_follow_collab_ledger.md` as the cross-session source of truth for the human-follow simulation branch.
 - Do not work from memory when the pack exists.
 - Do not reopen branches already demoted by the ledger unless fresh
   evidence contradicts the ledger.
