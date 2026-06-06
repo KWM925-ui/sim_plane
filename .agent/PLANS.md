@@ -180,3 +180,38 @@
   - next work should open one bounded platform frontier from current evidence;
   - do not reopen external project branches;
   - do not change acceptance semantics without fresh evidence and an explicit gate.
+
+### Hygiene Cleanup Frontier
+
+- Scope:
+  - only `/home/coco/sim_plane`;
+  - no external workspace cleanup;
+  - no deletion under `runs/` unless `artifact-hygiene` marks an entry safe to prune.
+- Fresh scan result:
+  - `git status --short` was clean before cleanup;
+  - no untracked non-ignored files were present;
+  - `python3 -m sim_plane artifact-hygiene --artifact-root runs --json` reported `status=clean`, `stale_incomplete_directory_count=0`, `empty_directory_count=0`, and `attention_count=0`;
+  - ignored local dirt was limited to `sim_plane.egg-info/` and Python `__pycache__`/`.pyc` files in `sim_plane/`, `sim_plane/backends/`, `sim_plane/adapters/`, and `tests/`.
+- Allowed cleanup:
+  - remove `sim_plane.egg-info/`;
+  - remove repo-local `__pycache__` directories and `.pyc` files outside `runs/`.
+- Forbidden cleanup:
+  - do not delete valid `runs/` artifacts;
+  - do not remove generic platform backends, adapters, scenarios, reports, or docs;
+  - do not modify acceptance thresholds.
+
+### Hygiene Cleanup Result
+
+- Removed ignored local build/cache residue:
+  - `sim_plane.egg-info/`
+  - `sim_plane/__pycache__/`
+  - `sim_plane/backends/__pycache__/`
+  - `sim_plane/adapters/__pycache__/`
+  - `tests/__pycache__/`
+- Preserved:
+  - all tracked source, docs, configs, scenarios, and tests;
+  - all valid `runs/` artifacts and reserved report roots.
+- Validation after cleanup:
+  - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest` -> `163` tests OK;
+  - `git diff --check` -> passed;
+  - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m sim_plane platform-health --artifact-root runs --json` -> functional surfaces passed, with only the expected git dirty warning from this ledger update before commit.
