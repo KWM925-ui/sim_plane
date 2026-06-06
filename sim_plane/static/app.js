@@ -52,6 +52,10 @@ const elements = {
   testSurfaceList: document.getElementById("test-surface-list"),
   consoleStatus: document.getElementById("console-status"),
   consoleCommandList: document.getElementById("console-command-list"),
+  consoleWorkflow: document.getElementById("console-workflow"),
+  consoleEvidenceType: document.getElementById("console-evidence-type"),
+  consoleFreshness: document.getElementById("console-freshness"),
+  consoleConcurrency: document.getElementById("console-concurrency"),
   consoleCategory: document.getElementById("console-category"),
   consoleCliCommand: document.getElementById("console-cli-command"),
   consoleTitle: document.getElementById("console-title"),
@@ -200,11 +204,21 @@ function renderArtifacts() {
       <div>
         <strong title="${escapeHtml(artifact.name)}">${escapeHtml(compactName(artifact.name, 42))}</strong>
         <span>${escapeHtml(artifact.scenario_name || "-")} · ${escapeHtml(artifact.backend || "-")}</span>
+        ${renderPx4UlogSummary(artifact.px4_ulog)}
       </div>
       <div class="artifact-status" data-status="${escapeHtml(artifact.status || "unknown")}">${escapeHtml(artifact.status || "unknown")}</div>
     `;
     elements.artifactList.appendChild(row);
   });
+}
+
+function renderPx4UlogSummary(px4Ulog) {
+  if (!px4Ulog || px4Ulog.status === "missing") {
+    return "";
+  }
+  const count = px4Ulog.count || 0;
+  const status = px4Ulog.status || "unknown";
+  return `<span class="artifact-evidence">PX4 ULog: ${escapeHtml(status)} · ${escapeHtml(String(count))} file(s)</span>`;
 }
 
 async function runComparison() {
@@ -443,13 +457,25 @@ function renderConsoleCommands() {
     elements.consoleCommandList.textContent = "No console commands available.";
     return;
   }
-  const grouped = groupBy(state.consoleCommands, (command) => command.category || "其他");
-  Object.entries(grouped).forEach(([category, commands]) => {
+  const grouped = groupBy(state.consoleCommands, (command) => command.workflow || command.category || "其他");
+  const groupEntries = Object.entries(grouped).sort((left, right) => {
+    const leftOrder = Math.min(...left[1].map((command) => command.workflow_order ?? 999));
+    const rightOrder = Math.min(...right[1].map((command) => command.workflow_order ?? 999));
+    return leftOrder - rightOrder || left[0].localeCompare(right[0]);
+  });
+  groupEntries.forEach(([workflow, commands]) => {
     const group = document.createElement("div");
     group.className = "console-command-group";
     const heading = document.createElement("h4");
-    heading.textContent = category;
+    heading.textContent = workflow;
     group.appendChild(heading);
+    const workflowGoal = commands.find((command) => command.workflow_goal)?.workflow_goal;
+    if (workflowGoal) {
+      const goal = document.createElement("p");
+      goal.className = "console-workflow-goal";
+      goal.textContent = workflowGoal;
+      group.appendChild(goal);
+    }
     commands.forEach((command) => {
       const button = document.createElement("button");
       button.type = "button";
@@ -457,7 +483,7 @@ function renderConsoleCommands() {
       button.dataset.commandId = command.id;
       button.innerHTML = `
         <strong>${escapeHtml(command.title)}</strong>
-        <span>${escapeHtml(command.risk || "-")} · ${escapeHtml(command.duration_hint || "-")}</span>
+        <span>${escapeHtml(command.evidence_type || "-")} · ${escapeHtml(command.risk || "-")} · ${escapeHtml(command.duration_hint || "-")}</span>
       `;
       button.addEventListener("click", () => selectConsoleCommand(command.id));
       group.appendChild(button);
@@ -477,6 +503,10 @@ function selectConsoleCommand(commandId) {
     button.classList.toggle("active", button.dataset.commandId === commandId);
   });
   elements.consoleCategory.textContent = command.category || "-";
+  elements.consoleWorkflow.textContent = command.workflow || "-";
+  elements.consoleEvidenceType.textContent = command.evidence_type || "-";
+  elements.consoleFreshness.textContent = command.freshness || "-";
+  elements.consoleConcurrency.textContent = command.concurrency_policy || "-";
   elements.consoleCliCommand.textContent = command.cli_command || "-";
   elements.consoleTitle.textContent = command.title || "-";
   elements.consoleRisk.textContent = command.risk || "-";

@@ -356,7 +356,8 @@ runs/flight_log_analysis/
 
 - artifact replay 读的是 `telemetry.jsonl`、`result.json`、`events.jsonl`。
 - `.ulg` replay 读的是真 PX4 ULog。
-- 当前平台已经能解析 `.ulg`，但不能把 artifact replay 说成已经自动采集了 `.ulg`。
+- PX4-family 后端会默认尝试把新生成或变化过的 `.ulg` 收进 artifact 的 `px4_ulog/` 目录；是否收集成功以 `px4_ulog/index.json` 的 `status` 为准。
+- 不能把普通 artifact replay 等同于 `.ulg` replay；只有实际存在 artifact-local `.ulg` 文件或直接传入 `.ulg` 文件时，才是在读 PX4 原始日志。
 
 ### 4.8 可复现 fuzz / 最差 case 搜索
 

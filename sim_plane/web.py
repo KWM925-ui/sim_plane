@@ -8,6 +8,7 @@ from pathlib import Path
 
 from sim_plane.artifacts import read_jsonl
 from sim_plane.console_commands import ConsoleCommandRunner, build_cli_coverage
+from sim_plane.px4_ulog import read_px4_ulog_index
 
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -310,6 +311,7 @@ def summarize_artifact_dir(path, include_events=True, include_telemetry=True):
         "metrics": metrics,
         "telemetry_count": metrics.get("telemetry_count") or len(telemetry),
         "event_count": len(events),
+        "px4_ulog": read_px4_ulog_index(artifact_dir),
         "track": build_track(telemetry) if include_telemetry else [],
         "trajectory_stats": compute_trajectory_stats(telemetry) if include_telemetry else {},
     }

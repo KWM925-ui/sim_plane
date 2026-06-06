@@ -32,9 +32,64 @@ def sim_plane_subcommand(command):
     return ""
 
 
+WORKFLOW_META = {
+    "orientation": {
+        "workflow": "1 基础确认",
+        "workflow_goal": "先确认这台机器、当前仓库和已有证据是否可信。",
+        "workflow_order": 10,
+    },
+    "fresh_run": {
+        "workflow": "2 Fresh 运行",
+        "workflow_goal": "重新启动一条真实运行链，证明当前代码还能跑起来。",
+        "workflow_order": 20,
+    },
+    "kpi_evaluation": {
+        "workflow": "3 KPI 评测",
+        "workflow_goal": "批量跑固定任务或扰动，输出可比较的指标和最差 case。",
+        "workflow_order": 30,
+    },
+    "regression": {
+        "workflow": "4 回归验收",
+        "workflow_goal": "读取已有 artifact/report，对照冻结 reference 判断是否退化。",
+        "workflow_order": 40,
+    },
+    "algorithm_ingress": {
+        "workflow": "5 算法接入",
+        "workflow_goal": "查看或运行标准算法入口，先验证接口再接复杂算法。",
+        "workflow_order": 50,
+    },
+}
+
+
+EVIDENCE_META = {
+    "read_only": {
+        "evidence_type": "只读检查",
+        "freshness": "不启动仿真，不新建正式 artifact。",
+        "concurrency_policy": "可与普通阅读并行；不要和正在写 runs/ 的卫生扫描结论混用。",
+    },
+    "fresh_artifact": {
+        "evidence_type": "Fresh 运行证据",
+        "freshness": "会重新跑场景并新建 artifact/report。",
+        "concurrency_policy": "建议单独运行；运行中不要同时点 hygiene、health、acceptance。",
+    },
+    "latest_artifact_check": {
+        "evidence_type": "历史证据回归",
+        "freshness": "读取已有 latest artifact/report，不重新跑仿真。",
+        "concurrency_policy": "不要和正在写 runs/ 的长任务并行，否则 latest 选择可能读到中间状态。",
+    },
+    "mixed_autotest": {
+        "evidence_type": "混合一键复验",
+        "freshness": "既会新建 artifact/report，也会读取已有证据做回归检查。",
+        "concurrency_policy": "必须单独运行；它本身包含 hygiene/acceptance，不能和其它写 runs/ 任务并发。",
+    },
+}
+
+
 CONSOLE_COMMANDS = [
     {
         "id": "platform_health",
+        "workflow_id": "orientation",
+        "evidence_id": "latest_artifact_check",
         "category": "健康/总览",
         "title": "平台总健康检查",
         "risk": "读取现有证据并写健康报告",
@@ -47,6 +102,8 @@ CONSOLE_COMMANDS = [
     },
     {
         "id": "doctor",
+        "workflow_id": "orientation",
+        "evidence_id": "read_only",
         "category": "健康/总览",
         "title": "本机能力探测",
         "risk": "只读",
@@ -59,6 +116,8 @@ CONSOLE_COMMANDS = [
     },
     {
         "id": "artifact_hygiene_scan",
+        "workflow_id": "orientation",
+        "evidence_id": "latest_artifact_check",
         "category": "健康/总览",
         "title": "artifact 卫生扫描",
         "risk": "只读",
@@ -71,6 +130,8 @@ CONSOLE_COMMANDS = [
     },
     {
         "id": "manual_probe_hygiene_scan",
+        "workflow_id": "orientation",
+        "evidence_id": "latest_artifact_check",
         "category": "健康/总览",
         "title": "manual probe 卫生扫描",
         "risk": "只读",
@@ -83,6 +144,8 @@ CONSOLE_COMMANDS = [
     },
     {
         "id": "demo_takeoff",
+        "workflow_id": "fresh_run",
+        "evidence_id": "fresh_artifact",
         "category": "运行/轻量",
         "title": "轻量 demo 起飞",
         "risk": "会新建 artifact",
@@ -104,6 +167,8 @@ CONSOLE_COMMANDS = [
     },
     {
         "id": "live_smoke_fast",
+        "workflow_id": "fresh_run",
+        "evidence_id": "fresh_artifact",
         "category": "运行/轻量",
         "title": "一键 live smoke fast",
         "risk": "会新建 artifact/report",
@@ -116,6 +181,8 @@ CONSOLE_COMMANDS = [
     },
     {
         "id": "run_suite_basic",
+        "workflow_id": "kpi_evaluation",
+        "evidence_id": "fresh_artifact",
         "category": "评测/KPI",
         "title": "基础扰动 suite",
         "risk": "会新建多个 artifact/report",
@@ -128,6 +195,8 @@ CONSOLE_COMMANDS = [
     },
     {
         "id": "quadrotor_exam",
+        "workflow_id": "kpi_evaluation",
+        "evidence_id": "fresh_artifact",
         "category": "评测/KPI",
         "title": "四旋翼标准考试",
         "risk": "会新建多个 artifact/report",
@@ -140,6 +209,8 @@ CONSOLE_COMMANDS = [
     },
     {
         "id": "scenario_fuzz_basic",
+        "workflow_id": "kpi_evaluation",
+        "evidence_id": "fresh_artifact",
         "category": "评测/KPI",
         "title": "基础场景 fuzz",
         "risk": "会新建多个 artifact/report",
@@ -166,6 +237,8 @@ CONSOLE_COMMANDS = [
     },
     {
         "id": "platform_acceptance_latest",
+        "workflow_id": "regression",
+        "evidence_id": "latest_artifact_check",
         "category": "验收/回归",
         "title": "平台 latest 回归验收",
         "risk": "读取现有 artifact，写 report",
@@ -178,6 +251,8 @@ CONSOLE_COMMANDS = [
     },
     {
         "id": "quadrotor_exam_acceptance_latest",
+        "workflow_id": "regression",
+        "evidence_id": "latest_artifact_check",
         "category": "验收/回归",
         "title": "四旋翼考试 latest 验收",
         "risk": "读取现有 report，写 report",
@@ -190,6 +265,8 @@ CONSOLE_COMMANDS = [
     },
     {
         "id": "px4_failure_acceptance_latest",
+        "workflow_id": "regression",
+        "evidence_id": "latest_artifact_check",
         "category": "验收/回归",
         "title": "PX4 原生故障验收",
         "risk": "读取现有 artifact，写 report",
@@ -202,6 +279,8 @@ CONSOLE_COMMANDS = [
     },
     {
         "id": "autotest_fast",
+        "workflow_id": "regression",
+        "evidence_id": "mixed_autotest",
         "category": "验收/回归",
         "title": "本机 autotest fast",
         "risk": "会新建 artifact/report",
@@ -214,6 +293,8 @@ CONSOLE_COMMANDS = [
     },
     {
         "id": "list_baselines",
+        "workflow_id": "algorithm_ingress",
+        "evidence_id": "read_only",
         "category": "算法接入",
         "title": "查看内置 baseline",
         "risk": "只读",
@@ -225,7 +306,55 @@ CONSOLE_COMMANDS = [
         "outputs": ["控制台日志"],
     },
     {
+        "id": "run_baseline_pid_demo",
+        "workflow_id": "algorithm_ingress",
+        "evidence_id": "fresh_artifact",
+        "category": "算法接入",
+        "title": "运行 demo PID baseline",
+        "risk": "会新建 artifact",
+        "duration_hint": "很快",
+        "command": [
+            "python3",
+            "-m",
+            "sim_plane",
+            "run-baseline",
+            "pid_position_demo",
+            "--artifact-root",
+            "runs",
+            "--no-hold-open",
+        ],
+        "description": "运行 baseline 目录中已标记 ready 的 pid_position_demo。它只代表这个最轻 baseline，不代表所有 planned baseline 都能跑。",
+        "value": "给自定义算法提供一个最轻的同场景参照物，先看平台指标和报告长什么样。",
+        "when_to_use": "准备比较自己的控制算法前，先跑一条确定性 baseline。",
+        "outputs": ["runs/basic_takeoff_*"],
+    },
+    {
+        "id": "check_ingress_px4_external_template",
+        "workflow_id": "algorithm_ingress",
+        "evidence_id": "fresh_artifact",
+        "category": "算法接入",
+        "title": "PX4 external_command 体检",
+        "risk": "会启动 PX4 SIH 并新建 artifact/report",
+        "duration_hint": "中等到较久",
+        "command": [
+            "python3",
+            "-m",
+            "sim_plane",
+            "check-algorithm-ingress",
+            "--scenario",
+            "scenarios/px4_sih_quadx_external_command_template.json",
+            "--artifact-root",
+            "runs",
+        ],
+        "description": "按现有 PX4 SIH external_command 模板跑一次接入体检，检查进程、telemetry、控制输出、adapter 状态和 KPI。",
+        "value": "把“算法有没有真正接进平台”变成可复查报告，而不是只看屏幕有没有动。",
+        "when_to_use": "接 MAVSDK/MAVROS/MAVLink/普通控制程序前，先用模板确认平台侧入口没问题。",
+        "outputs": ["runs/algorithm_ingress/", "runs/px4_sih_quadx_external_command_template_*"],
+    },
+    {
         "id": "list_backends",
+        "workflow_id": "algorithm_ingress",
+        "evidence_id": "read_only",
         "category": "算法接入",
         "title": "查看 backend",
         "risk": "只读",
@@ -238,6 +367,8 @@ CONSOLE_COMMANDS = [
     },
     {
         "id": "list_adapters",
+        "workflow_id": "algorithm_ingress",
+        "evidence_id": "read_only",
         "category": "算法接入",
         "title": "查看 adapter",
         "risk": "只读",
@@ -265,23 +396,29 @@ HIDDEN_CLI_COMMANDS = {
 def list_console_commands():
     rows = []
     for command in CONSOLE_COMMANDS:
-        row = dict(command)
-        row["command_display"] = command_display(row["command"])
-        row["cli_command"] = sim_plane_subcommand(row["command"])
-        row["executable"] = True
-        rows.append(row)
+        rows.append(enrich_console_command(command))
     return rows
 
 
 def get_console_command(command_id):
     for command in CONSOLE_COMMANDS:
         if command["id"] == command_id:
-            row = dict(command)
-            row["command_display"] = command_display(row["command"])
-            row["cli_command"] = sim_plane_subcommand(row["command"])
-            row["executable"] = True
-            return row
+            return enrich_console_command(command)
     raise KeyError(command_id)
+
+
+def enrich_console_command(command):
+    row = dict(command)
+    workflow = WORKFLOW_META.get(row.get("workflow_id"), WORKFLOW_META["orientation"])
+    evidence = EVIDENCE_META.get(row.get("evidence_id"), EVIDENCE_META["read_only"])
+    row["workflow_id"] = row.get("workflow_id", "orientation")
+    row["evidence_id"] = row.get("evidence_id", "read_only")
+    row.update(workflow)
+    row.update(evidence)
+    row["command_display"] = command_display(row["command"])
+    row["cli_command"] = sim_plane_subcommand(row["command"])
+    row["executable"] = True
+    return row
 
 
 class ConsoleCommandRunner:
@@ -297,11 +434,7 @@ class ConsoleCommandRunner:
             return list_console_commands()
         rows = []
         for command in self.commands:
-            row = dict(command)
-            row["command_display"] = command_display(row["command"])
-            row["cli_command"] = sim_plane_subcommand(row["command"])
-            row["executable"] = True
-            rows.append(row)
+            rows.append(enrich_console_command(command))
         return rows
 
     def get_command(self, command_id):
@@ -309,11 +442,7 @@ class ConsoleCommandRunner:
             return get_console_command(command_id)
         for command in self.commands:
             if command["id"] == command_id:
-                row = dict(command)
-                row["command_display"] = command_display(row["command"])
-                row["cli_command"] = sim_plane_subcommand(row["command"])
-                row["executable"] = True
-                return row
+                return enrich_console_command(command)
         raise KeyError(command_id)
 
     def start(self, command_id):
@@ -336,6 +465,12 @@ class ConsoleCommandRunner:
                 "command_id": command_id,
                 "title": command["title"],
                 "category": command["category"],
+                "workflow": command.get("workflow"),
+                "workflow_id": command.get("workflow_id"),
+                "evidence_type": command.get("evidence_type"),
+                "evidence_id": command.get("evidence_id"),
+                "freshness": command.get("freshness"),
+                "concurrency_policy": command.get("concurrency_policy"),
                 "risk": command["risk"],
                 "cli_command": command.get("cli_command") or sim_plane_subcommand(command["command"]),
                 "command": command["command"],

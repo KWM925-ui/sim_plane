@@ -57,6 +57,9 @@ class PX4GazeboClassicBackendTest(unittest.TestCase):
         self.assertTrue(config["gazebo_master_uri"].startswith("http://127.0.0.1:"))
         self.assertTrue(str(config["world_file"]).endswith("warehouse.world"))
         self.assertTrue(str(config["model_file"]).endswith("iris.sdf"))
+        self.assertEqual(config["build_dir"], px4_root.resolve() / "build" / "px4_sitl_default")
+        self.assertTrue(config["collect_ulog"])
+        self.assertEqual(config["collect_ulog_max_files"], 3)
 
     def test_validate_environment_reports_missing_world_or_model(self):
         backend = PX4GazeboClassicBackend()
@@ -132,6 +135,13 @@ class PX4GazeboClassicBackendTest(unittest.TestCase):
         self.assertEqual(model_file, model_dir / "iris_depth_camera.sdf.jinja")
         self.assertEqual(simulation_target_for_model("iris"), "gazebo-classic")
         self.assertEqual(simulation_target_for_model("iris_depth_camera"), "gazebo-classic_iris_depth_camera")
+
+    def test_resolve_world_file_accepts_explicit_repo_local_world(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            custom_world = Path(tmpdir) / "custom_quadx_test.world"
+            custom_world.write_text("<sdf version='1.6'><world name='default'/></sdf>\n", encoding="utf-8")
+            world_file = resolve_world_file(Path(tmpdir) / "PX4-Autopilot", "custom_quadx_test", str(custom_world))
+        self.assertEqual(world_file, custom_world)
 
     def test_parse_gazebo_classic_transient_preflight_warnings_are_demoted(self):
         ekf_event = parse_gazebo_classic_log_event(

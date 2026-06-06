@@ -86,7 +86,17 @@ python3 -m sim_plane serve runs
 sim-plane serve runs
 ```
 
-这个网页现在也是本地平台控制台。页面里的 `Platform Console` 会列出一组白名单操作按钮；每个按钮都显示准确命令、适用场景、输出位置和风险说明。点击运行时，后端只按白名单 ID 执行对应命令，不接受网页传入任意 shell 命令。
+这个网页现在也是本地平台控制台。页面里的 `Platform Console` 会列出一组白名单操作按钮；每个按钮都显示准确命令、适用场景、输出位置、风险说明、证据类型、证据新鲜度和并发规则。点击运行时，后端只按白名单 ID 执行对应命令，不接受网页传入任意 shell 命令。
+
+前端按钮按工作流分成五类：
+
+- `1 基础确认`：确认机器、仓库和已有证据是否可信。
+- `2 Fresh 运行`：重新启动真实运行链并新建 artifact。
+- `3 KPI 评测`：批量跑固定任务或扰动，输出指标、排名和最差 case。
+- `4 回归验收`：读取已有 latest artifact/report，对照冻结 reference 判断是否退化。
+- `5 算法接入`：查看或运行标准算法入口，先验证接口再接复杂算法。
+
+这里最容易误用的是 `Fresh 运行证据` 和 `历史证据回归`。前者会重新跑场景，后者只读取已有 artifact/report。不要在一个长任务正在写 `runs/` 时同时运行 `platform-health`、`artifact-hygiene`、`platform-acceptance` 或 `autotest-pack`，否则报告可能读到中间状态。
 
 `python3 -m unittest ...` 是开发自检命令，只会输出测试结果，不会打开网页。要看到前端，运行上面的 `serve` 命令。
 
@@ -155,7 +165,7 @@ PX4/QGroundControl/JSBSim/Gazebo Classic 路径仍是可选视觉面，不是所
 
 ## 6. 边界和风险
 
-当前已经能解析 PX4 `.ulg`，但 fresh PX4 run 自动把 `.ulg` 收进每个 artifact 还没有做成默认能力。
+PX4-family 后端会默认尝试把新生成或变化过的 PX4 `.ulg` 收进每个 run artifact 的 `px4_ulog/` 目录。是否真的收到了日志，以该 artifact 内的 `px4_ulog/index.json` 为准；找不到新日志时只记录 `missing`，不改变仿真本身的 PASS/FAIL。
 
 demo backend 的 dropout、延迟、噪声、通信中断、限速等适合做轻量鲁棒性评测。新增的 `sensor_stream_faults` 能模拟数据流层面的 GPS dropout、VIO scale drift、IMU noise burst，但仍不能说成 PX4 原生物理故障。PX4 原生故障只以 `px4-failure-acceptance` 中已经 fresh 证明的项为准。
 

@@ -24,6 +24,12 @@ from sim_plane.backends.px4_sih import (
     wait_for_heartbeat,
 )
 from sim_plane.processes import start_log_threads, terminate_process
+from sim_plane.px4_ulog import (
+    collect_px4_ulog_artifacts_safely,
+    px4_ulog_metrics,
+    px4_ulog_note,
+    snapshot_px4_ulog_files,
+)
 
 
 MODEL_BY_VEHICLE = {
@@ -129,6 +135,8 @@ class PX4JSBSimBackend(Backend):
         viewer_processes = []
         connection = None
         adapter_handle = None
+        result = None
+        ulog_before = snapshot_px4_ulog_files(config)
         try:
             ensure_jsbsim_build(config, sink)
             sitl_process = launch_px4_jsbsim(config, sink, artifact_dir=sink.artifact_writer.artifact_dir)
@@ -171,7 +179,7 @@ class PX4JSBSimBackend(Backend):
             telemetry_summary["headless"] = config["headless"]
             telemetry_summary["launch_qgc"] = config["launch_qgc"]
             telemetry_summary["flightgear_viewer"] = not config["headless"]
-            return {
+            result = {
                 "status": evaluate_run_status(config["success_criteria"], telemetry_summary),
                 "backend": self.name,
                 "vehicle": scenario["vehicle"],
@@ -179,6 +187,7 @@ class PX4JSBSimBackend(Backend):
                 "metrics": telemetry_summary,
                 "notes": build_notes(config, adapter_notes=adapter_report["notes"]),
             }
+            return result
         finally:
             if connection is not None:
                 try:
@@ -188,6 +197,16 @@ class PX4JSBSimBackend(Backend):
             for process in reversed(viewer_processes):
                 terminate_process(process, sink, "viewer")
             terminate_process(sitl_process, sink, "px4_jsbsim")
+            ulog_report = collect_px4_ulog_artifacts_safely(
+                config,
+                sink.artifact_writer.artifact_dir,
+                before_snapshot=ulog_before,
+                sink=sink,
+                label=self.name,
+            )
+            if result is not None:
+                result.setdefault("metrics", {}).update(px4_ulog_metrics(ulog_report))
+                result.setdefault("notes", []).append(px4_ulog_note(ulog_report))
 
 
 def build_runtime_config(scenario):
@@ -240,6 +259,8 @@ def build_runtime_config(scenario):
         "shell_command_interval_s": float(backend_options.get("shell_command_interval_s", 0.5)),
         "success_criteria": backend_options.get("success_criteria", "telemetry"),
         "build_jobs": int(build_jobs),
+        "collect_ulog": bool(backend_options.get("collect_ulog", True)),
+        "collect_ulog_max_files": int(backend_options.get("collect_ulog_max_files", 3)),
     }
 
 

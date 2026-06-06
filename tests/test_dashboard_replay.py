@@ -15,6 +15,7 @@ from sim_plane.web import (
     list_suite_reports,
     list_test_surface_reports,
     load_platform_acceptance_latest,
+    summarize_artifact_dir,
 )
 
 
@@ -225,6 +226,58 @@ class DashboardReplayTest(unittest.TestCase):
             platform_health = next(command for command in commands if command["id"] == "platform_health")
             self.assertEqual(platform_health["command"][:3], ["python3", "-m", "sim_plane"])
             self.assertIn("platform-health", platform_health["command_display"])
+
+    def test_artifact_summary_includes_optional_px4_ulog_summary(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            artifact = write_artifact(
+                root,
+                "px4_sih_20260606_120000",
+                "px4_sih",
+                "px4_sih",
+                2.0,
+                1.0,
+                [(0, 0, 0), (1, 0, 1)],
+            )
+            ulog_dir = artifact / "px4_ulog"
+            ulog_dir.mkdir()
+            (ulog_dir / "run.ulg").write_bytes(b"ulog")
+            (ulog_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "status": "collected",
+                        "count": 1,
+                        "files": [{"artifact_path": "px4_ulog/run.ulg", "size_bytes": 4}],
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            summary = summarize_artifact_dir(artifact, include_events=False, include_telemetry=False)
+
+            self.assertTrue(summary["px4_ulog"]["available"])
+            self.assertEqual(summary["px4_ulog"]["status"], "collected")
+            self.assertEqual(summary["px4_ulog"]["count"], 1)
+
+    def test_artifact_summary_keeps_older_artifacts_without_px4_ulog_compatible(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            artifact = write_artifact(
+                root,
+                "demo_20260606_120000",
+                "demo",
+                "demo",
+                2.0,
+                1.0,
+                [(0, 0, 0), (1, 0, 1)],
+            )
+
+            summary = summarize_artifact_dir(artifact, include_events=False, include_telemetry=False)
+
+            self.assertFalse(summary["px4_ulog"]["available"])
+            self.assertEqual(summary["px4_ulog"]["status"], "missing")
 
     def test_console_runner_executes_only_catalog_command(self):
         with tempfile.TemporaryDirectory() as tmpdir:

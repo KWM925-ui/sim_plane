@@ -27,6 +27,12 @@ from sim_plane.backends.px4_sih import (
     wait_for_heartbeat,
 )
 from sim_plane.processes import start_log_threads, terminate_process
+from sim_plane.px4_ulog import (
+    collect_px4_ulog_artifacts_safely,
+    px4_ulog_metrics,
+    px4_ulog_note,
+    snapshot_px4_ulog_files,
+)
 
 
 MODEL_BY_VEHICLE = {
@@ -124,6 +130,8 @@ class PX4GazeboClassicBackend(Backend):
         viewer_processes = []
         connection = None
         adapter_handle = None
+        result = None
+        ulog_before = snapshot_px4_ulog_files(config)
         try:
             ensure_gazebo_classic_build(config, sink)
             sitl_process = launch_px4_gazebo_classic(config, sink)
@@ -168,7 +176,7 @@ class PX4GazeboClassicBackend(Backend):
             telemetry_summary["gazebo_gui"] = not config["headless"]
             telemetry_summary["world"] = config["world"]
             telemetry_summary["model"] = config["model"]
-            return {
+            result = {
                 "status": evaluate_run_status(config["success_criteria"], telemetry_summary),
                 "backend": self.name,
                 "vehicle": scenario["vehicle"],
@@ -176,6 +184,7 @@ class PX4GazeboClassicBackend(Backend):
                 "metrics": telemetry_summary,
                 "notes": build_notes(config, adapter_notes=adapter_report["notes"]),
             }
+            return result
         finally:
             if connection is not None:
                 try:
@@ -190,6 +199,16 @@ class PX4GazeboClassicBackend(Backend):
                 "px4_gazebo_classic",
                 wait_timeout_s=float(config["stop_wait_timeout_s"]),
             )
+            ulog_report = collect_px4_ulog_artifacts_safely(
+                config,
+                sink.artifact_writer.artifact_dir,
+                before_snapshot=ulog_before,
+                sink=sink,
+                label=self.name,
+            )
+            if result is not None:
+                result.setdefault("metrics", {}).update(px4_ulog_metrics(ulog_report))
+                result.setdefault("notes", []).append(px4_ulog_note(ulog_report))
 
 
 def build_runtime_config(scenario):
@@ -199,10 +218,11 @@ def build_runtime_config(scenario):
     toolchain_bin_dirs = discover_toolchain_bin_dirs(toolchain_root)
     model = backend_options.get("model") or MODEL_BY_VEHICLE.get(scenario.get("vehicle"), "iris")
     world = backend_options.get("world", "empty")
+    world_file_override = backend_options.get("world_file")
     qgc_path = resolve_qgc_path(backend_options.get("qgc_path"))
     sitl_script = resolve_sitl_script(px4_dir)
     gazebo_source_dir = resolve_gazebo_source_dir(px4_dir)
-    world_file = resolve_world_file(px4_dir, world)
+    world_file = resolve_world_file(px4_dir, world, world_file_override)
     model_file = resolve_model_file(px4_dir, model)
     headless = backend_options.get("headless")
     if headless is None:
@@ -252,6 +272,8 @@ def build_runtime_config(scenario):
         "home_lat": backend_options.get("home_lat"),
         "home_lon": backend_options.get("home_lon"),
         "home_alt": backend_options.get("home_alt"),
+        "collect_ulog": bool(backend_options.get("collect_ulog", True)),
+        "collect_ulog_max_files": int(backend_options.get("collect_ulog_max_files", 3)),
     }
 
 
@@ -269,7 +291,10 @@ def resolve_gazebo_source_dir(px4_dir):
     return candidate if candidate.is_dir() else None
 
 
-def resolve_world_file(px4_dir, world):
+def resolve_world_file(px4_dir, world, explicit_world_file=None):
+    if explicit_world_file:
+        candidate = Path(explicit_world_file).expanduser()
+        return candidate.resolve() if candidate.is_file() else None
     if not px4_dir:
         return None
     candidate = (

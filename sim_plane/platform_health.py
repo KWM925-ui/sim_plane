@@ -447,8 +447,8 @@ def build_objective_boundaries():
         },
         {
             "name": "flight_log_collection",
-            "status": "open_boundary",
-            "detail": "The platform can analyze PX4 .ulg files, but fresh PX4 run artifacts do not yet automatically collect .ulg by default.",
+            "status": "implemented_with_runtime_dependency",
+            "detail": "PX4-family backends attempt artifact-local .ulg collection by default; px4_ulog/index.json records collected, missing, disabled, or failed status without changing the simulation verdict.",
         },
         {
             "name": "legacy_runtime_stack",
@@ -462,11 +462,11 @@ def build_next_stage_plan():
     return [
         {
             "priority": 1,
-            "frontier": "PX4 ULog auto-collection closure",
-            "optimize": "让 PX4-family run artifact 自动收集并索引对应 .ulg，然后把 flight-log KPI replay 接到真实飞控日志。",
-            "meaning": "当前已经能分析 .ulg，但很多 PX4 fresh run 还只保留 telemetry/result/event；飞控层证据和平台 KPI 之间还有人工缝隙。",
-            "value": "以后复盘模式切换、failsafe、速度峰值、控制异常时，不再只看平台采样，而能直接对齐 PX4 原始飞行日志。",
-            "why_before_others": "这是现有能力链里最明显的证据闭环缺口，比新增一个重后端更能提升平台验收含金量。",
+            "frontier": "PX4 ULog KPI replay alignment",
+            "optimize": "把 artifact-local px4_ulog/index.json 和 flight-log-analyze 更紧地联动，优先从已收集 .ulg 中提取飞控层 KPI。",
+            "meaning": "自动采集和索引解决了原始日志留存问题；下一步要把这些原始日志更直接地转成可比较指标。",
+            "value": "以后复盘模式切换、failsafe、速度峰值、控制异常时，可以直接从 run artifact 进入 PX4 原始日志分析。",
+            "why_before_others": "这是已落地证据链的自然加深，比新增一个重后端更能提升平台验收含金量。",
             "basis": "internal_system_analysis + PX4/ArduPilot autotest-style log replay practice",
         },
         {

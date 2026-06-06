@@ -299,8 +299,12 @@ Reports are written under `runs/flight_log_analysis/`. Artifact replay reads
 `telemetry.jsonl`, `result.json`, and `events.jsonl`; `.ulg` replay uses
 `pyulog` and extracts duration, altitude/speed summaries, nav/arming state
 changes, PX4 log warnings, dropout counts, and replay `kpi_*` metrics. These
-are two different inputs: artifact replay does not imply `.ulg` capture unless
-the source is actually a `.ulg` file.
+are two different analysis inputs: artifact replay itself does not parse PX4
+raw logs unless the source is a `.ulg` file.
+
+PX4-family backends now also attempt to collect new or changed PX4 `.ulg` files
+into each run artifact under `px4_ulog/`. Check `px4_ulog/index.json` inside an
+artifact for the exact status: `collected`, `missing`, `disabled`, or `failed`.
 
 Run a deterministic seeded fuzz/sweep and rank worst cases:
 

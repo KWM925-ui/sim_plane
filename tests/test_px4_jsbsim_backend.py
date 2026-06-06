@@ -58,6 +58,9 @@ class PX4JSBSimBackendTest(unittest.TestCase):
             self.assertTrue(str(config["sitl_script"]).endswith("sitl_run.sh"))
             self.assertTrue(str(config["scene_file"]).endswith("LSZH.xml"))
             self.assertTrue(str(config["flightgear_binary"]).endswith("fgfs"))
+            self.assertEqual(config["build_dir"], px4_root.resolve() / "build" / "px4_sitl_default")
+            self.assertTrue(config["collect_ulog"])
+            self.assertEqual(config["collect_ulog_max_files"], 3)
 
     def test_validate_environment_reports_missing_jsbsim(self):
         backend = PX4JSBSimBackend()

@@ -245,6 +245,13 @@ body {
   font-size: 12px;
 }
 
+.console-workflow-goal {
+  margin: -2px 0 2px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .console-command-button {
   display: grid;
   gap: 5px;
@@ -297,6 +304,12 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.console-facts .console-fact-wide {
+  grid-column: 1 / -1;
+  border-color: rgba(246, 178, 109, 0.24);
+  background: rgba(246, 178, 109, 0.055);
+}
+
 .command-box {
   padding: 14px;
   border-radius: 16px;
@@ -326,7 +339,7 @@ body {
   cursor: pointer;
 }
 
-.console-actions button:last-child {
+#run-command-button {
   color: #07100f;
   border-color: rgba(214, 246, 111, 0.55);
   background: linear-gradient(135deg, rgba(214, 246, 111, 0.95), rgba(155, 231, 199, 0.9));
@@ -502,6 +515,10 @@ body {
 .compare-summary span {
   color: var(--muted);
   font-size: 13px;
+}
+
+.artifact-row .artifact-evidence {
+  color: #95d8c8;
 }
 
 .artifact-status {

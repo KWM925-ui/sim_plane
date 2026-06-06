@@ -42,6 +42,9 @@ class PX4SIHBackendTest(unittest.TestCase):
             self.assertEqual(config["model"], "sihsim_quadx")
             self.assertTrue(str(config["jmavsim_script"]).endswith("jmavsim_run.sh"))
             self.assertEqual(config["connect_timeout_s"], 45.0)
+            self.assertEqual(config["build_dir"], px4_root.resolve() / "build" / "px4_sitl_sih")
+            self.assertTrue(config["collect_ulog"])
+            self.assertEqual(config["collect_ulog_max_files"], 3)
 
     def test_runtime_options_merge_px4_overrides(self):
         scenario = {

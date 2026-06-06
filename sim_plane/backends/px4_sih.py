@@ -10,6 +10,12 @@ from pymavlink import mavutil
 from sim_plane.adapters import collect_algorithm_adapter, has_algorithm_adapter, start_algorithm_adapter, validate_algorithm_adapter
 from sim_plane.backends.base import Backend, BackendError
 from sim_plane.processes import start_log_threads, terminate_process
+from sim_plane.px4_ulog import (
+    collect_px4_ulog_artifacts_safely,
+    px4_ulog_metrics,
+    px4_ulog_note,
+    snapshot_px4_ulog_files,
+)
 
 
 MODEL_BY_VEHICLE = {
@@ -92,6 +98,8 @@ class PX4SIHBackend(Backend):
         viewer_processes = []
         connection = None
         adapter_handle = None
+        result = None
+        ulog_before = snapshot_px4_ulog_files(config)
         try:
             px4_process = launch_px4(config, sink)
             if config["launch_qgc"]:
@@ -157,6 +165,16 @@ class PX4SIHBackend(Backend):
             for process in reversed(viewer_processes):
                 terminate_process(process, sink, "viewer")
             terminate_process(px4_process, sink, "px4")
+            ulog_report = collect_px4_ulog_artifacts_safely(
+                config,
+                sink.artifact_writer.artifact_dir,
+                before_snapshot=ulog_before,
+                sink=sink,
+                label=self.name,
+            )
+            if result is not None:
+                result.setdefault("metrics", {}).update(px4_ulog_metrics(ulog_report))
+                result.setdefault("notes", []).append(px4_ulog_note(ulog_report))
 
 
 def build_runtime_config(scenario):
@@ -175,6 +193,7 @@ def build_runtime_config(scenario):
         connect_timeout_s = default_connect_timeout(px4_dir, build_target)
     return {
         "px4_dir": px4_dir,
+        "build_dir": px4_dir / "build" / build_target if px4_dir else None,
         "toolchain_root": toolchain_root,
         "toolchain_bin_dirs": toolchain_bin_dirs,
         "model": model,
@@ -199,6 +218,8 @@ def build_runtime_config(scenario):
         "allow_early_stop_on_adapter_success": bool(
             backend_options.get("allow_early_stop_on_adapter_success", False)
         ),
+        "collect_ulog": bool(backend_options.get("collect_ulog", True)),
+        "collect_ulog_max_files": int(backend_options.get("collect_ulog_max_files", 3)),
     }
 
 

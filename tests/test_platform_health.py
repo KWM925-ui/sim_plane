@@ -102,7 +102,7 @@ class PlatformHealthTest(unittest.TestCase):
             self.assertEqual(len(report["next_stage_plan"]), 4)
             rendered = format_platform_health_report(report)
             self.assertIn("platform health: passed", rendered)
-            self.assertIn("PX4 ULog auto-collection closure", rendered)
+            self.assertIn("PX4 ULog KPI replay alignment", rendered)
 
     @mock.patch("sim_plane.platform_health.collect_git_report")
     @mock.patch("sim_plane.platform_health.collect_platform_doctor_report")
