@@ -160,3 +160,23 @@
   - use artifact-local `px4_ulog/index.json` to make `flight-log-analyze` easier to trigger from artifact context;
   - map PX4 numeric nav/arming states into clearer labels;
   - keep PX4-native failure expansion separate and evidence-gated.
+
+### Git Closure Result
+
+- Implementation commit pushed to `origin/main`:
+  - `124c00e Add PX4 ULog evidence and console metadata`
+- Post-push health check:
+  - `python3 -m sim_plane platform-health --artifact-root runs --json`
+  - report: `runs/platform_health/sim_plane_platform_health_20260606_135621_978938/report.json`
+  - status: `passed`
+  - components: `8/8`
+  - warnings: `0`
+  - issues: `0`
+- Post-push repository state:
+  - local `HEAD` and `origin/main` matched at `124c00e` before this ledger-only closure update;
+  - `git status --short` was clean;
+  - `runs/` remained ignored and was not committed.
+- Continuation boundary:
+  - next work should open one bounded platform frontier from current evidence;
+  - do not reopen external project branches;
+  - do not change acceptance semantics without fresh evidence and an explicit gate.
