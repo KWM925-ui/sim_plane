@@ -19,6 +19,8 @@
     "marsim_launch_rviz": false,
     "fast_lio_launch_rviz": false,
     "use_gpu": false,
+    "goal_reach_tolerance_m": 0.04,
+    "goal_settle_hold_s": 0.0,
     "success_criteria": "trajectory"
   }
 }

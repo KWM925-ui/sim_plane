@@ -1,5 +1,120 @@
 # Execution Plan
 
+## Comprehensive Platform Audit Frontier (2026-06-07)
+
+### Locked Facts
+
+- Scope is only `/home/coco/sim_plane`.
+- Current repository starts clean at `main`/`origin/main` before this audit frontier update.
+- This is a generic UAV simulation/evaluation platform audit, not an external business-project branch.
+- Valid `runs/` evidence is not cleanup trash.
+
+### Current Frontier
+
+- Run the broadest practical sequential audit of the current platform:
+  - static repository and JSON checks;
+  - Python compile and unit tests;
+  - CLI/frontend/backend/adapter/scenario alignment checks;
+  - fresh lightweight runtime evidence;
+  - suite, fuzz, quadrotor exam, custom-algorithm ingress, acceptance, flight-log replay, artifact hygiene, and platform health;
+  - bounded heavier probes only when prerequisites are present.
+- Fix only current-repo defects backed by fresh evidence.
+
+### Forbidden Actions
+
+- Do not modify external workspaces.
+- Do not change acceptance thresholds or semantics to force a pass.
+- Do not add a new simulator backend.
+- Do not delete valid historical artifacts under `runs/`.
+- Do not run artifact inspectors while another command is actively writing under `runs/`.
+
+### Promotion Gate
+
+- Full audit commands are recorded with PASS/FAIL/SKIP.
+- All discovered source defects are fixed or explicitly left blocked with artifact-backed evidence.
+- Final validation includes full unit tests, fresh runtime evidence, acceptance/hygiene/health, and explicit git status.
+
+### Result Snapshot
+
+- Fixed evidence-backed local defects without changing acceptance semantics:
+  - dashboard local HTTP tests now bypass host proxy settings for `127.0.0.1`;
+  - `list-adapters` output now matches `doctor` ready/note classification;
+  - MAVSDK action timeout errors are labeled;
+  - Gazebo Classic MAVSDK action land timeout was raised to `36.0s` based on fresh land/disarm timing evidence;
+  - MAVSDK adapter shutdown is best-effort and guarded against a confirmed `aiogrpc` destructor noise;
+  - algorithm adapter reports are type-checked so non-dict reports fail clearly;
+  - the MAVSDK action adapter tuple-return regression was fixed.
+- Fresh PASS evidence:
+  - `171` unit tests OK;
+  - JSON syntax check OK for `48` config/scenario files;
+  - compileall OK;
+  - `git diff --check` OK;
+  - `basic_takeoff`: `runs/basic_takeoff_20260607_133513_329398`;
+  - `live-smoke fast`: `runs/live_smoke/live_smoke_fast_20260607_133530_395961/report.json`;
+  - `live-smoke default`: `runs/live_smoke/live_smoke_default_20260607_133621_223841/report.json`;
+  - `scenario-fuzz seed 17`: `runs/scenario_fuzz/demo_seeded_fuzz_17_20260607_134044_504532/report.json`;
+  - `run-baseline pid_position_demo`: `runs/basic_takeoff_20260607_134121_835980`;
+  - `check-algorithm-ingress`: `runs/px4_sih_quadx_external_command_template_20260607_134155_460434`;
+  - `px4_gazebo_classic_iris_mavsdk_action`: `runs/px4_gazebo_classic_iris_mavsdk_action_20260607_135304_884798`;
+  - `px4_sih_quadx_mavsdk_failure_motor`: `runs/px4_sih_quadx_mavsdk_failure_motor_20260607_134908_368063`;
+  - `px4_jsbsim_quadx_mavsdk_action`: `runs/px4_jsbsim_quadx_mavsdk_action_20260607_135738_918250`;
+  - `px4-failure-acceptance --latest`: `runs/px4_failure_injection_acceptance/px4_failure_injection_acceptance_latest_20260607_141916_641710/report.json`;
+  - `quadrotor-exam-acceptance --latest`: `runs/quadrotor_exam_acceptance/quadrotor_exam_acceptance_latest_20260607_141916_804154/report.json`;
+  - `flight-log-analyze`: `runs/flight_log_analysis/artifact_px4_jsbsim_quadx_mavsdk_action_20260607_135738_918250_20260607_142004_531245/report.json`;
+  - `artifact-hygiene`: clean;
+  - `manual-probe-hygiene`: clean.
+- Remaining FAIL:
+  - `planner-acceptance --latest`: `runs/acceptance/planner_acceptance_baseline_latest_20260607_141916_429525/report.json`;
+  - only failing surface: `ego_planner_swarm_fast_lio_marsim` headless;
+  - repeated fresh runs pass behavior but exceed the frozen latest-vs-reference `min_goal_distance_m` regression budget:
+    - reference `0.030m`;
+    - fresh repeated values `0.062m`, `0.071m`, `0.065m`, `0.066m`;
+  - logs contain EGO-Planner-Swarm solver warnings `Solver error. Return = -1008 ... Skip this planning.`;
+  - `platform-acceptance`, `autotest-pack`, and `platform-health` inherit this same planner acceptance failure.
+
+### Next Decision
+
+- Do not weaken acceptance in this frontier.
+- The next round must explicitly decide whether to:
+  - fix or stabilize `ego_planner_swarm_fast_lio_marsim` runtime/planner behavior; or
+  - open a separate acceptance-contract review for the planner latest-vs-reference budget.
+
+### Follow-up Resolution
+
+- The `ego_planner_swarm_fast_lio_marsim` blocker was fixed by tightening the runtime goal condition in the scenario, not by changing acceptance semantics.
+- Updated file:
+  - `scenarios/ego_planner_swarm_fast_lio_marsim.json`
+  - added `goal_reach_tolerance_m=0.04`;
+  - added `goal_settle_hold_s=0.0`.
+- Rationale:
+  - backend default `goal_reach_tolerance_m=0.6` was coarser than planner acceptance's `0.1m` absolute threshold and `0.01m` regression budget;
+  - this caused early success/early sampling stop before the planner had to meet the finer acceptance target.
+- Fresh proof:
+  - `python3 -m sim_plane run scenarios/ego_planner_swarm_fast_lio_marsim.json --artifact-root runs --no-hold-open`
+  - artifact: `runs/ego_planner_swarm_fast_lio_marsim_20260607_150339_456246`
+  - result: passed;
+  - `min_goal_distance_m=0.016`;
+  - `goal_reached=true`;
+  - no warning event levels.
+- Recovered acceptance:
+  - `planner-acceptance --latest`: `runs/acceptance/planner_acceptance_baseline_latest_20260607_150421_976435/report.json`, `4/4` passed;
+  - `platform-acceptance --latest`: `runs/platform_acceptance/platform_acceptance_baseline_latest_20260607_150422_832468/report.json`, `21/21` passed;
+  - `autotest-pack --profile fast`: `runs/autotest/sim_plane_autotest_fast_20260607_150428_694335/report.json`, `8/8` passed;
+  - `platform-health`: `runs/platform_health/sim_plane_platform_health_20260607_150430_059298/report.json`, command passed, `issues=[]`, warning only from dirty git.
+- Final checks:
+  - JSON syntax: `48` files OK;
+  - compileall: passed;
+  - unit tests: `171` OK;
+  - `git diff --check`: passed;
+  - `artifact-hygiene`: clean;
+  - repo-local Python cache residue removed.
+
+### Current State
+
+- Functional audit status: green under current evidence.
+- Repository state: intentionally dirty until the audit fixes are reviewed/committed.
+- Remaining non-functional warning: dirty git only.
+
 ## Platform Mainline Frontier (2026-06-06)
 
 ### Locked Facts

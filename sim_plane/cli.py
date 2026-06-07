@@ -867,12 +867,13 @@ def main(argv=None):
         return 0
 
     if args.command == "list-adapters":
-        for name, adapter_cls in available_adapters().items():
-            adapter = adapter_cls()
-            issues = adapter.validate_environment()
-            status = "ready" if not issues else "scaffolded"
-            print("{0}: {1}".format(name, status))
-            for issue in issues:
+        report = collect_platform_doctor_report()
+        for row in report["adapters"]:
+            suffix = ""
+            if row.get("notes"):
+                suffix = " | note: {0}".format("; ".join(row["notes"]))
+            print("{0}: {1}{2}".format(row["name"], row["status"], suffix))
+            for issue in row.get("blocking_issues", []):
                 print("  - {0}".format(issue))
         return 0
 

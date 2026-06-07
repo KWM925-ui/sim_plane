@@ -15,7 +15,7 @@
     "land_at_end": true,
     "connect_timeout_s": 15.0,
     "armable_timeout_s": 20.0,
-    "land_timeout_s": 24.0,
+    "land_timeout_s": 36.0,
     "join_timeout_s": 3.0
   },
   "backend_options": {

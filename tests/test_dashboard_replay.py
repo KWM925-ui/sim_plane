@@ -19,6 +19,13 @@ from sim_plane.web import (
 )
 
 
+PROXYLESS_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
+def urlopen_local(url_or_request, timeout=2):
+    return PROXYLESS_OPENER.open(url_or_request, timeout=timeout)
+
+
 def strip_js_literals_and_comments(source):
     result = []
     index = 0
@@ -336,9 +343,7 @@ class DashboardReplayTest(unittest.TestCase):
             server.start()
             try:
                 commands = json.loads(
-                    urllib.request.urlopen(server.url + "/api/console/commands", timeout=2)
-                    .read()
-                    .decode("utf-8")
+                    urlopen_local(server.url + "/api/console/commands", timeout=2).read().decode("utf-8")
                 )
                 self.assertEqual(commands["items"][0]["id"], "echo_probe")
                 request = urllib.request.Request(
@@ -348,12 +353,10 @@ class DashboardReplayTest(unittest.TestCase):
                     method="POST",
                 )
                 with self.assertRaises(urllib.error.HTTPError) as context:
-                    urllib.request.urlopen(request, timeout=2)
+                    urlopen_local(request, timeout=2)
                 self.assertEqual(context.exception.code, 400)
                 missing = json.loads(
-                    urllib.request.urlopen(server.url + "/api/console/run?id=missing", timeout=2)
-                    .read()
-                    .decode("utf-8")
+                    urlopen_local(server.url + "/api/console/run?id=missing", timeout=2).read().decode("utf-8")
                 )
                 self.assertIn("error", missing)
             finally:

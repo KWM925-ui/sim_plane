@@ -1,5 +1,8 @@
+from contextlib import redirect_stdout
+from io import StringIO
 import unittest
 
+from sim_plane.cli import main
 from sim_plane.doctor import collect_platform_doctor_report, format_platform_doctor_report
 
 
@@ -42,6 +45,18 @@ class DoctorReportTest(unittest.TestCase):
         self.assertIn("artifact_hygiene_path: artifact hygiene", rendered)
         self.assertNotIn("first issue: The external_command adapter requires", rendered)
         self.assertIn("external_command: ready | note:", rendered)
+
+    def test_cli_list_adapters_uses_doctor_ready_classification(self):
+        stdout = StringIO()
+
+        with redirect_stdout(stdout):
+            exit_code = main(["list-adapters"])
+
+        rendered = stdout.getvalue()
+        self.assertEqual(0, exit_code)
+        self.assertIn("external_command: ready | note:", rendered)
+        self.assertIn("ros_command: ready | note:", rendered)
+        self.assertNotIn("external_command: scaffolded", rendered)
 
 
 if __name__ == "__main__":

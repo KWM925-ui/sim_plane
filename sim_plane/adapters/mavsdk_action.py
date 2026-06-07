@@ -2,6 +2,7 @@ import asyncio
 from urllib.parse import urlparse
 
 from sim_plane.adapters.base import AdapterError, AlgorithmAdapter
+from sim_plane.adapters.mavsdk_compat import install_aiogrpc_wrapped_iterator_del_guard
 
 try:
     from mavsdk import System
@@ -12,6 +13,7 @@ except Exception as exc:  # pragma: no cover - exercised through validate_enviro
     MAVSDK_IMPORT_ERROR = exc
 else:
     MAVSDK_IMPORT_ERROR = None
+    install_aiogrpc_wrapped_iterator_del_guard()
 
 
 def resolve_mavsdk_system_address(spec, context=None):
@@ -86,57 +88,76 @@ class MAVSDKActionAdapter(AlgorithmAdapter):
         )
 
         drone = System()
-        await drone.connect(system_address=system_address)
+        try:
+            await drone.connect(system_address=system_address)
 
-        await asyncio.wait_for(self._wait_for_connection(drone, sink), timeout=connect_timeout_s)
-        armable = await asyncio.wait_for(self._wait_for_armable(drone, sink), timeout=armable_timeout_s)
+            await self._wait_with_timeout(
+                self._wait_for_connection(drone, sink),
+                connect_timeout_s,
+                "MAVSDK connection to {0}".format(system_address),
+            )
+            armable = await self._wait_with_timeout(
+                self._wait_for_armable(drone, sink),
+                armable_timeout_s,
+                "MAVSDK armable/local-position health",
+            )
 
-        await drone.action.set_takeoff_altitude(target_altitude_m)
-        sink.emit_event(
-            "info",
-            "algorithm adapter command",
-            {"adapter": self.name, "command": "set_takeoff_altitude", "target_altitude_m": target_altitude_m},
-        )
-        await drone.action.arm()
-        sink.emit_event("info", "algorithm adapter command", {"adapter": self.name, "command": "arm"})
-        await drone.action.takeoff()
-        sink.emit_event("info", "algorithm adapter command", {"adapter": self.name, "command": "takeoff"})
-        reached_target_altitude = await asyncio.wait_for(
-            self._wait_for_local_altitude(drone, target_altitude_m, sink),
-            timeout=takeoff_reach_timeout_s,
-        )
-        await asyncio.sleep(hold_after_takeoff_s)
+            await drone.action.set_takeoff_altitude(target_altitude_m)
+            sink.emit_event(
+                "info",
+                "algorithm adapter command",
+                {"adapter": self.name, "command": "set_takeoff_altitude", "target_altitude_m": target_altitude_m},
+            )
+            await drone.action.arm()
+            sink.emit_event("info", "algorithm adapter command", {"adapter": self.name, "command": "arm"})
+            await drone.action.takeoff()
+            sink.emit_event("info", "algorithm adapter command", {"adapter": self.name, "command": "takeoff"})
+            reached_target_altitude = await self._wait_with_timeout(
+                self._wait_for_local_altitude(drone, target_altitude_m, sink),
+                takeoff_reach_timeout_s,
+                "MAVSDK takeoff altitude reach",
+            )
+            await asyncio.sleep(hold_after_takeoff_s)
 
-        landed = False
-        if land_at_end:
-            try:
-                await drone.action.land()
-                sink.emit_event("info", "algorithm adapter command", {"adapter": self.name, "command": "land"})
-                landed = await asyncio.wait_for(
-                    self._wait_for_disarmed(drone),
-                    timeout=land_timeout_s,
-                )
-            except ActionError as exc:
-                raise AdapterError("MAVSDK action land failed: {0}".format(exc))
+            landed = False
+            if land_at_end:
+                try:
+                    await drone.action.land()
+                    sink.emit_event("info", "algorithm adapter command", {"adapter": self.name, "command": "land"})
+                    landed = await self._wait_with_timeout(
+                        self._wait_for_disarmed(drone),
+                        land_timeout_s,
+                        "MAVSDK landing disarm",
+                    )
+                except ActionError as exc:
+                    raise AdapterError("MAVSDK action land failed: {0}".format(exc))
 
-        return {
-            "metrics": {
-                "algorithm_adapter_name": self.name,
-                "algorithm_adapter_connected": True,
-                "algorithm_adapter_armable": bool(armable),
-                "algorithm_adapter_arm_commanded": True,
-                "algorithm_adapter_takeoff_commanded": True,
-                "algorithm_adapter_target_altitude_reached": bool(reached_target_altitude),
-                "algorithm_adapter_land_commanded": land_at_end,
-                "algorithm_adapter_landed": landed if land_at_end else False,
-                "algorithm_adapter_completed_successfully": True,
-                "algorithm_adapter_system_address": system_address,
-            },
-            "notes": [
-                "A repo-local MAVSDK action adapter commanded arm, takeoff, and land through PX4's onboard MAVLink UDP listener.",
-                "The local MAVSDK path on this host connects to PX4's onboard UDP listener on 14580 while the telemetry collector stays on a separate GCS-facing UDP port such as 14550.",
-            ],
-        }
+            return {
+                "metrics": {
+                    "algorithm_adapter_name": self.name,
+                    "algorithm_adapter_connected": True,
+                    "algorithm_adapter_armable": bool(armable),
+                    "algorithm_adapter_arm_commanded": True,
+                    "algorithm_adapter_takeoff_commanded": True,
+                    "algorithm_adapter_target_altitude_reached": bool(reached_target_altitude),
+                    "algorithm_adapter_land_commanded": land_at_end,
+                    "algorithm_adapter_landed": landed if land_at_end else False,
+                    "algorithm_adapter_completed_successfully": True,
+                    "algorithm_adapter_system_address": system_address,
+                },
+                "notes": [
+                    "A repo-local MAVSDK action adapter commanded arm, takeoff, and land through PX4's onboard MAVLink UDP listener.",
+                    "The local MAVSDK path on this host connects to PX4's onboard UDP listener on 14580 while the telemetry collector stays on a separate GCS-facing UDP port such as 14550.",
+                ],
+            }
+        finally:
+            self._shutdown_drone(drone)
+
+    async def _wait_with_timeout(self, awaitable, timeout_s, label):
+        try:
+            return await asyncio.wait_for(awaitable, timeout=float(timeout_s))
+        except asyncio.TimeoutError as exc:
+            raise AdapterError("{0} timed out after {1:.1f}s".format(label, float(timeout_s))) from exc
 
     async def _wait_for_connection(self, drone, sink):
         stream = drone.core.connection_state().__aiter__()
@@ -227,3 +248,11 @@ class MAVSDKActionAdapter(AlgorithmAdapter):
         close = getattr(stream, "aclose", None)
         if callable(close):
             await close()
+
+    def _shutdown_drone(self, drone):
+        stop = getattr(drone, "_stop_mavsdk_server", None)
+        if callable(stop):
+            try:
+                stop()
+            except Exception:
+                pass

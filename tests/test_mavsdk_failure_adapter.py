@@ -2,6 +2,7 @@ import unittest
 
 from sim_plane.adapters import validate_algorithm_adapter
 from sim_plane.adapters.mavsdk_failure import (
+    MAVSDKFailureInjectionAdapter,
     extract_udp_port,
     parse_failure_type,
     parse_failure_unit,
@@ -67,6 +68,21 @@ class MAVSDKFailureAdapterTest(unittest.TestCase):
             },
         )
         self.assertEqual(issues, [])
+
+    def test_shutdown_drone_is_best_effort(self):
+        adapter = MAVSDKFailureInjectionAdapter()
+
+        class BrokenDrone:
+            def __init__(self):
+                self.called = False
+
+            def _stop_mavsdk_server(self):
+                self.called = True
+                raise RuntimeError("cleanup failed")
+
+        drone = BrokenDrone()
+        adapter._shutdown_drone(drone)
+        self.assertTrue(drone.called)
 
 
 if __name__ == "__main__":

@@ -120,7 +120,15 @@ class AlgorithmAdapterHandle:
 
     def _run(self):
         try:
-            self.report = self.adapter.run(self.spec, self.sink, self.context) or {}
+            report = self.adapter.run(self.spec, self.sink, self.context) or {}
+            if not isinstance(report, dict):
+                raise AdapterError(
+                    "algorithm adapter {0} returned {1}, expected dict".format(
+                        self.adapter.name,
+                        type(report).__name__,
+                    )
+                )
+            self.report = report
         except Exception as exc:
             self.error = str(exc)
             self.sink.emit_event(

@@ -2,6 +2,7 @@ import asyncio
 from urllib.parse import urlparse
 
 from sim_plane.adapters.base import AdapterError, AlgorithmAdapter
+from sim_plane.adapters.mavsdk_compat import install_aiogrpc_wrapped_iterator_del_guard
 
 try:
     from mavsdk import System
@@ -14,6 +15,7 @@ except Exception as exc:  # pragma: no cover - exercised through validate_enviro
     MAVSDK_FAILURE_IMPORT_ERROR = exc
 else:
     MAVSDK_FAILURE_IMPORT_ERROR = None
+    install_aiogrpc_wrapped_iterator_del_guard()
 
 
 def resolve_mavsdk_system_address(spec, context=None):
@@ -181,68 +183,71 @@ class MAVSDKFailureInjectionAdapter(AlgorithmAdapter):
         )
 
         drone = System()
-        await drone.connect(system_address=system_address)
-        await asyncio.wait_for(self._wait_for_connection(drone, sink), timeout=connect_timeout_s)
-        health_before = await asyncio.wait_for(self._wait_for_health_sample(drone), timeout=ready_timeout_s)
-        mode_before = await self._sample_flight_mode(drone, timeout_s=ready_timeout_s)
-        await asyncio.sleep(pre_injection_wait_s)
+        try:
+            await drone.connect(system_address=system_address)
+            await asyncio.wait_for(self._wait_for_connection(drone, sink), timeout=connect_timeout_s)
+            health_before = await asyncio.wait_for(self._wait_for_health_sample(drone), timeout=ready_timeout_s)
+            mode_before = await self._sample_flight_mode(drone, timeout_s=ready_timeout_s)
+            await asyncio.sleep(pre_injection_wait_s)
 
-        accepted = await self._inject_failure(
-            drone,
-            sink,
-            failure_unit=failure_unit,
-            failure_type=failure_type,
-            instance=instance,
-        )
-        await asyncio.sleep(post_injection_observe_s)
-        health_after = await self._sample_health(drone, timeout_s=ready_timeout_s)
-        mode_after = await self._sample_flight_mode(drone, timeout_s=ready_timeout_s)
-
-        reset_accepted = False
-        if reset_after_injection:
-            await asyncio.sleep(reset_after_s)
-            reset_accepted = await self._inject_failure(
+            accepted = await self._inject_failure(
                 drone,
                 sink,
                 failure_unit=failure_unit,
-                failure_type=reset_failure_type,
+                failure_type=failure_type,
                 instance=instance,
-                reset=True,
+            )
+            await asyncio.sleep(post_injection_observe_s)
+            health_after = await self._sample_health(drone, timeout_s=ready_timeout_s)
+            mode_after = await self._sample_flight_mode(drone, timeout_s=ready_timeout_s)
+
+            reset_accepted = False
+            if reset_after_injection:
+                await asyncio.sleep(reset_after_s)
+                reset_accepted = await self._inject_failure(
+                    drone,
+                    sink,
+                    failure_unit=failure_unit,
+                    failure_type=reset_failure_type,
+                    instance=instance,
+                    reset=True,
+                )
+
+            health_before_dict = health_to_dict(health_before)
+            health_after_dict = health_to_dict(health_after)
+            health_changed_keys = sorted(
+                key for key in set(health_before_dict) | set(health_after_dict)
+                if health_before_dict.get(key) != health_after_dict.get(key)
             )
 
-        health_before_dict = health_to_dict(health_before)
-        health_after_dict = health_to_dict(health_after)
-        health_changed_keys = sorted(
-            key for key in set(health_before_dict) | set(health_after_dict)
-            if health_before_dict.get(key) != health_after_dict.get(key)
-        )
-
-        return {
-            "metrics": {
-                "algorithm_adapter_name": self.name,
-                "algorithm_adapter_connected": True,
-                "algorithm_adapter_completed_successfully": bool(accepted and (reset_accepted or not reset_after_injection)),
-                "algorithm_adapter_system_address": system_address,
-                "failure_injection_backend": "px4_mavsdk_failure_plugin",
-                "failure_injection_command": "MAV_CMD_INJECT_FAILURE",
-                "failure_injection_unit": enum_name(failure_unit),
-                "failure_injection_type": enum_name(failure_type),
-                "failure_injection_instance": instance,
-                "failure_injection_accepted": bool(accepted),
-                "failure_injection_reset_type": enum_name(reset_failure_type),
-                "failure_injection_reset_accepted": bool(reset_accepted),
-                "failure_injection_health_changed_count": len(health_changed_keys),
-                "failure_injection_health_changed_keys": health_changed_keys,
-                "failure_injection_mode_before": mode_before,
-                "failure_injection_mode_after": mode_after,
-                "failure_injection_mode_changed": mode_before != mode_after,
-            },
-            "notes": [
-                "This run uses PX4-native MAV_CMD_INJECT_FAILURE through the MAVSDK failure plugin.",
-                "The first accepted sim-plane surface is intentionally limited to a PX4-supported failure unit/type pair proven on this host.",
-                "Demo backend disturbances are not treated as PX4-native failures.",
-            ],
-        }
+            return {
+                "metrics": {
+                    "algorithm_adapter_name": self.name,
+                    "algorithm_adapter_connected": True,
+                    "algorithm_adapter_completed_successfully": bool(accepted and (reset_accepted or not reset_after_injection)),
+                    "algorithm_adapter_system_address": system_address,
+                    "failure_injection_backend": "px4_mavsdk_failure_plugin",
+                    "failure_injection_command": "MAV_CMD_INJECT_FAILURE",
+                    "failure_injection_unit": enum_name(failure_unit),
+                    "failure_injection_type": enum_name(failure_type),
+                    "failure_injection_instance": instance,
+                    "failure_injection_accepted": bool(accepted),
+                    "failure_injection_reset_type": enum_name(reset_failure_type),
+                    "failure_injection_reset_accepted": bool(reset_accepted),
+                    "failure_injection_health_changed_count": len(health_changed_keys),
+                    "failure_injection_health_changed_keys": health_changed_keys,
+                    "failure_injection_mode_before": mode_before,
+                    "failure_injection_mode_after": mode_after,
+                    "failure_injection_mode_changed": mode_before != mode_after,
+                },
+                "notes": [
+                    "This run uses PX4-native MAV_CMD_INJECT_FAILURE through the MAVSDK failure plugin.",
+                    "The first accepted sim-plane surface is intentionally limited to a PX4-supported failure unit/type pair proven on this host.",
+                    "Demo backend disturbances are not treated as PX4-native failures.",
+                ],
+            }
+        finally:
+            self._shutdown_drone(drone)
 
     async def _wait_for_connection(self, drone, sink):
         stream = drone.core.connection_state().__aiter__()
@@ -310,3 +315,11 @@ class MAVSDKFailureInjectionAdapter(AlgorithmAdapter):
         close = getattr(stream, "aclose", None)
         if callable(close):
             await close()
+
+    def _shutdown_drone(self, drone):
+        stop = getattr(drone, "_stop_mavsdk_server", None)
+        if callable(stop):
+            try:
+                stop()
+            except Exception:
+                pass
