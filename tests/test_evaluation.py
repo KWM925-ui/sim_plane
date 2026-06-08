@@ -149,6 +149,30 @@ class EvaluationTest(unittest.TestCase):
         self.assertEqual(kpis["kpi_target_reach_time_s"], 3.0)
         self.assertEqual(kpis["kpi_altitude_settle_time_s"], 3.0)
 
+    def test_goal_mission_final_distance_uses_mission_goal_not_default_waypoints(self):
+        scenario = {
+            "mission": {"type": "goal", "goal": {"x": 2.5, "y": 0.0, "z": 1.0}},
+            "waypoints": [
+                {"x": 0.0, "y": 0.0},
+                {"x": 0.0, "y": 0.0},
+            ],
+        }
+        telemetry = [
+            {
+                "t": 0.0,
+                "phase": "mission",
+                "position": {"x_m": 2.45, "y_m": -0.005, "z_m": -1.02},
+                "altitude_m": 1.02,
+                "speed_mps": 0.1,
+            }
+        ]
+
+        kpis = compute_kpis(scenario, telemetry)
+
+        self.assertEqual(kpis["kpi_final_goal_distance_m"], 0.054)
+        self.assertEqual(kpis["kpi_final_goal_horizontal_distance_m"], 0.05)
+        self.assertEqual(kpis["kpi_final_goal_altitude_error_m"], 0.02)
+
 
 if __name__ == "__main__":
     unittest.main()

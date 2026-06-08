@@ -98,6 +98,7 @@ class PX4SIHBackend(Backend):
         viewer_processes = []
         connection = None
         adapter_handle = None
+        adapter_collected = False
         result = None
         ulog_before = snapshot_px4_ulog_files(config)
         try:
@@ -143,7 +144,9 @@ class PX4SIHBackend(Backend):
                 timeout_s=float(
                     (scenario.get("algorithm_adapter") or {}).get("join_timeout_s", 3.0)
                 ),
+                request_stop=adapter_handle is not None,
             )
+            adapter_collected = True
             telemetry_summary.update(adapter_report["metrics"])
             result = {
                 "status": evaluate_run_status(config["success_criteria"], telemetry_summary),
@@ -162,6 +165,12 @@ class PX4SIHBackend(Backend):
                     connection.close()
                 except Exception:
                     pass
+            if adapter_handle is not None and not adapter_collected:
+                collect_algorithm_adapter(
+                    adapter_handle,
+                    timeout_s=float((scenario.get("algorithm_adapter") or {}).get("join_timeout_s", 3.0)),
+                    request_stop=True,
+                )
             for process in reversed(viewer_processes):
                 terminate_process(process, sink, "viewer")
             terminate_process(px4_process, sink, "px4")
@@ -638,6 +647,7 @@ def evaluate_run_status(success_criteria, telemetry_summary):
         return (
             "passed"
             if telemetry_summary.get("algorithm_adapter_completed_successfully")
+            and telemetry_summary.get("algorithm_adapter_target_altitude_reached")
             and telemetry_summary.get("target_altitude_reached")
             else "failed"
         )
@@ -654,7 +664,11 @@ def parse_px4_log_event(label, stream_name, line):
     markers = ["ERROR", "WARN", "Ready", "Startup", "MAVLink", "ERROR ["]
     if not any(marker in line for marker in markers):
         return None
-    if "Preflight Fail: heading estimate invalid" in line:
+    transient_preflight_markers = (
+        "Preflight Fail: heading estimate invalid",
+        "Preflight Fail: height estimate not stable",
+    )
+    if any(marker in line for marker in transient_preflight_markers):
         return {"level": "info", "message": "{0} log".format(label), "details": {"line": line, "stream": stream_name}}
     level = "warning" if ("WARN" in line or "ERROR" in line or "[e]" in line.lower()) else "info"
     return {"level": level, "message": "{0} log".format(label), "details": {"line": line, "stream": stream_name}}

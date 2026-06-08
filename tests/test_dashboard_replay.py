@@ -213,6 +213,7 @@ class DashboardReplayTest(unittest.TestCase):
             'const item = document.createElement("div");\n    const item = document.createElement("div");',
             source,
         )
+        self.assertIn('.hero-nav a[href="#console"], .hero-nav a[href="#evidence"]', source)
 
     def test_list_complete_artifacts_and_root_browser(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -388,7 +389,8 @@ class DashboardReplayTest(unittest.TestCase):
                     {
                         "status": "passed",
                         "selection_mode": "latest",
-                        "planner_acceptance": {"status": "passed"},
+                        "issues": ["top level note"],
+                        "planner_acceptance": {"status": "passed", "issues": ["planner note"]},
                         "rows": [
                             {
                                 "name": "px4_sih_headless",
@@ -428,6 +430,8 @@ class DashboardReplayTest(unittest.TestCase):
             self.assertTrue(report["available"])
             self.assertEqual(report["status"], "passed")
             self.assertEqual(report["changed_rows_count"], 1)
+            self.assertEqual(report["issues"], ["top level note"])
+            self.assertEqual(report["planner_acceptance_issues"], ["planner note"])
             self.assertEqual(report["rows"][0]["name"], "px4_sih_headless")
 
     def test_list_suite_reports_summarizes_latest_kpi_reports(self):

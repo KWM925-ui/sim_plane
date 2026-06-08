@@ -1,9 +1,12 @@
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
 
 from sim_plane.planner_acceptance import validate_acceptance_matrix, write_acceptance_report
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def write_artifact(
@@ -13,17 +16,17 @@ def write_artifact(
     min_goal_distance_m,
     launch_rviz,
     event_levels,
+    created_at_utc=None,
 ):
+    manifest = {
+        "backend": backend,
+        "scenario_name": scenario_name,
+    }
+    if created_at_utc is not None:
+        manifest["created_at_utc"] = created_at_utc
     artifact_dir.mkdir(parents=True, exist_ok=True)
     (artifact_dir / "manifest.json").write_text(
-        json.dumps(
-            {
-                "backend": backend,
-                "scenario_name": scenario_name,
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
+        json.dumps(manifest, ensure_ascii=False, indent=2)
         + "\n",
         encoding="utf-8",
     )
@@ -88,8 +91,9 @@ class PlannerAcceptanceTest(unittest.TestCase):
             root = Path(tmpdir)
             artifact_root = root / "runs"
             matrix_path = root / "matrix.json"
+            reference_artifact = artifact_root / "ego_planner_marsim_20260428_010101"
             write_artifact(
-                artifact_root / "ego_planner_marsim_20260428_010101",
+                reference_artifact,
                 backend="ego_planner_marsim",
                 scenario_name="ego_planner_marsim",
                 min_goal_distance_m=0.064,
@@ -117,8 +121,9 @@ class PlannerAcceptanceTest(unittest.TestCase):
             root = Path(tmpdir)
             artifact_root = root / "runs"
             matrix_path = root / "matrix.json"
+            reference_artifact = artifact_root / "ego_planner_marsim_20260428_010101"
             write_artifact(
-                artifact_root / "ego_planner_marsim_20260428_010101",
+                reference_artifact,
                 backend="ego_planner_marsim",
                 scenario_name="ego_planner_marsim",
                 min_goal_distance_m=0.064,
@@ -152,6 +157,113 @@ class PlannerAcceptanceTest(unittest.TestCase):
             self.assertEqual(report["status"], "passed")
             self.assertTrue(
                 report["rows"][0]["headless"]["artifact_dir"].endswith("ego_planner_marsim_20260428_010301")
+            )
+
+    def test_latest_acceptance_prefers_manifest_created_time_over_directory_name(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            artifact_root = root / "runs"
+            matrix_path = root / "matrix.json"
+            reference_artifact = artifact_root / "ego_planner_marsim_20260428_010101"
+            write_artifact(
+                reference_artifact,
+                backend="ego_planner_marsim",
+                scenario_name="ego_planner_marsim",
+                min_goal_distance_m=0.064,
+                launch_rviz=False,
+                event_levels=["info"],
+                created_at_utc="2026-06-08T10:00:00Z",
+            )
+            write_artifact(
+                artifact_root / "ego_planner_marsim_20260428_010301",
+                backend="ego_planner_marsim",
+                scenario_name="ego_planner_marsim",
+                min_goal_distance_m=0.064,
+                launch_rviz=False,
+                event_levels=["info"],
+                created_at_utc="2026-06-08T09:00:00Z",
+            )
+            write_artifact(
+                artifact_root / "ego_planner_marsim_visual_20260428_010201",
+                backend="ego_planner_marsim",
+                scenario_name="ego_planner_marsim_visual",
+                min_goal_distance_m=0.066,
+                launch_rviz=True,
+                event_levels=["info"],
+            )
+            write_matrix(matrix_path, artifact_root)
+
+            report = validate_acceptance_matrix(
+                path=matrix_path,
+                artifact_root=artifact_root,
+                use_latest=True,
+            )
+
+            self.assertEqual(report["status"], "passed")
+            self.assertTrue(
+                report["rows"][0]["headless"]["artifact_dir"].endswith("ego_planner_marsim_20260428_010101")
+            )
+
+    def test_latest_acceptance_falls_back_to_mtime_when_manifest_timestamp_is_invalid(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            artifact_root = root / "runs"
+            matrix_path = root / "matrix.json"
+            reference_artifact = artifact_root / "ego_planner_marsim_20260428_010101"
+            write_artifact(
+                reference_artifact,
+                backend="ego_planner_marsim",
+                scenario_name="ego_planner_marsim",
+                min_goal_distance_m=0.064,
+                launch_rviz=False,
+                event_levels=["info"],
+            )
+            newer_name_older_mtime = artifact_root / "ego_planner_marsim_20260428_010301"
+            older_name_newer_mtime = artifact_root / "ego_planner_marsim_20260428_010201"
+            write_artifact(
+                newer_name_older_mtime,
+                backend="ego_planner_marsim",
+                scenario_name="ego_planner_marsim",
+                min_goal_distance_m=0.064,
+                launch_rviz=False,
+                event_levels=["info"],
+                created_at_utc="not-a-time",
+            )
+            write_artifact(
+                older_name_newer_mtime,
+                backend="ego_planner_marsim",
+                scenario_name="ego_planner_marsim",
+                min_goal_distance_m=0.064,
+                launch_rviz=False,
+                event_levels=["info"],
+            )
+            write_artifact(
+                artifact_root / "ego_planner_marsim_visual_20260428_010201",
+                backend="ego_planner_marsim",
+                scenario_name="ego_planner_marsim_visual",
+                min_goal_distance_m=0.066,
+                launch_rviz=True,
+                event_levels=["info"],
+            )
+            for artifact_dir, timestamp in (
+                (reference_artifact, 500),
+                (newer_name_older_mtime, 1000),
+                (older_name_newer_mtime, 2000),
+            ):
+                for child in ("result.json", "manifest.json", "events.jsonl"):
+                    os.utime(artifact_dir / child, (timestamp, timestamp))
+                os.utime(artifact_dir, (timestamp, timestamp))
+            write_matrix(matrix_path, artifact_root)
+
+            report = validate_acceptance_matrix(
+                path=matrix_path,
+                artifact_root=artifact_root,
+                use_latest=True,
+            )
+
+            self.assertEqual(report["status"], "passed")
+            self.assertTrue(
+                report["rows"][0]["headless"]["artifact_dir"].endswith("ego_planner_marsim_20260428_010201")
             )
 
     def test_warning_event_fails_acceptance(self):
@@ -398,6 +510,32 @@ class PlannerAcceptanceTest(unittest.TestCase):
             self.assertEqual(headless_delta["mode"], "headless")
             self.assertEqual(headless_delta["min_goal_distance_delta_m"], 0.006)
             self.assertEqual(headless_delta["issues_count_delta"], 1)
+
+    def test_checked_in_planner_scenarios_do_not_stop_beyond_absolute_acceptance_threshold(self):
+        matrix = json.loads(
+            (REPO_ROOT / "configs" / "planner_acceptance_matrix.json").read_text(encoding="utf-8")
+        )
+        absolute_threshold = float(matrix["goal_distance_threshold_m"])
+        failures = []
+
+        for row in matrix["rows"]:
+            for mode in ("headless", "visual"):
+                mode_spec = row[mode]
+                scenario_name = mode_spec["scenario_name"]
+                scenario_path = REPO_ROOT / "scenarios" / "{0}.json".format(scenario_name)
+                scenario = json.loads(scenario_path.read_text(encoding="utf-8"))
+                backend_options = scenario.get("backend_options", {})
+                runtime_tolerance = float(backend_options["goal_reach_tolerance_m"])
+                if runtime_tolerance > absolute_threshold + 1e-9:
+                    failures.append(
+                        "{0}: runtime tolerance {1} exceeds absolute acceptance threshold {2}".format(
+                            scenario_name,
+                            runtime_tolerance,
+                            round(absolute_threshold, 3),
+                        )
+                    )
+
+        self.assertEqual(failures, [])
 
 
 if __name__ == "__main__":

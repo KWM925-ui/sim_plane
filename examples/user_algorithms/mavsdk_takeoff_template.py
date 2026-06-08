@@ -76,6 +76,7 @@ async def main():
     write_result(
         True,
         metrics={
+            "algorithm_adapter_target_altitude_reached": True,
             "template_connected": True,
             "template_target_altitude_m": target_altitude_m,
             "template_reached_altitude_m": round(float(reached_altitude), 3),

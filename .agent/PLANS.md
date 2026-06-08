@@ -1,5 +1,93 @@
 # Execution Plan
 
+## Saturation Platform Audit Frontier (2026-06-08)
+
+### Locked Facts
+
+- Scope is only `/home/coco/sim_plane`.
+- This repository is the generic UAV simulation/evaluation platform; external business-project workspaces are out of scope.
+- The current `main` branch is synced with `origin/main` at the start of this frontier.
+- Valid historical artifacts under `runs/` are evidence, not cleanup trash.
+- Existing acceptance semantics must not be weakened to manufacture a pass.
+
+### Current Frontier
+
+- Run the broadest practical sequential audit of the current platform:
+  - repository structure, ignored residue, and project-specific contamination scan;
+  - scenario/config JSON validity and command/schema-style consistency;
+  - Python syntax, import, and full unit tests;
+  - CLI/backend/adapter/dashboard-console alignment;
+  - fresh lightweight runtime evidence;
+  - suite, fuzz, quadrotor exam, algorithm ingress, PX4 failure, flight-log, artifact hygiene, and platform-health surfaces;
+  - bounded PX4/JSBSim/Gazebo/MARSIM/planner probes only when prerequisites are present and runs are not allowed to pollute each other.
+- Fix only current-repo defects backed by fresh evidence.
+
+### Forbidden Actions
+
+- Do not modify external workspaces.
+- Do not reintroduce project-specific commands, scenarios, or ledgers.
+- Do not delete valid `runs/` evidence unless a hygiene command explicitly marks it safe.
+- Do not run `artifact-hygiene`, `platform-health`, or `autotest-pack` while another command is actively writing under `runs/`.
+- Do not change acceptance thresholds or semantics just to force green results.
+
+### Promotion Gate
+
+- Commands and artifacts are recorded with PASS/FAIL/SKIP.
+- Any failure is classified to the earliest local cause before patching.
+- All patches, if any, are minimal and project-local.
+- Final validation includes static checks, full unit tests, fresh runtime evidence, acceptance/hygiene/health, and git status.
+
+### Interruption Resume Closure - 2026-06-08
+
+- Scope stayed limited to `/home/coco/sim_plane`; no external workspace was modified.
+- Acceptance semantics were not weakened.
+- Valid `runs/` artifacts were preserved.
+- Fresh defects fixed in this frontier:
+  - planner goal-reach logic now handles `goal_settle_hold_s=0.0` without requiring a second in-tolerance sample;
+  - planner goal-reach comparison now uses the same 3-decimal precision as the artifact metric surface, avoiding verdict/report mismatch around strict centimeter gates;
+  - ROS composite backends no longer silently inherit the default `localhost:11311` master after sourcing ROS setup, but still preserve an explicit non-default `ROS_MASTER_URI`;
+  - strict planner acceptance scenarios now sample at `20 Hz` and use runtime goal gates no looser than their frozen latest-vs-reference acceptance surface.
+- Fresh planner repeatability evidence:
+  - `ego_planner_swarm_fast_lio_marsim` repeated `10/10` PASS after ROS master isolation;
+  - refreshed strict planner artifacts passed for `ego_planner_marsim`, `ego_planner_swarm_marsim`, `ego_planner_fast_lio_marsim`, and `ego_planner_swarm_fast_lio_marsim`.
+- Final fresh validation after interruption:
+  - JSON syntax: `48` files OK.
+  - Python source syntax: `92` files OK.
+  - Full unit suite: `179` tests OK.
+  - `list-backends`: `12/12` ready.
+  - `list-adapters`: `4/4` ready.
+  - `planner-acceptance --latest`: `runs/acceptance/planner_acceptance_baseline_latest_20260607_174542_496071/report.json`, `4/4` passed.
+  - `platform-acceptance --latest`: latest report under `runs/platform_acceptance/platform_acceptance_baseline_latest_20260607_174339_295017/report.json`, passed.
+  - `px4-failure-acceptance --latest`: `runs/px4_failure_injection_acceptance/px4_failure_injection_acceptance_latest_20260607_174312_970303/report.json`, `1/1` passed.
+  - `quadrotor-exam-acceptance --latest`: `runs/quadrotor_exam_acceptance/quadrotor_exam_acceptance_latest_20260607_174323_166482/report.json`, `8/8` passed.
+  - `autotest-pack --profile fast`: `runs/autotest/sim_plane_autotest_fast_20260607_174339_301360/report.json`, `8/8` passed.
+  - `artifact-hygiene --artifact-root runs`: `clean`.
+  - `manual-probe-hygiene --artifact-root runs`: `clean`.
+  - `platform-health --artifact-root runs`: `runs/platform_health/sim_plane_platform_health_20260607_174408_466729/report.json`, status `warning` only because git is dirty; `issues=[]`.
+  - `git diff --check`: passed.
+  - Repo-local cache/build residue scan outside `runs/`: no `__pycache__`, `.pyc`, or `.egg-info` residue found.
+- Current conclusion:
+  - Functionally green under the saturation audit evidence above.
+  - The only remaining non-functional warning is dirty git state from uncommitted audit fixes and ledger updates.
+
+### Continuation Saturation Pass - No Commit Yet
+
+- User instruction:
+  - do not commit yet;
+  - continue a deeper and broader platform audit/test/correction pass;
+  - spend runtime where useful;
+  - keep this about the generic `sim_plane` platform only.
+- Boundary:
+  - no external workspace edits;
+  - no acceptance weakening;
+  - no deletion of valid `runs/` evidence;
+  - no concurrent artifact inspectors while a runtime command is writing under `runs/`.
+- Execution shape:
+  - recheck structure, contamination, static syntax, unit tests, CLI/backend/adapter/frontend alignment;
+  - rerun fresh lightweight runtime, suite, fuzz, quadrotor exam, baseline, algorithm ingress, PX4 failure, planner/platform acceptance, hygiene, and health;
+  - run bounded heavy headless backend probes only where prerequisites are currently ready;
+  - fix only evidence-backed current-repo defects.
+
 ## Comprehensive Platform Audit Frontier (2026-06-07)
 
 ### Locked Facts
@@ -330,3 +418,102 @@
   - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest` -> `163` tests OK;
   - `git diff --check` -> passed;
   - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m sim_plane platform-health --artifact-root runs --json` -> functional surfaces passed, with only the expected git dirty warning from this ledger update before commit.
+
+## Saturation Audit Resume Result - 2026-06-08
+
+- Scope stayed limited to `/home/coco/sim_plane`.
+- No external project workspace was edited.
+- No valid `runs/` artifact was deleted.
+- Subagent/session resume evidence identified three real local defects or broken surfaces:
+  - `planner_goal` could treat `NaN`/`inf` as in-tolerance when `goal_settle_hold_s=0.0`;
+  - composite ROS lab-stack backends could prepare multiple envs without explicitly sharing one `ROS_MASTER_URI`;
+  - `px4_jsbsim_mavsdk_action` intermittently failed because the MAVSDK adapter only used local NED altitude while backend KPI already used the max of local and global-relative altitude.
+- Fixes made:
+  - added finite-value guards and tests in `sim_plane/backends/planner_goal.py`;
+  - added strict/default/shared ROS master helpers in `sim_plane/ros_master.py`;
+  - made composite MARSIM/FAST_LIO/EGO backends share a single `ROS_MASTER_URI` before launch;
+  - hardened `sim_plane/adapters/mavsdk_action.py` to accept either local NED or relative altitude for takeoff reach and report max altitude diagnostics on timeout;
+  - repaired `configs/quadrotor_exam_acceptance_matrix.json` to reference the earliest present passed frozen report, `runs/suites/paper_quadrotor_exam_suite_20260601_050941_402055/report.json`, because the old `20260531_183803` report path was missing locally.
+- Static/unit validation:
+  - Python syntax check: `92` files OK;
+  - JSON syntax check: `48` files OK;
+  - full unit suite: `186` tests OK;
+  - targeted new tests: `tests.test_planner_goal tests.test_ros_master tests.test_mavsdk_action_adapter` -> `22` tests OK;
+  - `git diff --check` -> passed;
+  - repo-local `__pycache__`/`.pyc` residue -> none after cleanup.
+- Fresh runtime and acceptance evidence:
+  - fresh JSBSim MAVSDK action run passed: `runs/px4_jsbsim_quadx_mavsdk_action_20260607_190013_547706`;
+  - additional JSBSim MAVSDK action repeatability: `5/5` passed:
+    - `runs/px4_jsbsim_quadx_mavsdk_action_20260607_190257_188948`
+    - `runs/px4_jsbsim_quadx_mavsdk_action_20260607_190352_623145`
+    - `runs/px4_jsbsim_quadx_mavsdk_action_20260607_190447_595313`
+    - `runs/px4_jsbsim_quadx_mavsdk_action_20260607_190542_476995`
+    - `runs/px4_jsbsim_quadx_mavsdk_action_20260607_190637_072036`
+  - `planner-acceptance --latest`: `runs/acceptance/planner_acceptance_baseline_latest_20260607_190826_693506/report.json`, passed `4/4`;
+  - `px4-failure-acceptance --latest`: `runs/px4_failure_injection_acceptance/px4_failure_injection_acceptance_latest_20260607_190836_653994/report.json`, passed `1/1`;
+  - `quadrotor-exam-acceptance --latest`: `runs/quadrotor_exam_acceptance/quadrotor_exam_acceptance_latest_20260607_190845_606436/report.json`, passed `8/8`;
+  - `platform-acceptance --latest`: `runs/platform_acceptance/platform_acceptance_baseline_latest_20260607_190857_692882/report.json`, passed `21/21`;
+  - `autotest-pack --profile fast`: `runs/autotest/sim_plane_autotest_fast_20260607_190919_385660/report.json`, passed `8/8`;
+  - latest JSBSim artifact replay: `runs/flight_log_analysis/artifact_px4_jsbsim_quadx_mavsdk_action_20260607_190637_072036_20260607_190930_754702/report.json`, passed;
+  - latest JSBSim `.ulg` replay: `runs/flight_log_analysis/ulog_19_06_43_20260607_190953_595099/report.json`, passed.
+- Final hygiene/health:
+  - `artifact-hygiene --artifact-root runs`: clean, `899` complete artifacts, `0` stale/incomplete/attention;
+  - `manual-probe-hygiene --artifact-root runs`: clean, `2` retained manual probes, `0` stale;
+  - `platform-health --artifact-root runs`: `runs/platform_health/sim_plane_platform_health_20260607_191018_060417/report.json`, status `warning`, `issues=[]`, only warning is dirty git state.
+- Current remaining state:
+  - functionally green under this audit evidence;
+  - repository intentionally dirty until the user asks to commit/push this audit batch.
+
+## Pre-Commit Final Saturation Audit Result - 2026-06-08
+
+- Scope stayed limited to `/home/coco/sim_plane`.
+- No external business-project workspace was edited.
+- No valid `runs/` artifact was deleted.
+- No acceptance threshold or semantic gate was weakened.
+- The user has not approved commit/push yet, so the worktree remains intentionally dirty.
+- Latest fixes in this pass:
+  - PX4 log parser demotes shutdown-stage `Preflight Fail: height estimate not stable` to info-level transient noise;
+  - console `run_suite_basic` explicitly uses `configs/demo_degradation_suite.json`;
+  - console `scenario_fuzz_basic` uses canonical seed `20260528`;
+  - console read-only actions disclose that frontend execution still writes console logs;
+  - console output detection compares `(mtime_ns, size, type)` signatures;
+  - planner, quadrotor exam, console command, and PX4 SIH tests cover the latest-selection/output-detection risks fixed in this pass.
+- Static/unit validation from the latest completed pass:
+  - targeted tests: `tests.test_console_commands tests.test_planner_acceptance tests.test_quadrotor_exam_acceptance tests.test_px4_sih_backend` -> `62` tests OK;
+  - JSON syntax: `48` config/scenario files OK;
+  - Python syntax: `96` Python files OK;
+  - full unit suite: `240` tests OK;
+  - `git diff --check` -> passed.
+- Fresh runtime/suite/fuzz/exam/ingress evidence:
+  - `basic_takeoff`: `runs/basic_takeoff_20260607_225155_170044`, passed;
+  - `live-smoke fast`: `runs/live_smoke/live_smoke_fast_20260607_225211_695491/report.json`, passed;
+  - `live-smoke default`: `runs/live_smoke/live_smoke_default_20260607_225300_785457/report.json`, passed `2/2`, including fresh `px4_sih_headless`;
+  - `demo_degradation_suite`: `runs/suites/demo_degradation_suite_20260607_225307_876550/report.json`, passed;
+  - `scenario-fuzz seed 20260528`: `runs/scenario_fuzz/demo_seeded_fuzz_20260528_20260607_225322_790893/report.json`, passed;
+  - `quadrotor-exam`: `runs/suites/paper_quadrotor_exam_suite_20260607_225341_991835/report.json`, passed `8/8`;
+  - `run-baseline pid_position_demo`: `runs/basic_takeoff_20260607_225350_951155`, passed;
+  - `check-algorithm-ingress`: `runs/px4_sih_quadx_external_command_template_20260607_225402_620359`, passed;
+  - PX4 native failure run: `runs/px4_sih_quadx_mavsdk_failure_motor_20260607_225456_602956`, passed;
+  - JSBSim MAVSDK action: `runs/px4_jsbsim_quadx_mavsdk_action_20260607_224522_578964`, passed.
+- Latest formal reports:
+  - planner acceptance: `runs/acceptance/planner_acceptance_baseline_latest_20260607_225542_459862/report.json`, `4/4` passed;
+  - PX4 failure acceptance: `runs/px4_failure_injection_acceptance/px4_failure_injection_acceptance_latest_20260607_225542_344794/report.json`, `1/1` passed;
+  - quadrotor exam acceptance: `runs/quadrotor_exam_acceptance/quadrotor_exam_acceptance_latest_20260607_225542_347975/report.json`, `8/8` passed;
+  - platform acceptance: `runs/platform_acceptance/platform_acceptance_baseline_latest_20260607_225617_503216/report.json`, `21/21` passed;
+  - autotest fast pack: `runs/autotest/sim_plane_autotest_fast_20260607_225617_514420/report.json`, `8/8` passed.
+- Flight-log evidence:
+  - artifact replay: `runs/flight_log_analysis/artifact_px4_sih_quadx_external_command_template_20260607_225402_620359_20260607_225517_429261/report.json`, passed;
+  - direct `.ulg` parse: `runs/flight_log_analysis/ulog_22_54_05_20260607_225529_969756/report.json`, passed.
+- Hygiene/health:
+  - artifact hygiene: clean;
+  - manual probe hygiene: clean;
+  - platform health: `runs/platform_health/sim_plane_platform_health_20260607_225652_210555/report.json`, `warning` only because git is dirty, `issues=[]`;
+  - no repo-local `__pycache__`, `.pyc`, or `.egg-info` residue outside `runs/`;
+  - no active `sim_plane`, PX4, ROS, Gazebo, or MAVSDK process remained.
+- Current remaining state:
+  - functionally green under the latest saturation evidence;
+  - repository intentionally dirty until the user asks to commit/push this audit batch.
+- Next candidate frontier, if optimization continues before commit:
+  - PX4 ULog semantic enhancement: map numeric PX4 nav/arming states to readable labels and improve warning classification;
+  - dashboard/report consolidation for health, suite, fuzz, acceptance, and flight-log evidence;
+  - PX4-native failure expansion one official surface at a time.

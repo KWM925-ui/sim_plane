@@ -3,6 +3,7 @@ import os
 import shlex
 import signal
 import subprocess
+import time
 from pathlib import Path
 
 from sim_plane.adapters.base import AdapterError, AlgorithmAdapter
@@ -67,40 +68,54 @@ class ExternalCommandAdapter(AlgorithmAdapter):
         )
         start_log_threads(process, sink, "external_algorithm")
 
+        stop_event = context.get("adapter_stop_event")
+        stop_requested = False
         timed_out = False
-        try:
-            exit_code = process.wait(timeout=config["max_runtime_s"])
-        except subprocess.TimeoutExpired:
-            timed_out = True
-            sink.emit_event(
-                "warning",
-                "external algorithm runtime exceeded limit",
-                {"adapter": self.name, "max_runtime_s": config["max_runtime_s"], "pid": process.pid},
-            )
+        start_wall = time.time()
+        while process.poll() is None:
+            if stop_event is not None and stop_event.wait(timeout=0.2):
+                stop_requested = True
+                break
+            if time.time() - start_wall > config["max_runtime_s"]:
+                timed_out = True
+                sink.emit_event(
+                    "warning",
+                    "external algorithm runtime exceeded limit",
+                    {"adapter": self.name, "max_runtime_s": config["max_runtime_s"], "pid": process.pid},
+                )
+                break
+
+        if stop_requested or timed_out:
             terminate_process(
                 process,
                 sink,
                 "external_algorithm",
-                stop_signal=signal.SIGINT,
-                wait_timeout_s=4.0,
+                stop_signal=config["stop_signal"],
+                wait_timeout_s=config["stop_wait_timeout_s"],
             )
-            exit_code = process.poll()
 
+        exit_code = process.poll()
         payload = load_result_payload(config["result_json"])
-        success = bool(payload.get("success", not timed_out and exit_code in config["success_exit_codes"]))
-        if timed_out and not config["allow_timeout_as_success"]:
-            success = False
-        if exit_code not in config["success_exit_codes"] and not payload:
-            success = False
+        process_success = determine_process_success(
+            exit_code=exit_code,
+            stop_requested=stop_requested,
+            timed_out=timed_out,
+            success_exit_codes=config["success_exit_codes"],
+            allow_timeout_as_success=config["allow_timeout_as_success"],
+            treat_stop_request_as_success=config["treat_stop_request_as_success"],
+            stop_signal=config["stop_signal"],
+        )
+        success = merge_payload_success(process_success, payload)
 
-        metrics = {
+        platform_metrics = {
             "algorithm_adapter_name": self.name,
             "algorithm_adapter_completed_successfully": success,
             "algorithm_adapter_exit_code": exit_code if exit_code is not None else -1,
             "algorithm_adapter_timed_out": timed_out,
+            "algorithm_adapter_stop_requested": stop_requested,
             "algorithm_adapter_command": command_for_log,
         }
-        metrics.update(payload.get("metrics", {}))
+        metrics = merge_payload_metrics(platform_metrics, payload)
         notes = [
             "A repo-local external command adapter launched the user algorithm as a normal host process instead of forcing it to live inside an upstream simulator tree.",
             "The adapter exported stable SIM_PLANE_* environment variables so the algorithm can discover PX4 endpoints, artifact paths, and scenario metadata without hard-coded machine paths.",
@@ -170,6 +185,9 @@ def build_runtime_config(spec, context, artifact_dir):
         "max_runtime_s": max_runtime_s,
         "success_exit_codes": success_exit_codes,
         "allow_timeout_as_success": bool(spec.get("allow_timeout_as_success", False)),
+        "treat_stop_request_as_success": bool(spec.get("treat_stop_request_as_success", True)),
+        "stop_signal": resolve_signal(spec.get("stop_signal", "SIGINT")),
+        "stop_wait_timeout_s": float(spec.get("stop_wait_timeout_s", 4.0)),
     }
 
 
@@ -223,7 +241,60 @@ def load_result_payload(path):
         raise AdapterError("external command result JSON must be an object: {0}".format(candidate))
     payload.setdefault("metrics", {})
     payload.setdefault("notes", [])
+    if "success" in payload and not isinstance(payload["success"], bool):
+        raise AdapterError("external command result JSON success must be a boolean: {0}".format(candidate))
+    if not isinstance(payload["metrics"], dict):
+        raise AdapterError("external command result JSON metrics must be an object: {0}".format(candidate))
+    if not isinstance(payload["notes"], list):
+        raise AdapterError("external command result JSON notes must be a list: {0}".format(candidate))
     return payload
+
+
+def determine_process_success(
+    exit_code,
+    stop_requested,
+    timed_out,
+    success_exit_codes,
+    allow_timeout_as_success,
+    treat_stop_request_as_success,
+    stop_signal=signal.SIGINT,
+):
+    if timed_out:
+        return bool(allow_timeout_as_success)
+    if stop_requested and treat_stop_request_as_success:
+        return exit_code in success_exit_codes or exit_code in (-stop_signal, 128 + stop_signal)
+    return exit_code in success_exit_codes
+
+
+def merge_payload_success(process_success, payload):
+    if not payload or "success" not in payload:
+        return bool(process_success)
+    if not isinstance(payload["success"], bool):
+        raise AdapterError("external command result JSON success must be a boolean.")
+    return bool(process_success and payload["success"])
+
+
+def merge_payload_metrics(platform_metrics, payload):
+    merged = {}
+    for key, value in (payload.get("metrics", {}) if payload else {}).items():
+        merged[str(key)] = value
+    merged.update(platform_metrics)
+    return merged
+
+
+def resolve_signal(name_or_number):
+    if isinstance(name_or_number, int):
+        return name_or_number
+    candidate = str(name_or_number).strip()
+    if not candidate:
+        return signal.SIGINT
+    if candidate.isdigit():
+        return int(candidate)
+    if not candidate.startswith("SIG"):
+        candidate = "SIG{0}".format(candidate.upper())
+    if not hasattr(signal, candidate):
+        raise AdapterError("Unknown stop signal for external_command: {0}".format(name_or_number))
+    return getattr(signal, candidate)
 
 
 def shutil_which(executable, env):

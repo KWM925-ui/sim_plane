@@ -4,10 +4,12 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 
 from sim_plane.artifacts import build_artifact_dir
 from sim_plane.cli import main
-from sim_plane.run_suite import load_suite_definition, run_suite
+import sim_plane.run_suite as run_suite_module
+from sim_plane.run_suite import load_suite_definition, run_suite, write_suite_report
 from sim_plane.quadrotor_exam import run_quadrotor_exam
 
 
@@ -100,6 +102,82 @@ class RunSuiteTest(unittest.TestCase):
             self.assertIn("kpi_altitude_mae_m", report["kpi_rankings"])
             self.assertEqual(report["factor_analysis"], {})
             self.assertTrue(Path(report["saved_report"]["report_json"]).exists())
+
+    def test_suite_report_pruning_preserves_protected_reference_reports(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report_root = root / "suites"
+            protected_dir = report_root / "paper_quadrotor_exam_suite_20250101_000000_000000"
+            stale_dir = report_root / "paper_quadrotor_exam_suite_20250101_000001_000000"
+            newest_dir = report_root / "paper_quadrotor_exam_suite_20250101_000002_000000"
+            for directory in (protected_dir, stale_dir, newest_dir):
+                directory.mkdir(parents=True)
+                (directory / "report.json").write_text("{}", encoding="utf-8")
+
+            saved = write_suite_report(
+                {
+                    "suite_name": "paper_quadrotor_exam_suite",
+                    "base_scenario": "scenario.json",
+                    "artifact_root": str(root / "runs"),
+                    "status": "passed",
+                    "issues": [],
+                    "rows": [],
+                    "metric_summary": {},
+                },
+                report_root=report_root,
+                keep_last=1,
+                protected_report_dirs=[protected_dir],
+            )
+
+            self.assertTrue(protected_dir.exists())
+            self.assertFalse(stale_dir.exists())
+            self.assertFalse(newest_dir.exists())
+            self.assertIn(str(protected_dir.resolve()), saved["protected_report_dirs"])
+            self.assertIn(str(stale_dir), saved["pruned_report_dirs"])
+
+    def test_suite_report_pruning_preserves_acceptance_matrix_reference_reports(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir) / "repo"
+            config_root = repo_root / "configs"
+            report_root = repo_root / "runs" / "suites"
+            protected_dir = report_root / "paper_quadrotor_exam_suite_20250101_000000_000000"
+            stale_dir = report_root / "paper_quadrotor_exam_suite_20250101_000001_000000"
+            config_root.mkdir(parents=True)
+            for directory in (protected_dir, stale_dir):
+                directory.mkdir(parents=True)
+                (directory / "report.json").write_text("{}", encoding="utf-8")
+            (config_root / "quadrotor_exam_acceptance_matrix.json").write_text(
+                json.dumps(
+                    {
+                        "reference_report": (
+                            "runs/suites/"
+                            "paper_quadrotor_exam_suite_20250101_000000_000000/"
+                            "report.json"
+                        )
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(run_suite_module, "REPO_ROOT", repo_root):
+                saved = write_suite_report(
+                    {
+                        "suite_name": "paper_quadrotor_exam_suite",
+                        "base_scenario": "scenario.json",
+                        "artifact_root": str(repo_root / "runs"),
+                        "status": "passed",
+                        "issues": [],
+                        "rows": [],
+                        "metric_summary": {},
+                    },
+                    report_root=report_root,
+                    keep_last=1,
+                )
+
+            self.assertTrue(protected_dir.exists())
+            self.assertFalse(stale_dir.exists())
+            self.assertIn(str(protected_dir.resolve()), saved["protected_report_dirs"])
+            self.assertIn(str(stale_dir), saved["pruned_report_dirs"])
 
     def test_cli_run_suite_returns_success(self):
         with tempfile.TemporaryDirectory() as tmpdir:

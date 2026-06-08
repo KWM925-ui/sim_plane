@@ -4,7 +4,7 @@
   "backend": "ego_planner_fast_lio_marsim",
   "vehicle": "quadrotor",
   "duration_s": 20.0,
-  "update_hz": 5.0,
+  "update_hz": 20.0,
   "target_altitude_m": 1.0,
   "mission": {
     "type": "goal",
@@ -19,6 +19,8 @@
     "marsim_launch_rviz": true,
     "fast_lio_launch_rviz": false,
     "use_gpu": false,
+    "goal_reach_tolerance_m": 0.062,
+    "goal_settle_hold_s": 0.2,
     "success_criteria": "trajectory"
   }
 }

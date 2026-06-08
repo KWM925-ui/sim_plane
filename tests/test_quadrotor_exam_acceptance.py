@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 import unittest
 from contextlib import redirect_stdout
@@ -12,7 +13,7 @@ from sim_plane.quadrotor_exam_acceptance import validate_matrix, write_report
 SCENES = ["hover", "waypoint"]
 
 
-def make_report(path, distance=10.0, status="passed"):
+def make_report(path, distance=10.0, status="passed", created_at_utc=None):
     rows = []
     for scene in SCENES:
         rows.append(
@@ -43,6 +44,8 @@ def make_report(path, distance=10.0, status="passed"):
             "success_rate": 1.0 if status == "passed" else 0.0,
         },
     }
+    if created_at_utc is not None:
+        report["created_at_utc"] = created_at_utc
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
@@ -98,6 +101,54 @@ class QuadrotorExamAcceptanceTest(unittest.TestCase):
 
             self.assertEqual(report["status"], "passed")
             self.assertEqual(report["report_path"], str(latest_report))
+            self.assertEqual(report["rows"][0]["metric_regressions"]["kpi_distance_m"], 1.0)
+
+    def test_latest_report_prefers_newest_timestamped_suite_report_over_stale_latest_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            artifact_root = root / "runs"
+            suites_root = artifact_root / "suites"
+            reference_report = suites_root / "reference.json"
+            stale_latest_report = suites_root / "latest_paper_quadrotor_exam_suite.json"
+            newer_report = suites_root / "paper_quadrotor_exam_suite_20260608_090000" / "report.json"
+            older_report_with_later_name = suites_root / "paper_quadrotor_exam_suite_20260608_100000" / "report.json"
+            matrix_path = root / "matrix.json"
+            make_report(reference_report, distance=10.0)
+            make_report(stale_latest_report, distance=14.0, created_at_utc="2026-06-08T08:00:00Z")
+            make_report(newer_report, distance=11.0, created_at_utc="2026-06-08T10:00:00Z")
+            make_report(
+                older_report_with_later_name,
+                distance=14.0,
+                created_at_utc="2026-06-08T09:00:00Z",
+            )
+            make_matrix(matrix_path, reference_report)
+
+            report = validate_matrix(path=matrix_path, artifact_root=artifact_root, use_latest=True)
+
+            self.assertEqual(report["status"], "passed")
+            self.assertEqual(report["report_path"], str(newer_report))
+            self.assertEqual(report["rows"][0]["metric_regressions"]["kpi_distance_m"], 1.0)
+
+    def test_latest_report_falls_back_to_report_mtime_when_timestamp_is_invalid(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            artifact_root = root / "runs"
+            suites_root = artifact_root / "suites"
+            reference_report = suites_root / "reference.json"
+            newer_by_name_but_older_mtime = suites_root / "paper_quadrotor_exam_suite_20260608_100000" / "report.json"
+            older_by_name_but_newer_mtime = suites_root / "paper_quadrotor_exam_suite_20260608_090000" / "report.json"
+            matrix_path = root / "matrix.json"
+            make_report(reference_report, distance=10.0)
+            make_report(newer_by_name_but_older_mtime, distance=12.0, created_at_utc="not-a-time")
+            make_report(older_by_name_but_newer_mtime, distance=11.0)
+            os.utime(newer_by_name_but_older_mtime, (1000, 1000))
+            os.utime(older_by_name_but_newer_mtime, (2000, 2000))
+            make_matrix(matrix_path, reference_report)
+
+            report = validate_matrix(path=matrix_path, artifact_root=artifact_root, use_latest=True)
+
+            self.assertEqual(report["status"], "passed")
+            self.assertEqual(report["report_path"], str(older_by_name_but_newer_mtime))
             self.assertEqual(report["rows"][0]["metric_regressions"]["kpi_distance_m"], 1.0)
 
     def test_metric_regression_beyond_budget_fails(self):

@@ -138,7 +138,7 @@ class AlgorithmAdapterHandle:
             )
 
     def collect(self, timeout_s, request_stop=False):
-        if request_stop:
+        if request_stop and self.thread.is_alive():
             self.request_stop()
         self.thread.join(timeout_s)
         base_metrics = {

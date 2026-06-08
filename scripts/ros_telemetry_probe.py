@@ -34,6 +34,8 @@ class ProbeState:
         self.pointcloud_count = 0
         self.latest_pointcloud_wall = None
         self.latest_pointcloud_width = 0
+        self.previous_speed_pose = None
+        self.previous_speed_wall = None
 
     def odom_callback(self, message):
         self.latest_odom = message
@@ -52,14 +54,41 @@ class ProbeState:
         if self.latest_odom is None:
             return None
 
+        sample_wall = time.time()
         pose = self.latest_odom.pose.pose
         twist = self.latest_odom.twist.twist
         altitude_m = float(pose.position.z)
-        speed_mps = math.sqrt(
+        pose_tuple = (
+            float(pose.position.x),
+            float(pose.position.y),
+            float(pose.position.z),
+        )
+        twist_speed_mps = math.sqrt(
             float(twist.linear.x) * float(twist.linear.x)
             + float(twist.linear.y) * float(twist.linear.y)
             + float(twist.linear.z) * float(twist.linear.z)
         )
+        speed_mps = twist_speed_mps
+        speed_source = "twist"
+        if self.previous_speed_pose is not None and self.previous_speed_wall is not None:
+            dt = sample_wall - self.previous_speed_wall
+            if dt > 1e-6:
+                dx = pose_tuple[0] - self.previous_speed_pose[0]
+                dy = pose_tuple[1] - self.previous_speed_pose[1]
+                dz = pose_tuple[2] - self.previous_speed_pose[2]
+                pose_delta_speed_mps = math.sqrt(dx * dx + dy * dy + dz * dz) / dt
+                if (
+                    math.isfinite(pose_delta_speed_mps)
+                    and pose_delta_speed_mps > 1e-6
+                    and (not math.isfinite(speed_mps) or speed_mps <= 1e-6)
+                ):
+                    speed_mps = pose_delta_speed_mps
+                    speed_source = "pose_delta"
+        if not math.isfinite(speed_mps):
+            speed_mps = 0.0
+            speed_source = "invalid_twist"
+        self.previous_speed_pose = pose_tuple
+        self.previous_speed_wall = sample_wall
         heading_deg = yaw_from_quaternion(
             float(pose.orientation.x),
             float(pose.orientation.y),
@@ -85,6 +114,7 @@ class ProbeState:
             },
             "altitude_m": round(altitude_m, 3),
             "speed_mps": round(speed_mps, 3),
+            "speed_source": speed_source,
             "battery_pct": None,
             "heading_deg": round(heading_deg, 2),
             "position_cmd_count": self.position_cmd_count,

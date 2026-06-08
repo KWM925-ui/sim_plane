@@ -1,14 +1,14 @@
 # 自定义算法接入指南
 
-## 1. 先把话说透
+## 1. 平台接入定位
 
-你前面的感觉是对的：
+这套仓库不是只启动仿真器的脚本集合，而是统一编排和评测层。它把
+`PX4 / JSBSim / Gazebo Classic / MARSIM / FAST_LIO / EGO-Planner` 等能力面
+收敛到同一套 runner、scenario、artifact、KPI、acceptance 和 dashboard
+流程里。
 
-- 现在这套仓库以前更像“统一编排层”
-- 它擅长把 `PX4 / JSBSim / Gazebo Classic / MARSIM / FAST_LIO / EGO-Planner` 这些已有能力面统一起来
-- 但如果你自己写了一个算法，以前仓库里没有一条足够直接的“把你的程序挂进去就能跑”的通路
-
-这一轮补上的，就是这条通路。
+自定义算法接入的目标是：让你的程序通过稳定 adapter 挂到这条流程上，
+跑完后自动留下可复查 artifact 和指标，而不是靠肉眼看一次窗口效果。
 
 ## 2. 现在新增了什么
 
@@ -119,6 +119,17 @@ python3 -m sim_plane generate-scenario \
 
 - [ros_position_command_template.py](/home/coco/sim_plane/examples/user_algorithms/ros_position_command_template.py)
 
+先确认 ROS 场景后端当前是 `ready`：
+
+```bash
+python3 -m sim_plane doctor
+python3 -m sim_plane list-backends
+```
+
+如果 `marsim` 或 `fast_lio_marsim` 显示 `scaffolded`，说明平台入口存在，
+但当前机器的 ROS workspace 还没准备好。先按 `doctor` 提示运行对应 build
+脚本，再执行下面两条模板命令。
+
 直接跑 `MARSIM` 版本：
 
 ```bash
@@ -205,6 +216,22 @@ python3 -m sim_plane run scenarios/fast_lio_marsim_ros_command_template.json --r
 }
 ```
 
+如果你的场景使用 `backend_options.success_criteria="adapter_takeoff"`，
+也就是要证明外部算法真的完成了起飞控制，不只是进程正常退出，那么
+`metrics` 里必须明确写：
+
+```json
+{
+  "success": true,
+  "metrics": {
+    "algorithm_adapter_target_altitude_reached": true
+  }
+}
+```
+
+平台会同时检查后端遥测里的 `target_altitude_reached=true`。这两个条件都满足，
+这次 run 才会被判定为 `adapter_takeoff` 通过。
+
 ## 7. 什么时候该走哪条路
 
 ### 7.1 适合 `external_command`
@@ -254,6 +281,9 @@ python3 -m sim_plane run scenarios/fast_lio_marsim_ros_command_template.json --r
 - `FAST_LIO + MARSIM`
 - 再配 `ros_command`
 
+前置条件是 `doctor` 里对应 backend 已经是 `ready`；如果还是
+`scaffolded`，不要直接跑业务算法，先补 workspace。
+
 如果你的算法需要可视化：
 
 - 加 `--rviz`
@@ -286,6 +316,6 @@ python3 -m sim_plane run scenarios/fast_lio_marsim_ros_command_template.json --r
 但从现在开始，平台已经不是只有“统一编排”了，而是多了两条真正可反复复用的用户入口：
 
 - **控制类算法可以直接通过 `external_command` 进 PX4 路径**
-- **ROS 规划/感知类算法也可以直接通过 `ros_command` 进 `MARSIM / FAST_LIO + MARSIM` 路径**
+- **ROS 规划/感知类算法在对应 backend ready 后，可以通过 `ros_command` 进 `MARSIM / FAST_LIO + MARSIM` 路径**
 
 如果你下一步把你自己的算法入口给我，我现在不是再去解释平台怎么想，而是可以直接把它接到这两条现成通路里。

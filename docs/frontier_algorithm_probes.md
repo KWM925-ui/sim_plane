@@ -2,7 +2,7 @@
 
 ## Scope
 
-This note records fresh `2026-04-29` managed bring-up evidence for additional
+This note records retained `2026-04-29` managed bring-up evidence for additional
 open-source frontier algorithms that are not yet part of the strict
 twenty-one-row platform acceptance gate.
 
@@ -61,7 +61,7 @@ Resolved blockers:
   downgraded from raw warning spam to informational probe-layer detail as long
   as the committed trajectory remains valid.
 
-Fresh runtime result:
+Retained runtime result:
 
 - default stable profile now uses `dense`
 - `runs/manual_probes/super_benchmark_dense_20260429_153853/summary.json`
@@ -121,7 +121,7 @@ Resolved blockers:
   explicitly requested `SIM_PLANE_ROS_MASTER_PORT` now fails fast if the port is
   already occupied.
 
-Fresh runtime result:
+Retained runtime result:
 
 - `runs/manual_probes/visplanner_tracking_20260429_153921/summary.json`
   reports:

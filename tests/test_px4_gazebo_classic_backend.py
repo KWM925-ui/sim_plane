@@ -195,6 +195,79 @@ class PX4GazeboClassicBackendTest(unittest.TestCase):
         self.assertTrue(context["launch_rviz"])
         self.assertEqual(context["backend"], "px4_gazebo_classic")
 
+    def test_run_requests_adapter_stop_when_collecting_report(self):
+        backend = PX4GazeboClassicBackend()
+        process = mock.Mock()
+        process.poll.return_value = 0
+        connection = mock.Mock()
+        heartbeat = mock.Mock()
+        heartbeat.get_srcSystem.return_value = 1
+        heartbeat.get_srcComponent.return_value = 1
+        scenario = {
+            "name": "px4_gazebo_classic_adapter_stop",
+            "vehicle": "quadrotor",
+            "algorithm_adapter": {"type": "external_command", "join_timeout_s": 1.0},
+        }
+        config = {
+            "px4_dir": Path("/tmp/PX4-Autopilot"),
+            "sitl_script": Path("/tmp/PX4-Autopilot/sitl_run.sh"),
+            "gazebo_source_dir": Path("/tmp/PX4-Autopilot/Tools/simulation/gazebo-classic"),
+            "world_file": Path("/tmp/PX4-Autopilot/worlds/empty.world"),
+            "model_file": Path("/tmp/PX4-Autopilot/models/iris/iris.sdf"),
+            "gazebo_binary": Path("/usr/bin/gazebo"),
+            "gzserver_binary": Path("/usr/bin/gzserver"),
+            "gz_binary": Path("/usr/bin/gz"),
+            "gzclient_binary": None,
+            "model": "iris",
+            "world": "empty",
+            "gazebo_master_uri": "http://127.0.0.1:45678",
+            "build_target": "px4_sitl",
+            "simulation_target": "gazebo-classic",
+            "mavlink_endpoint": "udpin:127.0.0.1:14540",
+            "headless": True,
+            "launch_qgc": False,
+            "launch_rviz": False,
+            "connect_timeout_s": 1.0,
+            "shell_commands": [],
+            "success_criteria": "telemetry",
+            "collect_ulog": False,
+            "collect_ulog_max_files": 0,
+            "stop_wait_timeout_s": 1.0,
+        }
+        sink = mock.Mock()
+        sink.artifact_writer = mock.Mock(artifact_dir=Path("/tmp/sim-plane-artifact"))
+        adapter_handle = object()
+
+        with mock.patch("sim_plane.backends.px4_gazebo_classic.build_runtime_config", return_value=config), mock.patch(
+            "sim_plane.backends.px4_gazebo_classic.snapshot_px4_ulog_files", return_value=[]
+        ), mock.patch("sim_plane.backends.px4_gazebo_classic.ensure_gazebo_classic_build"), mock.patch(
+            "sim_plane.backends.px4_gazebo_classic.launch_px4_gazebo_classic", return_value=process
+        ), mock.patch(
+            "sim_plane.backends.px4_gazebo_classic.mavutil.mavlink_connection", return_value=connection
+        ), mock.patch(
+            "sim_plane.backends.px4_gazebo_classic.wait_for_heartbeat", return_value=heartbeat
+        ), mock.patch(
+            "sim_plane.backends.px4_gazebo_classic.start_algorithm_adapter", return_value=adapter_handle
+        ), mock.patch(
+            "sim_plane.backends.px4_gazebo_classic.stream_gazebo_classic_telemetry",
+            return_value={"telemetry_count": 1},
+        ), mock.patch(
+            "sim_plane.backends.px4_gazebo_classic.collect_algorithm_adapter",
+            return_value={"metrics": {}, "notes": []},
+        ) as collect_mock, mock.patch(
+            "sim_plane.backends.px4_gazebo_classic.terminate_process"
+        ), mock.patch(
+            "sim_plane.backends.px4_gazebo_classic.collect_px4_ulog_artifacts_safely", return_value={}
+        ), mock.patch(
+            "sim_plane.backends.px4_gazebo_classic.px4_ulog_metrics", return_value={}
+        ), mock.patch(
+            "sim_plane.backends.px4_gazebo_classic.px4_ulog_note", return_value="ulog unavailable"
+        ):
+            result = backend.run(scenario, sink)
+
+        self.assertEqual(result["status"], "passed")
+        collect_mock.assert_called_once_with(adapter_handle, timeout_s=1.0, request_stop=True)
+
 
 if __name__ == "__main__":
     unittest.main()

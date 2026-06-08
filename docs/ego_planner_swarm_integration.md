@@ -120,7 +120,7 @@ while preserving the same `MARSIM` world cloud:
 
 - `/quad0_pcl_render_node/cloud`
 
-## Fresh Verified Evidence
+## Initial Verified Evidence
 
 On `2026-04-27` and `2026-04-28`, the following were validated on this host:
 

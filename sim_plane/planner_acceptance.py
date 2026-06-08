@@ -1,7 +1,7 @@
 import json
 import shutil
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from sim_plane.artifacts import read_jsonl, utc_timestamp
@@ -113,7 +113,7 @@ def resolve_artifact_dir(mode_spec, matrix_path, artifact_root, use_latest=False
     if use_latest:
         scenario_name = mode_spec["scenario_name"]
         candidates = []
-        for path in sorted(artifact_root.iterdir()):
+        for path in artifact_root.iterdir():
             if not path.is_dir():
                 continue
             result_path = path / "result.json"
@@ -127,12 +127,51 @@ def resolve_artifact_dir(mode_spec, matrix_path, artifact_root, use_latest=False
                 candidates.append(path)
         if not candidates:
             return None, "no artifact found for latest scenario {0}".format(scenario_name)
-        return candidates[-1], None
+        return max(candidates, key=artifact_sort_key), None
 
     artifact_dir = Path(mode_spec["reference_artifact"])
     if not artifact_dir.is_absolute():
         artifact_dir = (matrix_path.parent.parent / artifact_dir).resolve()
     return artifact_dir, None
+
+
+def artifact_sort_key(artifact_dir):
+    return (artifact_created_timestamp(artifact_dir), artifact_dir.name)
+
+
+def artifact_created_timestamp(artifact_dir):
+    manifest_path = artifact_dir / "manifest.json"
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            manifest = {}
+        timestamp = parse_artifact_timestamp(manifest.get("created_at_utc"))
+        if timestamp is not None:
+            return timestamp
+
+    mtimes = []
+    for child_name in ("result.json", "manifest.json", "events.jsonl"):
+        child = artifact_dir / child_name
+        if child.exists():
+            mtimes.append(child.stat().st_mtime)
+    try:
+        mtimes.append(artifact_dir.stat().st_mtime)
+    except OSError:
+        pass
+    return max(mtimes) if mtimes else 0.0
+
+
+def parse_artifact_timestamp(value):
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.timestamp()
 
 
 def resolve_reference_artifact_dir(mode_spec, matrix_path):

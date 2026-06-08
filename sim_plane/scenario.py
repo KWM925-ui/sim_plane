@@ -27,8 +27,10 @@ def normalize_scenario(data, source_path=None):
     scenario.setdefault("update_hz", 5.0)
     scenario.setdefault("target_altitude_m", 18.0)
     scenario.setdefault("realtime_factor", 4.0)
-    scenario.setdefault("waypoints", list(DEFAULT_WAYPOINTS))
     scenario.setdefault("mission", {"type": "loop"})
+    if "waypoints" not in scenario:
+        mission = dict(scenario.get("mission") or {})
+        scenario["waypoints"] = [] if mission.get("type") == "goal" else list(DEFAULT_WAYPOINTS)
     scenario.setdefault("algorithm_adapter", None)
     scenario.setdefault("backend_options", {})
     if source_path is not None:

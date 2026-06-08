@@ -441,12 +441,18 @@ def load_platform_acceptance_latest(artifact_root):
         "selection_mode": report.get("selection_mode"),
         "report_path": str(report_path),
         "delta_path": str(delta_path),
+        "issues": report.get("issues", []),
         "changed_rows_count": delta.get("changed_rows_count"),
         "status_changed": delta.get("status_changed"),
         "planner_acceptance_status": (
             report.get("planner_acceptance", {}).get("status")
             if isinstance(report.get("planner_acceptance"), dict)
             else None
+        ),
+        "planner_acceptance_issues": (
+            report.get("planner_acceptance", {}).get("issues", [])
+            if isinstance(report.get("planner_acceptance"), dict)
+            else []
         ),
         "rows": rows,
         "row_deltas": delta.get("row_deltas", []),

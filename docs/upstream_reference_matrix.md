@@ -93,7 +93,11 @@ The sync entrypoint lives in:
   - role: modern simulator reference
   - why: useful as a comparison point for future richer backend design
 
-## Current Integration Order
+## Initial Integration Order
+
+This order records the early bring-up sequence. It is no longer the live
+priority list because PX4, JSBSim, Gazebo Classic, MARSIM, FAST_LIO, and
+EGO-Planner-family paths now all have managed platform surfaces.
 
 1. `PX4-Autopilot`
 2. `ego-planner-swarm`
@@ -117,4 +121,17 @@ Why legacy `ego-planner` now comes before `Fast-Planner`:
 - that makes legacy `ego-planner` the lighter next planner branch on the
   current host until `Fast-Planner` has a bounded dependency plan.
 
-Everything else is secondary until the first live `px4_sih` run and first planner integration are proven. The live `px4_sih` run is now proven, so the current priority is the first planner integration.
+Everything else was secondary until the first live `px4_sih` run and first
+planner integration were proven. That condition has been met.
+
+## Current Managed Upstream State
+
+- Strict baseline surfaces now include the current quadrotor PX4 SIH, JSBSim,
+  Gazebo Classic, MARSIM, FAST_LIO + MARSIM, and EGO-Planner-family entries
+  declared by the platform acceptance matrices.
+- Manual probe surfaces such as `SUPER` and `visPlanner` are retained under
+  `runs/manual_probes/`; they are upstream reproducibility probes, not strict
+  platform baseline rows unless promoted through a matrix.
+- Future upstream references such as modern Gazebo, Flightmare, AirSim,
+  Scenic/VerifAI, or ROS 2 are comparison and migration references, not current
+  default backends.

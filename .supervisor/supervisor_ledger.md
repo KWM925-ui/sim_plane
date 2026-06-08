@@ -16,7 +16,7 @@
 
 ## Current Frontier
 
-- Run a comprehensive platform audit and correction pass for `/home/coco/sim_plane`.
+- Run a saturation platform audit and correction pass for `/home/coco/sim_plane`.
 - Scope includes:
   - repository hygiene and ignored residue;
   - JSON/schema-style configuration validity;
@@ -28,6 +28,7 @@
 - Keep current validation semantics intact; do not weaken acceptance gates to manufacture a pass.
 - Fix only fresh, evidence-backed defects found in this audit.
 - Preserve valid `runs/` artifacts unless `artifact-hygiene` explicitly classifies them as safe to prune.
+- Formal runs must be sequential when they write to or inspect `runs/`, to avoid the known incomplete-artifact false failure mode.
 
 ## Forbidden Actions
 
@@ -176,7 +177,74 @@
 
 ## Current Round Question
 
-- Does the current generic UAV simulation/evaluation platform still pass a deep, fresh, end-to-end audit across structure, tests, runtime, evidence, frontend/backend alignment, and hygiene; if not, what exact project-local defects must be fixed without changing acceptance semantics?
+- Does the current generic UAV simulation/evaluation platform still pass a saturation, fresh, end-to-end audit across structure, tests, runtime, evidence, frontend/backend alignment, and hygiene; if not, what exact project-local defects must be fixed without changing acceptance semantics?
+
+## Saturation Audit 2026-06-08
+
+### Locked Facts
+
+- Start point: `main` is synced with `origin/main` after commit `ebbac14`.
+- User request: run the broadest practical audit/test/correction pass and spend compute/tokens where useful.
+- Boundary: only `/home/coco/sim_plane`; do not touch external workspaces.
+- Valid `runs/` artifacts must be preserved.
+
+### Current Question
+
+- Which current project-local defects, if any, are exposed by a broad sequential audit of structure, CLI/frontend alignment, static checks, unit tests, fresh runtime surfaces, acceptance reports, artifact hygiene, and platform health?
+
+### Forbidden This Round
+
+- No external workspace edits.
+- No acceptance-threshold weakening.
+- No broad backend migration.
+- No artifact inspectors while a run is actively writing.
+
+### Interruption Resume Closure
+
+- Fresh session/control-plane reads found unrelated latest session files from other projects; they were not used as `sim_plane` facts.
+- Current `sim_plane` source of truth is this ledger, `.agent/PLANS.md`, current git diff, and fresh `runs/` evidence.
+- No active `sim_plane`, PX4, ROS, Gazebo, or MAVSDK server process was found before resuming formal validation.
+- Confirmed fixed defects in the current dirty worktree:
+  - strict planner goal-reach verdict now handles zero-hold cases and 3-decimal report precision through `sim_plane/backends/planner_goal.py`;
+  - ROS lab-stack backends now isolate default `localhost:11311` through `sim_plane/ros_master.py` while preserving explicit non-default masters;
+  - strict planner scenarios now use `20 Hz` sampling and runtime goal tolerances aligned to the frozen acceptance surface.
+- Recovered planner evidence:
+  - `ego_planner_swarm_fast_lio_marsim` repeated `10/10` PASS after ROS master isolation;
+  - latest direct planner acceptance report: `runs/acceptance/planner_acceptance_baseline_latest_20260607_174542_496071/report.json`, `4/4` passed.
+- Sequential final validation after the interruption:
+  - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m sim_plane platform-acceptance --latest --artifact-root runs --json` -> passed; latest report later refreshed at `runs/platform_acceptance/platform_acceptance_baseline_latest_20260607_174339_295017/report.json`.
+  - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m sim_plane px4-failure-acceptance --latest --artifact-root runs --json` -> `runs/px4_failure_injection_acceptance/px4_failure_injection_acceptance_latest_20260607_174312_970303/report.json`, passed `1/1`.
+  - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m sim_plane quadrotor-exam-acceptance --latest --artifact-root runs --json` -> `runs/quadrotor_exam_acceptance/quadrotor_exam_acceptance_latest_20260607_174323_166482/report.json`, passed `8/8`.
+  - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m sim_plane autotest-pack --profile fast --artifact-root runs --json` -> `runs/autotest/sim_plane_autotest_fast_20260607_174339_301360/report.json`, passed `8/8`.
+  - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m sim_plane artifact-hygiene --artifact-root runs --json` -> `clean`.
+  - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m sim_plane manual-probe-hygiene --artifact-root runs --json` -> `clean`.
+  - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m sim_plane platform-health --artifact-root runs --json` -> `runs/platform_health/sim_plane_platform_health_20260607_174408_466729/report.json`, status `warning`, `issues=[]`, only warning `git: status=warning`.
+  - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest` -> `179` tests OK.
+  - JSON syntax -> `48` files OK.
+  - Python source syntax -> `92` files OK.
+  - `list-backends` -> `12/12` ready.
+  - `list-adapters` -> `4/4` ready.
+  - `git diff --check` -> passed.
+  - Repo-local residue scan outside `runs/` found no `__pycache__`, `.pyc`, or `.egg-info`.
+- Current conclusion:
+  - The saturation audit surface is functionally green under current evidence.
+  - The only remaining warning is dirty git state from uncommitted audit fixes and ledger updates.
+  - No external workspace was modified.
+
+### Continuation Saturation Pass - No Commit Yet
+
+- User explicitly deferred committing until later.
+- Current worktree remains intentionally dirty from audit fixes and control-ledger updates.
+- New round goal:
+  - run another broad, sequential, no-pollution audit of the full `sim_plane` auxiliary platform;
+  - exercise as many ready surfaces as practical without GUI-dependent sprawl;
+  - correct only fresh, current-repo defects backed by command output or artifact evidence.
+- Current round forbidden actions:
+  - do not commit or push;
+  - do not modify external workspaces;
+  - do not weaken acceptance thresholds or semantics;
+  - do not run artifact inspectors while any runtime command is actively writing under `runs/`;
+  - do not delete valid historical artifacts.
 
 ## PX4 ULog Evidence Closure Result
 
@@ -190,6 +258,55 @@
 - Collection is non-gating:
   - `px4_ulog/index.json` records `collected`, `missing`, `disabled`, or `failed`;
   - a collection failure is recorded as warning-style evidence and does not change the simulation verdict;
+
+## Resume Continuation 2026-06-08
+
+### Locked Facts
+
+- Latest unrelated session files were found in `/home/coco/.codex/sessions`; they were not used as `sim_plane` facts.
+- Relevant read-only subagent findings from `2026-06-08 05:55-06:02` were integrated.
+- No active PX4/ROS/Gazebo/MAVSDK/sim_plane runtime process was found before this continuation.
+- Scope remains `/home/coco/sim_plane` only.
+
+### Fixed Without Acceptance Semantics Changes
+
+- `sim_plane/console_commands.py` now labels `artifact-hygiene` and `manual-probe-hygiene` as `artifact_scan` instead of `latest_artifact_check`.
+- `docs/算法复现手册_zh.md` now states that `--latest` commands verify existing artifacts and do not start a fresh simulation.
+- `sim_plane/planner_acceptance.py` now chooses latest matching artifacts by artifact creation time from `manifest.json` when available, falling back to file/directory mtime and then directory name.
+- `tests/test_planner_acceptance.py` covers the manifest-time latest-selection case.
+
+### Validation Started
+
+- Targeted validation passed:
+  - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest tests.test_planner_acceptance tests.test_console_commands tests.test_dashboard_replay`
+  - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m py_compile sim_plane/planner_acceptance.py sim_plane/console_commands.py`
+
+### Next Actions
+
+- Run broad validation sequentially, with no artifact inspectors while any runtime command writes `runs/`.
+- Clean repo-local Python cache residue only after validation completes.
+
+## Active Continuation Audit - 2026-06-08
+
+### Locked Facts
+
+- User asked for another broad saturation audit/correction pass and explicitly said not to commit yet.
+- Scope remains only `/home/coco/sim_plane`.
+- Fresh process check before this continuation found no active `sim_plane`, PX4, ROS, Gazebo, JSBSim, MAVSDK, or FlightGear runtime process except the check command itself.
+- Current worktree is intentionally dirty from prior audit fixes and control-ledger updates.
+
+### Current Question
+
+- Under the current dirty-but-intentional worktree, does the platform still pass fresh runtime, acceptance, static, unit, hygiene, and health surfaces after the latest fixes?
+- If not, which earliest project-local defect must be fixed without weakening acceptance semantics?
+
+### Forbidden Actions
+
+- Do not commit or push in this round.
+- Do not edit external workspaces.
+- Do not weaken acceptance thresholds or semantics.
+- Do not run artifact inspectors while any runtime command is writing under `runs/`.
+- Do not delete valid historical artifacts.
   - `result.json` receives `px4_ulog_collected`, `px4_ulog_count`, and `px4_ulog_total_bytes` when a backend result exists.
 - Dashboard artifact summaries now include optional `px4_ulog` status and remain compatible with older artifacts that have no ULog index.
 - Fresh proof:
@@ -377,3 +494,162 @@
   - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest` -> `163` tests OK;
   - `git diff --check` -> passed;
   - `PYTHONDONTWRITEBYTECODE=1 python3 -B -m sim_plane platform-health --artifact-root runs --json` -> functional surfaces passed, with only the expected git dirty warning from this ledger update before commit.
+
+## Saturation Audit Resume Result - 2026-06-08
+
+### Locked Facts
+
+- Scope stayed limited to `/home/coco/sim_plane`; no external workspace was edited.
+- Valid `runs/` artifacts were preserved.
+- Current local branch is functionally green under fresh evidence, but git remains dirty because this audit batch is not committed.
+- No repo-local Python cache residue remains.
+- No active `/home/coco/sim_plane`, PX4, JSBSim, or MAVSDK process remained after validation.
+
+### Defects Fixed
+
+- `planner_goal` now rejects non-finite telemetry/config values before goal-reach evaluation.
+- ROS composite backends now share one selected `ROS_MASTER_URI` across MARSIM, FAST_LIO, probe, and planner envs in the same run.
+- `mavsdk_action_takeoff` now treats either local NED altitude or global-relative altitude as valid takeoff-reach evidence and records max altitude diagnostics on timeout.
+- `quadrotor_exam_acceptance_matrix.json` no longer points at the missing local `20260531_183803` suite report; it points at the earliest present passed frozen suite report, `20260601_050941_402055`.
+
+### Fresh Evidence
+
+- Static/unit:
+  - Python syntax: `92` files OK.
+  - JSON syntax: `48` files OK.
+  - Full unit suite: `186` tests OK.
+  - Targeted new tests: `22` tests OK.
+  - `git diff --check`: passed.
+- Runtime:
+  - JSBSim MAVSDK action fresh proof: `runs/px4_jsbsim_quadx_mavsdk_action_20260607_190013_547706`, passed.
+  - JSBSim MAVSDK action repeatability: `5/5` passed, latest `runs/px4_jsbsim_quadx_mavsdk_action_20260607_190637_072036`.
+- Formal reports:
+  - Planner acceptance: `runs/acceptance/planner_acceptance_baseline_latest_20260607_190826_693506/report.json`, `4/4` passed.
+  - PX4 failure acceptance: `runs/px4_failure_injection_acceptance/px4_failure_injection_acceptance_latest_20260607_190836_653994/report.json`, `1/1` passed.
+  - Quadrotor exam acceptance: `runs/quadrotor_exam_acceptance/quadrotor_exam_acceptance_latest_20260607_190845_606436/report.json`, `8/8` passed.
+  - Platform acceptance: `runs/platform_acceptance/platform_acceptance_baseline_latest_20260607_190857_692882/report.json`, `21/21` passed.
+  - Autotest fast pack: `runs/autotest/sim_plane_autotest_fast_20260607_190919_385660/report.json`, `8/8` passed.
+  - Artifact replay: `runs/flight_log_analysis/artifact_px4_jsbsim_quadx_mavsdk_action_20260607_190637_072036_20260607_190930_754702/report.json`, passed.
+  - ULog replay: `runs/flight_log_analysis/ulog_19_06_43_20260607_190953_595099/report.json`, passed.
+  - Platform health: `runs/platform_health/sim_plane_platform_health_20260607_191018_060417/report.json`, `warning` only because git is dirty, `issues=[]`.
+- Hygiene:
+  - Artifact hygiene: clean, `899` complete artifacts, `0` stale/incomplete/attention.
+  - Manual probe hygiene: clean, `2` retained manual probes, `0` stale.
+
+### Current Frontier
+
+- Current saturation audit branch is functionally closed.
+- Next useful action is git review/commit/push when the user approves.
+
+### Forbidden Next Round
+
+- Do not rerun the same saturation audit just to accumulate more PASS counts unless new evidence appears.
+- Do not change acceptance semantics or thresholds.
+- Do not touch external workspaces.
+
+## Pre-Commit Final Saturation Audit - 2026-06-08
+
+### Locked Facts
+
+- User requested one more complete saturation audit before committing.
+- This is still scoped only to `/home/coco/sim_plane`.
+- The previous functional audit was green except for dirty git state.
+- Closing old subagents surfaced additional read-only evidence of user-facing drift in docs/frontend surfaces; this is fresh evidence, so this round is not a no-op rerun.
+
+### Current Frontier
+
+- Fix evidence-backed user-facing drift without changing acceptance semantics:
+  - frontend/console coverage wording must not imply every backend/baseline parameter surface is exposed;
+  - latest acceptance UI should expose row-level issues/artifacts, not only changed deltas;
+  - docs that still present the platform as MVP/early blueprint must be corrected or clearly marked historical;
+  - README/docs evidence wording must not call old reference artifacts "fresh" when newer reports exist.
+- Then rerun a broad but non-polluting validation matrix.
+
+### Forbidden This Round
+
+- No commit or push.
+- No edits outside `/home/coco/sim_plane`.
+- No acceptance threshold or semantic weakening.
+- No deletion of valid `runs/` evidence.
+- No concurrent artifact inspectors while a runtime command is writing under `runs/`.
+
+### Promotion Gate
+
+- All changed UI/docs behavior must have direct source evidence and tests where practical.
+- Static checks, full unit tests, acceptance reports, artifact/manual hygiene, and platform health must be refreshed after edits.
+- Any remaining warning must be explicitly classified.
+
+### Pre-Commit Final Saturation Audit Result - 2026-06-08
+
+#### Locked Facts
+
+- Scope stayed limited to `/home/coco/sim_plane`.
+- No external business-project workspace was edited.
+- Valid `runs/` artifacts were preserved.
+- The user explicitly deferred commit/push; dirty git is expected until the user approves committing this batch.
+- No active `sim_plane`, PX4, ROS, Gazebo, or MAVSDK process remained after the latest validation pass.
+- Repo-local cache/build residue scan outside `runs/` was clean after cleanup: no `__pycache__`, `.pyc`, or `.egg-info` residue remained.
+
+#### Defects Fixed In The Latest Pass
+
+- PX4 SIH/JSBSim log classification:
+  - `sim_plane/backends/px4_sih.py` now treats `Preflight Fail: height estimate not stable` as transient info-level PX4 log noise, matching the existing transient heading-estimate classification.
+  - Reason: fresh JSBSim/MAVSDK evidence passed after landing/disarm/logger close/PX4 exit, and this warning appeared in shutdown-stage log noise rather than in a failed flight phase.
+- Frontend/console command accuracy:
+  - `run_suite_basic` now explicitly runs `configs/demo_degradation_suite.json`.
+  - `scenario_fuzz_basic` now uses canonical seed `20260528`.
+  - read-only console actions now say `CLI 只读，会写 console 日志` where applicable, so the UI does not imply zero filesystem writes.
+  - console output detection now compares `(mtime_ns, size, type)` signatures instead of mtime alone.
+- Latest/report selection and output-detection tests were expanded for planner, quadrotor exam, console command, and PX4 SIH surfaces.
+
+#### Latest Fresh Evidence
+
+- Targeted tests:
+  - `python3 -m unittest tests.test_console_commands tests.test_planner_acceptance tests.test_quadrotor_exam_acceptance tests.test_px4_sih_backend` -> `62` tests OK.
+- Full static/unit checks:
+  - JSON syntax: `48` config/scenario files OK.
+  - Python syntax: `96` Python files OK.
+  - Full unit suite: `240` tests OK.
+  - `git diff --check`: passed.
+- Fresh runtime/suite/fuzz/exam evidence:
+  - `basic_takeoff`: `runs/basic_takeoff_20260607_225155_170044`, passed.
+  - `live-smoke --profile fast`: `runs/live_smoke/live_smoke_fast_20260607_225211_695491/report.json`, passed.
+  - `live-smoke --profile default`: `runs/live_smoke/live_smoke_default_20260607_225300_785457/report.json`, passed `2/2`, including fresh `px4_sih_headless`.
+  - `demo_degradation_suite`: `runs/suites/demo_degradation_suite_20260607_225307_876550/report.json`, passed.
+  - `scenario-fuzz --seed 20260528`: `runs/scenario_fuzz/demo_seeded_fuzz_20260528_20260607_225322_790893/report.json`, passed.
+  - `quadrotor-exam`: `runs/suites/paper_quadrotor_exam_suite_20260607_225341_991835/report.json`, passed `8/8`.
+  - `run-baseline pid_position_demo`: `runs/basic_takeoff_20260607_225350_951155`, passed.
+  - `check-algorithm-ingress`: `runs/px4_sih_quadx_external_command_template_20260607_225402_620359`, passed.
+  - PX4 native failure run: `runs/px4_sih_quadx_mavsdk_failure_motor_20260607_225456_602956`, passed.
+  - JSBSim MAVSDK action: `runs/px4_jsbsim_quadx_mavsdk_action_20260607_224522_578964`, passed.
+- Latest formal reports:
+  - Planner acceptance: `runs/acceptance/planner_acceptance_baseline_latest_20260607_225542_459862/report.json`, passed `4/4`.
+  - PX4 failure acceptance: `runs/px4_failure_injection_acceptance/px4_failure_injection_acceptance_latest_20260607_225542_344794/report.json`, passed `1/1`.
+  - Quadrotor exam acceptance: `runs/quadrotor_exam_acceptance/quadrotor_exam_acceptance_latest_20260607_225542_347975/report.json`, passed `8/8`.
+  - Platform acceptance: `runs/platform_acceptance/platform_acceptance_baseline_latest_20260607_225617_503216/report.json`, passed `21/21`.
+  - Autotest fast pack: `runs/autotest/sim_plane_autotest_fast_20260607_225617_514420/report.json`, passed `8/8`.
+- Flight-log evidence:
+  - Artifact replay: `runs/flight_log_analysis/artifact_px4_sih_quadx_external_command_template_20260607_225402_620359_20260607_225517_429261/report.json`, passed.
+  - Direct ULog parse: `runs/flight_log_analysis/ulog_22_54_05_20260607_225529_969756/report.json`, passed.
+- Hygiene/health:
+  - Artifact hygiene: clean.
+  - Manual probe hygiene: clean.
+  - Platform health: `runs/platform_health/sim_plane_platform_health_20260607_225652_210555/report.json`, `warning` only because git is dirty; `issues=[]`.
+
+#### Current Conclusion
+
+- Under the latest saturation audit evidence, the generic `sim_plane` platform is functionally green.
+- Remaining non-functional warning is dirty git only, because commit/push was intentionally deferred.
+- The next useful action is either:
+  - review/commit/push the accumulated platform batch when the user approves; or
+  - if continuing optimization before commit, open a new bounded frontier instead of rerunning the same saturation suite without new evidence.
+
+#### Next Improvement Candidates, Not Current Blockers
+
+- PX4 ULog semantic enhancement:
+  - map PX4 numeric nav/arming states to readable names;
+  - classify ULog warning messages more precisely.
+- Dashboard/report consolidation:
+  - make health, suite, fuzz, acceptance, and flight-log evidence easier to browse without turning the frontend into an arbitrary shell.
+- PX4-native failure expansion:
+  - only add official/freshly proven failure surfaces one at a time; do not treat demo degradation as PX4 physical failure.

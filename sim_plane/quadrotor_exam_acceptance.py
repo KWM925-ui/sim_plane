@@ -7,6 +7,7 @@ from sim_plane.planner_acceptance import (
     append_history_entry,
     build_acceptance_report_dir,
     load_previous_acceptance_report,
+    parse_artifact_timestamp,
     prune_acceptance_reports,
 )
 
@@ -76,14 +77,47 @@ def validate_matrix(path=None, artifact_root=None, use_latest=False):
 
 def resolve_suite_report_path(matrix, matrix_path, artifact_root=None, use_latest=False):
     if use_latest:
+        suite_name = matrix.get("suite_name", "paper_quadrotor_exam_suite")
         if artifact_root is not None:
-            return Path(artifact_root) / "suites" / "latest_{0}.json".format(
-                matrix.get("suite_name", "paper_quadrotor_exam_suite")
-            )
+            suites_root = Path(artifact_root) / "suites"
+            fallback = suites_root / "latest_{0}.json".format(suite_name)
+            return resolve_latest_suite_report(suites_root, suite_name, fallback)
         latest_report = matrix.get("latest_report")
         if latest_report:
-            return resolve_path(latest_report, matrix_path)
+            fallback = resolve_path(latest_report, matrix_path)
+            return resolve_latest_suite_report(fallback.parent, suite_name, fallback)
     return resolve_path(matrix.get("reference_report"), matrix_path)
+
+
+def resolve_latest_suite_report(suites_root, suite_name, fallback_path=None):
+    root = Path(suites_root)
+    candidates = []
+    if root.exists():
+        for report_path in root.glob("*/report.json"):
+            report, issues = load_suite_report(report_path)
+            if issues or report is None:
+                continue
+            if report.get("suite_name") == suite_name:
+                candidates.append(report_path)
+    if candidates:
+        return max(candidates, key=suite_report_sort_key)
+    return fallback_path
+
+
+def suite_report_sort_key(report_path):
+    path = Path(report_path)
+    report, issues = load_suite_report(path)
+    timestamp = None
+    if not issues and report is not None:
+        timestamp = parse_artifact_timestamp(
+            report.get("created_at_utc") or report.get("written_at_utc")
+        )
+    if timestamp is None:
+        try:
+            timestamp = path.stat().st_mtime
+        except OSError:
+            timestamp = 0.0
+    return (timestamp, str(path.parent.name))
 
 
 def resolve_path(path_value, matrix_path):

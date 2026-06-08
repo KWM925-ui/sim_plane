@@ -107,7 +107,7 @@ Why this goal is not farther right now:
 - the bounded `2.5 m` goal still exercises the planner, local sensing, and
   command path, but exits earlier and more cleanly
 
-## Fresh Verified Evidence
+## Initial Verified Evidence
 
 On `2026-04-28`, the following were validated on this host:
 

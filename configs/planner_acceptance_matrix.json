@@ -50,11 +50,11 @@
       "odom_source": "/sim_plane/fast_lio_world_odom",
       "obstacle_source": "/quad0_pcl_render_node/cloud",
       "requires_cloud_only": true,
-      "headless": {
-        "scenario_name": "ego_planner_fast_lio_marsim",
-        "reference_artifact": "runs/ego_planner_fast_lio_marsim_20260427_194838",
-        "expected_launch_rviz": false,
-        "baseline_min_goal_distance_m": 0.042
+    "headless": {
+      "scenario_name": "ego_planner_fast_lio_marsim",
+      "reference_artifact": "runs/ego_planner_fast_lio_marsim_20260607_221938_879736",
+      "expected_launch_rviz": false,
+      "baseline_min_goal_distance_m": 0.051
       },
       "visual": {
         "scenario_name": "ego_planner_fast_lio_marsim_visual",
@@ -69,11 +69,11 @@
       "odom_source": "/sim_plane/fast_lio_world_odom",
       "obstacle_source": "/quad0_pcl_render_node/cloud",
       "requires_cloud_only": true,
-      "headless": {
-        "scenario_name": "ego_planner_swarm_fast_lio_marsim",
-        "reference_artifact": "runs/ego_planner_swarm_fast_lio_marsim_20260427_195903",
-        "expected_launch_rviz": false,
-        "baseline_min_goal_distance_m": 0.03
+    "headless": {
+      "scenario_name": "ego_planner_swarm_fast_lio_marsim",
+      "reference_artifact": "runs/ego_planner_swarm_fast_lio_marsim_20260607_222057_101517",
+      "expected_launch_rviz": false,
+      "baseline_min_goal_distance_m": 0.019
       },
       "visual": {
         "scenario_name": "ego_planner_swarm_fast_lio_marsim_visual",

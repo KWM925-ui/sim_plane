@@ -14,6 +14,12 @@
 - dashboard 回放和报告查看
 - acceptance / live-smoke / autotest 复验
 
+主链路可以压缩成一句：
+
+```text
+CLI -> scenario -> backend/adapter -> artifact -> KPI -> suite/fuzz/acceptance -> dashboard
+```
+
 当前主线以四旋翼为准。外部 upstream 和 ROS workspace 固定放在 `/home/coco/sim_plane_ws`，本仓库只放平台代码、场景、配置、文档和统一入口。
 
 它不应该被宣传成“高保真视觉无人机仿真平台”。真实光照、材质、动态遮挡、相机畸变、motion blur 这类能力不是当前主战场；当前主战场是四旋翼算法验证、可重复场景、KPI、故障/退化测试、日志复盘和实验管理。
@@ -161,13 +167,25 @@ PX4/QGroundControl/JSBSim/Gazebo Classic 路径仍是可选视觉面，不是所
 - latest-vs-reference `quadrotor-exam-acceptance`
 - baseline algorithm catalog
 
+注意：这里的“正式能力面”表示平台里有统一 scenario、backend/adapter、
+artifact 和验收入口，不等于当前机器此刻全部 `ready`。当前能不能直接跑，
+必须以这两条命令为准：
+
+```bash
+python3 -m sim_plane doctor
+python3 -m sim_plane list-backends
+```
+
+如果某个 ROS / MARSIM / FAST_LIO / EGO backend 显示 `scaffolded`，先按
+`doctor` 输出补建对应 workspace，再跑下方命令。
+
 `SUPER`、`visPlanner` 等前沿算法目前属于标准探针层，已有保留证据，但不等同于顶层严格基线。
 
 ## 6. 边界和风险
 
 PX4-family 后端会默认尝试把新生成或变化过的 PX4 `.ulg` 收进每个 run artifact 的 `px4_ulog/` 目录。是否真的收到了日志，以该 artifact 内的 `px4_ulog/index.json` 为准；找不到新日志时只记录 `missing`，不改变仿真本身的 PASS/FAIL。
 
-demo backend 的 dropout、延迟、噪声、通信中断、限速等适合做轻量鲁棒性评测。新增的 `sensor_stream_faults` 能模拟数据流层面的 GPS dropout、VIO scale drift、IMU noise burst，但仍不能说成 PX4 原生物理故障。PX4 原生故障只以 `px4-failure-acceptance` 中已经 fresh 证明的项为准。
+demo backend 的 dropout、延迟、噪声、通信中断、限速等适合做轻量鲁棒性评测。新增的 `sensor_stream_faults` 能模拟数据流层面的 GPS dropout、VIO scale drift、IMU noise burst，但仍不能说成 PX4 原生物理故障。PX4 原生故障只以 `px4-failure-acceptance` 中已有 latest/reference 证据的项为准。
 
 ROS1 Noetic 和 Gazebo Classic 都已经 EOL。当前因为主机是 Ubuntu 20.04，平台继续把它们作为可用受管路径保留，但后续迁移应作为独立大版本处理，不能在当前稳定线里硬切。
 

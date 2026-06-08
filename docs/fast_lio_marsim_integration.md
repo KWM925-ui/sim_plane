@@ -72,7 +72,7 @@ The wrapper keeps the upstream mapping launch shape but forces:
 The platform therefore keeps the estimator run bounded to the run artifact
 instead of polluting the upstream checkout root.
 
-## Fresh Verified Evidence
+## Initial Verified Evidence
 
 On `2026-04-28` local time, the following were validated on this host:
 
@@ -124,7 +124,10 @@ It:
   plus `/quad0_pcl_render_node/sensor_cloud`.
 - The raw estimator backend is still useful on its own as a lighter diagnostic
   surface even though planner-on-estimator closed loops are now also validated.
-- There is still no validated GPU `MARSIM` path in the platform.
+- Standalone `MARSIM` CPU and GPU local-sensing paths are validated in the
+  platform. The `FAST_LIO + MARSIM` estimator combination documented here is
+  still validated on the CPU `MARSIM` path only; it should not be advertised as
+  a validated GPU estimator surface until that combination has its own artifact.
 - Raw upstream stderr still prints harmless `FAST_LIO` warning text such as
   `No point, skip this scan!` at startup and `catch sig 2` on normal SIGINT,
   but the platform event stream now classifies them as informational noise.

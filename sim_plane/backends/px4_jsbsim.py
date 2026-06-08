@@ -71,6 +71,42 @@ class PX4JSBSimBackend(Backend):
             )
         if not config["sitl_script"]:
             issues.append("PX4 JSBSim sitl_run.sh script was not found under the PX4 checkout.")
+        if (
+            config["px4_dir"]
+            and config["build_dir"]
+            and config["build_dir"].is_dir()
+            and config["px4_binary"]
+            and not config["px4_binary"].is_file()
+        ):
+            issues.append(
+                "PX4 JSBSim binary is missing at {0}. Run this backend once to build it, or build "
+                "`px4_sitl_default` manually before relying on doctor/list-backends readiness.".format(
+                    config["px4_binary"]
+                )
+            )
+        if (
+            config["px4_dir"]
+            and config["build_dir"]
+            and config["build_dir"].is_dir()
+            and config["jsbsim_bridge_binary"]
+            and not config["jsbsim_bridge_binary"].is_file()
+        ):
+            issues.append(
+                "PX4 JSBSim bridge binary is missing at {0}. Run this backend once to configure/build "
+                "`jsbsim_bridge`, or rebuild PX4 SITL with JSBSIM_ROOT_DIR set.".format(
+                    config["jsbsim_bridge_binary"]
+                )
+            )
+        if config["build_dir"] and config["build_dir"].is_dir() and cmake_cache_needs_jsbsim_reconfigure(config):
+            issues.append(
+                "PX4 JSBSim CMake cache did not discover JSBSim. Reconfigure with JSBSIM_ROOT_DIR={0} before "
+                "treating px4_jsbsim as ready.".format(config["jsbsim_root_dir"])
+            )
+        if config["px4_dir"] and (not config["build_dir"] or not config["build_dir"].is_dir()):
+            issues.append(
+                "PX4 JSBSim build directory was not found at {0}. Run the PX4 SITL configure/build step first, "
+                "for example `make px4_sitl_default`, before running this backend.".format(config["build_dir"])
+            )
         if not config["scene_file"]:
             issues.append(
                 "PX4 JSBSim bridge scene XML was not found for the requested world. "
@@ -108,6 +144,12 @@ class PX4JSBSimBackend(Backend):
             )
         if not config["sitl_script"]:
             raise BackendError("PX4 JSBSim sitl_run.sh script was not found under the selected PX4 checkout.")
+        if not config["build_dir"] or not config["build_dir"].is_dir():
+            raise BackendError(
+                "PX4 JSBSim build directory was not found at {0}. Run `make px4_sitl_default` in the PX4 checkout first.".format(
+                    config["build_dir"]
+                )
+            )
         if not config["scene_file"]:
             raise BackendError(
                 "PX4 JSBSim bridge scene XML was not found for the requested world under "
@@ -135,6 +177,7 @@ class PX4JSBSimBackend(Backend):
         viewer_processes = []
         connection = None
         adapter_handle = None
+        adapter_collected = False
         result = None
         ulog_before = snapshot_px4_ulog_files(config)
         try:
@@ -174,7 +217,9 @@ class PX4JSBSimBackend(Backend):
             adapter_report = collect_algorithm_adapter(
                 adapter_handle,
                 timeout_s=float((scenario.get("algorithm_adapter") or {}).get("join_timeout_s", 3.0)),
+                request_stop=adapter_handle is not None,
             )
+            adapter_collected = True
             telemetry_summary.update(adapter_report["metrics"])
             telemetry_summary["headless"] = config["headless"]
             telemetry_summary["launch_qgc"] = config["launch_qgc"]
@@ -194,6 +239,12 @@ class PX4JSBSimBackend(Backend):
                     connection.close()
                 except Exception:
                     pass
+            if adapter_handle is not None and not adapter_collected:
+                collect_algorithm_adapter(
+                    adapter_handle,
+                    timeout_s=float((scenario.get("algorithm_adapter") or {}).get("join_timeout_s", 3.0)),
+                    request_stop=True,
+                )
             for process in reversed(viewer_processes):
                 terminate_process(process, sink, "viewer")
             terminate_process(sitl_process, sink, "px4_jsbsim")
@@ -333,6 +384,15 @@ def ensure_jsbsim_build(config, sink):
     if config["build_dir"] is None:
         raise BackendError("PX4 build directory could not be derived from the selected checkout.")
 
+    if (
+        not config["px4_binary"]
+        or not config["px4_binary"].is_file()
+        or not config["jsbsim_bridge_binary"]
+        or not config["jsbsim_bridge_binary"].is_file()
+        or cmake_cache_needs_jsbsim_reconfigure(config)
+    ):
+        configure_px4_jsbsim_build(config, sink)
+
     command = [
         "cmake",
         "--build",
@@ -342,30 +402,77 @@ def ensure_jsbsim_build(config, sink):
         "jsbsim_bridge",
         "-j{0}".format(config["build_jobs"]),
     ]
+    run_jsbsim_build_command(
+        command,
+        cwd=config["px4_dir"],
+        env=prepare_jsbsim_env(config),
+        sink=sink,
+        label="px4_jsbsim_build",
+        failure_message="PX4 JSBSim build failed before launch.",
+    )
+
+    if not config["px4_binary"] or not config["px4_binary"].is_file():
+        raise BackendError("PX4 binary was not produced at the expected path after the JSBSim build.")
+    if not config["jsbsim_bridge_binary"] or not config["jsbsim_bridge_binary"].is_file():
+        raise BackendError("jsbsim_bridge binary was not produced at the expected path after the JSBSim build.")
+
+
+def configure_px4_jsbsim_build(config, sink):
+    if not config["jsbsim_root_dir"]:
+        raise BackendError("Local JSBSim toolchain not found; cannot configure PX4 JSBSim target.")
+    command = [
+        "cmake",
+        "-S",
+        str(config["px4_dir"]),
+        "-B",
+        str(config["build_dir"]),
+        "-DCONFIG={0}".format(config["build_target"]),
+        "-DJSBSIM_ROOT_DIR={0}".format(config["jsbsim_root_dir"]),
+    ]
+    run_jsbsim_build_command(
+        command,
+        cwd=config["px4_dir"],
+        env=prepare_jsbsim_env(config),
+        sink=sink,
+        label="px4_jsbsim_configure",
+        failure_message="PX4 JSBSim configure failed before launch.",
+    )
+
+
+def cmake_cache_needs_jsbsim_reconfigure(config):
+    build_dir = config.get("build_dir")
+    if not build_dir:
+        return False
+    cache_path = Path(build_dir) / "CMakeCache.txt"
+    if not cache_path.is_file():
+        return True
+    try:
+        cache_text = cache_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return True
+    return "JSBSIM_INCLUDE_DIR:PATH=JSBSIM_INCLUDE_DIR-NOTFOUND" in cache_text
+
+
+def run_jsbsim_build_command(command, cwd, env, sink, label, failure_message):
     sink.emit_event(
         "info",
-        "building px4_jsbsim dependencies",
-        {"command": " ".join(shlex.quote(part) for part in command), "cwd": str(config["px4_dir"])},
+        label.replace("_", " "),
+        {"command": " ".join(shlex.quote(part) for part in command), "cwd": str(cwd)},
     )
     process = subprocess.Popen(
         command,
-        cwd=str(config["px4_dir"]),
-        env=prepare_jsbsim_env(config),
+        cwd=str(cwd),
+        env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
         bufsize=1,
         preexec_fn=os.setsid,
     )
-    start_log_threads(process, sink, "jsbsim_build")
+    start_log_threads(process, sink, label)
     return_code = process.wait()
     if return_code != 0:
-        raise BackendError("PX4 JSBSim build failed before launch.")
-
-    if not config["px4_binary"] or not config["px4_binary"].is_file():
-        raise BackendError("PX4 binary was not produced at the expected path after the JSBSim build.")
-    if not config["jsbsim_bridge_binary"] or not config["jsbsim_bridge_binary"].is_file():
-        raise BackendError("jsbsim_bridge binary was not produced at the expected path after the JSBSim build.")
+        raise BackendError(failure_message)
 
 
 def prepare_jsbsim_env(config, artifact_dir=None):

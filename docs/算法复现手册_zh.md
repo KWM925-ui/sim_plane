@@ -5,7 +5,11 @@
 这份文档只回答一个问题：  
 **现在这个仓库里，哪些算法怎么复现，产物落到哪里，如何判断它是不是跑对了。**
 
-## 2. 严格基线能力面的复现方式
+## 2. 严格基线能力面的核验方式
+
+本节里的 `--latest` 命令只读取 `runs/` 中已经存在的最新匹配 artifact/report
+做回归核验，不会重新启动仿真。需要 fresh 复跑时，使用第 3 节的脚本或
+`python3 -m sim_plane run ...`。
 
 ### 2.1 顶层平台基线
 
@@ -15,7 +19,7 @@
 python3 -m sim_plane platform-acceptance --latest --artifact-root runs
 ```
 
-如果这条命令通过，说明当前已经冻结到平台基线的能力面没有退化。
+如果这条命令通过，说明当前已有最新证据相对于冻结平台基线没有退化。
 
 ### 2.2 planner 基线
 
@@ -45,6 +49,16 @@ python3 -m sim_plane planner-acceptance --latest --artifact-root runs
 - `./scripts/run_ego_planner_swarm_fast_lio_marsim.sh`
 
 这些脚本最终都会落到 `runs/<artifact_name>/`，并受 acceptance gate 保护。
+
+运行 ROS / MARSIM / FAST_LIO / EGO 相关脚本前，先执行：
+
+```bash
+python3 -m sim_plane doctor
+python3 -m sim_plane list-backends
+```
+
+如果对应 backend 是 `scaffolded`，说明平台入口和脚本存在，但当前机器的
+workspace 或 PX4 build 目录还没准备好；先按 `doctor` 提示补建，再复现。
 
 ### 3.2 自定义算法接入入口
 
@@ -187,7 +201,7 @@ python3 -m sim_plane generate-scenario \
 - 有隔离 ROS master，不和外部已有 ROS 环境串台。
 - 有固定 artifact 目录结构。
 - 有 `summary.json` 这种机器可读结果。
-- 跑完之后，顶层 `platform-acceptance --latest` 仍然是绿的。
+- 跑完之后，顶层 `platform-acceptance --latest` 对新生成 artifact 的回归核验仍然是绿的。
 - 原本已经确认无伤的日志噪声，不能重新污染严格基线判断面。
 
 ## 7. 清理旧 probe

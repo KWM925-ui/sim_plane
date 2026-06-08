@@ -4,11 +4,29 @@ import shlex
 import subprocess
 import threading
 import time
+import glob
 from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_CONSOLE_RUN_ROOT = REPO_ROOT / "runs" / "console_commands"
+CONSOLE_RUN_LOG_OUTPUTS = [
+    "runs/console_commands/<run_id>/output.log",
+    "runs/console_commands/<run_id>/record.json",
+]
+
+REPORT_ROOT_SUFFIX_BY_CLI = {
+    "platform-health": "platform_health",
+    "live-smoke": "live_smoke",
+    "run-suite": "suites",
+    "quadrotor-exam": "suites",
+    "platform-acceptance": "platform_acceptance",
+    "quadrotor-exam-acceptance": "quadrotor_exam_acceptance",
+    "px4-failure-acceptance": "px4_failure_injection_acceptance",
+    "autotest-pack": "autotest",
+    "check-algorithm-ingress": "algorithm_ingress",
+    "scenario-fuzz": "scenario_fuzz",
+}
 
 
 def utc_timestamp_for_path():
@@ -64,7 +82,7 @@ WORKFLOW_META = {
 EVIDENCE_META = {
     "read_only": {
         "evidence_type": "只读检查",
-        "freshness": "不启动仿真，不新建正式 artifact。",
+        "freshness": "CLI 本体不启动仿真，不新建正式 artifact；从前端运行时仍会写 console 日志。",
         "concurrency_policy": "可与普通阅读并行；不要和正在写 runs/ 的卫生扫描结论混用。",
     },
     "fresh_artifact": {
@@ -76,6 +94,11 @@ EVIDENCE_META = {
         "evidence_type": "历史证据回归",
         "freshness": "读取已有 latest artifact/report，不重新跑仿真。",
         "concurrency_policy": "不要和正在写 runs/ 的长任务并行，否则 latest 选择可能读到中间状态。",
+    },
+    "artifact_scan": {
+        "evidence_type": "artifact 卫生扫描",
+        "freshness": "扫描已有 runs/ 目录，不启动仿真，不删除 artifact。",
+        "concurrency_policy": "不要和正在写 runs/ 的长任务并行，否则可能把正在生成的 artifact 误判为不完整。",
     },
     "mixed_autotest": {
         "evidence_type": "混合一键复验",
@@ -106,41 +129,41 @@ CONSOLE_COMMANDS = [
         "evidence_id": "read_only",
         "category": "健康/总览",
         "title": "本机能力探测",
-        "risk": "只读",
+        "risk": "CLI 只读，会写 console 日志",
         "duration_hint": "很快",
         "command": ["python3", "-m", "sim_plane", "doctor"],
         "description": "检查当前机器可用的 backend、adapter，并给出推荐运行路径。",
         "value": "把“这台机器现在能跑什么”说清楚，避免盲目点重仿真。",
         "when_to_use": "换机器、重启后、依赖不确定、PX4/ROS/Gazebo 不知道是否可用时。",
-        "outputs": ["控制台日志"],
+        "outputs": CONSOLE_RUN_LOG_OUTPUTS,
     },
     {
         "id": "artifact_hygiene_scan",
         "workflow_id": "orientation",
-        "evidence_id": "latest_artifact_check",
+        "evidence_id": "artifact_scan",
         "category": "健康/总览",
         "title": "artifact 卫生扫描",
-        "risk": "只读",
+        "risk": "只扫描 runs/，会写 console 日志",
         "duration_hint": "很快",
         "command": ["python3", "-m", "sim_plane", "artifact-hygiene", "--artifact-root", "runs"],
         "description": "只扫描 runs/ 是否存在不完整、过期、未归档的目录，不执行删除。",
         "value": "保证实验结果目录不被垃圾文件污染，后续报告和 latest 选择更可靠。",
         "when_to_use": "跑完一批实验后，或者 dashboard 里看到奇怪 artifact 时。",
-        "outputs": ["控制台日志"],
+        "outputs": CONSOLE_RUN_LOG_OUTPUTS,
     },
     {
         "id": "manual_probe_hygiene_scan",
         "workflow_id": "orientation",
-        "evidence_id": "latest_artifact_check",
+        "evidence_id": "artifact_scan",
         "category": "健康/总览",
         "title": "manual probe 卫生扫描",
-        "risk": "只读",
+        "risk": "只扫描 runs/manual_probes/，会写 console 日志",
         "duration_hint": "很快",
         "command": ["python3", "-m", "sim_plane", "manual-probe-hygiene", "--artifact-root", "runs"],
         "description": "只扫描 runs/manual_probes/ 中保留的人工探针证据，不执行删除。",
         "value": "把正式验收证据和人工探针证据区分清楚，避免互相污染。",
         "when_to_use": "做过手动可视化、前沿算法探针或临时验证后。",
-        "outputs": ["控制台日志"],
+        "outputs": CONSOLE_RUN_LOG_OUTPUTS,
     },
     {
         "id": "demo_takeoff",
@@ -187,7 +210,17 @@ CONSOLE_COMMANDS = [
         "title": "基础扰动 suite",
         "risk": "会新建多个 artifact/report",
         "duration_hint": "中等",
-        "command": ["python3", "-m", "sim_plane", "run-suite", "scenarios/basic_takeoff.json", "--artifact-root", "runs"],
+        "command": [
+            "python3",
+            "-m",
+            "sim_plane",
+            "run-suite",
+            "scenarios/basic_takeoff.json",
+            "--suite",
+            "configs/demo_degradation_suite.json",
+            "--artifact-root",
+            "runs",
+        ],
         "description": "对 basic_takeoff 跑一组确定性扰动变体，并输出 KPI、因子影响和最差项。",
         "value": "从“能不能跑”升级到“扰动后表现变差多少”。",
         "when_to_use": "比较算法鲁棒性、检查噪声/dropout/限速等退化影响时。",
@@ -224,7 +257,7 @@ CONSOLE_COMMANDS = [
             "--profile",
             "demo_fast",
             "--seed",
-            "7",
+            "20260528",
             "--variants",
             "6",
             "--artifact-root",
@@ -289,7 +322,16 @@ CONSOLE_COMMANDS = [
         "description": "运行本机 CI/autotest-like 快速包，组合 doctor、hygiene、live smoke、suite、fuzz、acceptance 等。",
         "value": "用一条命令覆盖平台最常用的自动复验链。",
         "when_to_use": "准备提交、长期优化收尾、或者需要一份综合复验证据时。",
-        "outputs": ["runs/autotest/"],
+        "outputs": [
+            "runs/autotest/",
+            "runs/live_smoke/",
+            "runs/basic_takeoff_*",
+            "runs/suites/",
+            "runs/scenario_fuzz/",
+            "runs/flight_log_analysis/",
+            "runs/px4_failure_injection_acceptance/",
+            "runs/platform_acceptance/",
+        ],
     },
     {
         "id": "list_baselines",
@@ -297,13 +339,13 @@ CONSOLE_COMMANDS = [
         "evidence_id": "read_only",
         "category": "算法接入",
         "title": "查看内置 baseline",
-        "risk": "只读",
+        "risk": "CLI 只读，会写 console 日志",
         "duration_hint": "很快",
         "command": ["python3", "-m", "sim_plane", "list-baselines"],
         "description": "列出当前平台内置、已标记 ready 的 baseline 算法入口。",
         "value": "让使用者知道不是空平台，可以先跑哪些标准算法/模板。",
         "when_to_use": "不知道先跑哪个算法、或准备接入自己的算法前。",
-        "outputs": ["控制台日志"],
+        "outputs": CONSOLE_RUN_LOG_OUTPUTS,
     },
     {
         "id": "run_baseline_pid_demo",
@@ -334,7 +376,7 @@ CONSOLE_COMMANDS = [
         "evidence_id": "fresh_artifact",
         "category": "算法接入",
         "title": "PX4 external_command 体检",
-        "risk": "会启动 PX4 SIH 并新建 artifact/report",
+        "risk": "会启动 PX4 SIH 并新建 artifact；控制台打印体检报告",
         "duration_hint": "中等到较久",
         "command": [
             "python3",
@@ -349,7 +391,7 @@ CONSOLE_COMMANDS = [
         "description": "按现有 PX4 SIH external_command 模板跑一次接入体检，检查进程、telemetry、控制输出、adapter 状态和 KPI。",
         "value": "把“算法有没有真正接进平台”变成可复查报告，而不是只看屏幕有没有动。",
         "when_to_use": "接 MAVSDK/MAVROS/MAVLink/普通控制程序前，先用模板确认平台侧入口没问题。",
-        "outputs": ["runs/algorithm_ingress/", "runs/px4_sih_quadx_external_command_template_*"],
+        "outputs": ["runs/algorithm_ingress/latest_ingress_check_scenario.json", "runs/px4_sih_quadx_external_command_template_*"],
     },
     {
         "id": "list_backends",
@@ -357,13 +399,13 @@ CONSOLE_COMMANDS = [
         "evidence_id": "read_only",
         "category": "算法接入",
         "title": "查看 backend",
-        "risk": "只读",
+        "risk": "CLI 只读，会写 console 日志",
         "duration_hint": "很快",
         "command": ["python3", "-m", "sim_plane", "list-backends"],
         "description": "列出当前注册的仿真 backend 及 readiness。",
         "value": "明确后端能力面，避免把不可用 backend 当可用。",
         "when_to_use": "选择 PX4 SIH、JSBSim、Gazebo Classic、MARSIM、EGO 等路径前。",
-        "outputs": ["控制台日志"],
+        "outputs": CONSOLE_RUN_LOG_OUTPUTS,
     },
     {
         "id": "list_adapters",
@@ -371,13 +413,13 @@ CONSOLE_COMMANDS = [
         "evidence_id": "read_only",
         "category": "算法接入",
         "title": "查看 adapter",
-        "risk": "只读",
+        "risk": "CLI 只读，会写 console 日志",
         "duration_hint": "很快",
         "command": ["python3", "-m", "sim_plane", "list-adapters"],
         "description": "列出当前注册的算法 adapter 及 readiness。",
         "value": "明确控制类、ROS 类、MAVSDK 等通用算法接入面。",
         "when_to_use": "准备接自己的控制或规划/感知算法前。",
-        "outputs": ["控制台日志"],
+        "outputs": CONSOLE_RUN_LOG_OUTPUTS,
     },
 ]
 
@@ -393,22 +435,27 @@ HIDDEN_CLI_COMMANDS = {
 }
 
 
-def list_console_commands():
+def list_console_commands(artifact_root=None, repo_root=None):
     rows = []
     for command in CONSOLE_COMMANDS:
-        rows.append(enrich_console_command(command))
+        rows.append(enrich_console_command(command, artifact_root=artifact_root, repo_root=repo_root))
     return rows
 
 
-def get_console_command(command_id):
+def get_console_command(command_id, artifact_root=None, repo_root=None):
     for command in CONSOLE_COMMANDS:
         if command["id"] == command_id:
-            return enrich_console_command(command)
+            return enrich_console_command(command, artifact_root=artifact_root, repo_root=repo_root)
     raise KeyError(command_id)
 
 
-def enrich_console_command(command):
+def enrich_console_command(command, artifact_root=None, repo_root=None):
     row = dict(command)
+    if artifact_root is not None:
+        root_text = artifact_root_for_command(artifact_root, repo_root or REPO_ROOT)
+        row["command"] = rewrite_artifact_root_args(row["command"], root_text)
+        row["command"] = rewrite_report_root_args(row["command"], root_text)
+        row["outputs"] = rewrite_artifact_root_outputs(row.get("outputs", []), root_text)
     workflow = WORKFLOW_META.get(row.get("workflow_id"), WORKFLOW_META["orientation"])
     evidence = EVIDENCE_META.get(row.get("evidence_id"), EVIDENCE_META["read_only"])
     row["workflow_id"] = row.get("workflow_id", "orientation")
@@ -421,6 +468,73 @@ def enrich_console_command(command):
     return row
 
 
+def artifact_root_for_command(artifact_root, repo_root):
+    root = Path(artifact_root).resolve()
+    repo = Path(repo_root).resolve()
+    try:
+        relative = root.relative_to(repo)
+    except ValueError:
+        return str(root)
+    return str(relative) if str(relative) != "." else "."
+
+
+def rewrite_artifact_root_args(argv, root_text):
+    rewritten = []
+    index = 0
+    while index < len(argv):
+        value = argv[index]
+        rewritten.append(value)
+        if value == "--artifact-root" and index + 1 < len(argv):
+            rewritten.append(root_text)
+            index += 2
+            continue
+        index += 1
+    return rewritten
+
+
+def rewrite_report_root_args(argv, root_text):
+    rewritten = []
+    cli_command = sim_plane_subcommand(argv)
+    report_root = report_root_for_command(cli_command, root_text)
+    if report_root is None:
+        return list(argv)
+    index = 0
+    replaced = False
+    while index < len(argv):
+        value = argv[index]
+        rewritten.append(value)
+        if value == "--report-root" and index + 1 < len(argv):
+            rewritten.append(report_root)
+            index += 2
+            replaced = True
+            continue
+        index += 1
+    if not replaced:
+        rewritten.extend(["--report-root", report_root])
+    return rewritten
+
+
+def report_root_for_command(cli_command, root_text):
+    suffix = REPORT_ROOT_SUFFIX_BY_CLI.get(cli_command)
+    if suffix is None:
+        return None
+    root = Path(root_text)
+    return str(root / suffix)
+
+
+def rewrite_artifact_root_outputs(outputs, root_text):
+    rewritten = []
+    for output in outputs or []:
+        text = str(output)
+        if text == "runs":
+            rewritten.append(root_text)
+        elif text.startswith("runs/"):
+            rewritten.append(root_text.rstrip("/") + "/" + text[len("runs/") :])
+        else:
+            rewritten.append(output)
+    return rewritten
+
+
 class ConsoleCommandRunner:
     def __init__(self, run_root=None, repo_root=None, commands=None):
         self.run_root = Path(run_root) if run_root is not None else DEFAULT_CONSOLE_RUN_ROOT
@@ -430,19 +544,21 @@ class ConsoleCommandRunner:
         self.runs = {}
 
     def list_commands(self):
+        artifact_root = infer_console_artifact_root(self.run_root, self.repo_root)
         if self.commands is None:
-            return list_console_commands()
+            return list_console_commands(artifact_root=artifact_root, repo_root=self.repo_root)
         rows = []
         for command in self.commands:
-            rows.append(enrich_console_command(command))
+            rows.append(enrich_console_command(command, artifact_root=artifact_root, repo_root=self.repo_root))
         return rows
 
     def get_command(self, command_id):
+        artifact_root = infer_console_artifact_root(self.run_root, self.repo_root)
         if self.commands is None:
-            return get_console_command(command_id)
+            return get_console_command(command_id, artifact_root=artifact_root, repo_root=self.repo_root)
         for command in self.commands:
             if command["id"] == command_id:
-                return enrich_console_command(command)
+                return enrich_console_command(command, artifact_root=artifact_root, repo_root=self.repo_root)
         raise KeyError(command_id)
 
     def start(self, command_id):
@@ -536,6 +652,7 @@ class ConsoleCommandRunner:
         log_path = Path(record["log_path"])
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
+        output_snapshot = snapshot_console_outputs(record["outputs"], self.repo_root)
         with log_path.open("w", encoding="utf-8") as log:
             log.write("$ {0}\n\n".format(record["command_display"]))
             log.flush()
@@ -558,7 +675,7 @@ class ConsoleCommandRunner:
                 record["error"] = str(exc)
             finally:
                 record["finished_at_utc"] = utc_timestamp_iso()
-                record["detected_outputs"] = detect_console_outputs(record["outputs"], self.repo_root)
+                record["detected_outputs"] = detect_console_outputs(record["outputs"], self.repo_root, output_snapshot)
                 log.flush()
         with self.lock:
             self.runs[run_id] = record
@@ -582,8 +699,8 @@ def build_cli_coverage(cli_commands):
             rows.append(
                 {
                     "cli_command": cli_command,
-                    "frontend_status": "covered",
-                    "reason": "已有前端按钮: {0}".format(", ".join(button["title"] for button in buttons)),
+                    "frontend_status": "fixed_preset",
+                    "reason": "已有固定前端入口，但不是完整参数面: {0}".format(", ".join(button["title"] for button in buttons)),
                     "button_ids": [button["id"] for button in buttons],
                 }
             )
@@ -600,20 +717,69 @@ def build_cli_coverage(cli_commands):
         "summary": {
             "cli_command_count": len(cli_commands),
             "covered_count": len([row for row in rows if row["frontend_status"] == "covered"]),
+            "fixed_preset_count": len([row for row in rows if row["frontend_status"] == "fixed_preset"]),
             "hidden_count": len([row for row in rows if row["frontend_status"] == "hidden"]),
+            "scope": "CLI subcommand-level fixed-entry coverage, not full parameter coverage",
         },
         "rows": rows,
     }
 
 
-def detect_console_outputs(output_patterns, repo_root):
-    detected = []
-    root = Path(repo_root)
+def infer_console_artifact_root(run_root, repo_root):
+    root = Path(run_root)
+    if root.name == "console_commands":
+        return root.parent
+    return Path(repo_root) / "runs"
+
+
+def snapshot_console_outputs(output_patterns, repo_root):
+    snapshot = {}
     for output in output_patterns or []:
-        if output == "控制台日志":
+        if is_console_run_log_output(output):
             continue
-        pattern = str(output).rstrip("/")
-        matches = sorted(root.glob(pattern), key=lambda item: item.stat().st_mtime if item.exists() else 0, reverse=True)
+        for match in iter_console_output_matches(output, repo_root):
+            try:
+                snapshot[str(match)] = console_output_signature(match)
+            except OSError:
+                continue
+    return snapshot
+
+
+def detect_console_outputs(output_patterns, repo_root, previous_snapshot=None):
+    detected = []
+    previous_snapshot = previous_snapshot or {}
+    for output in output_patterns or []:
+        if is_console_run_log_output(output):
+            continue
+        matches = []
+        for match in iter_console_output_matches(output, repo_root):
+            try:
+                signature = console_output_signature(match)
+            except OSError:
+                continue
+            previous_signature = previous_snapshot.get(str(match))
+            if previous_signature is None or signature != previous_signature:
+                matches.append((match, signature[0]))
+        matches.sort(key=lambda item: item[1], reverse=True)
         for match in matches[:3]:
-            detected.append(str(match))
+            detected.append(str(match[0]))
     return detected
+
+
+def is_console_run_log_output(output):
+    text = str(output)
+    return output == "控制台日志" or "/console_commands/<run_id>/" in text or text.startswith("runs/console_commands/<run_id>/")
+
+
+def iter_console_output_matches(output, repo_root):
+    pattern = str(output).rstrip("/")
+    if not pattern:
+        return []
+    if Path(pattern).is_absolute():
+        return [Path(match) for match in glob.glob(pattern)]
+    return list(Path(repo_root).glob(pattern))
+
+
+def console_output_signature(path):
+    stat = Path(path).stat()
+    return (stat.st_mtime_ns, stat.st_size, "dir" if Path(path).is_dir() else "file")

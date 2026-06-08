@@ -38,6 +38,7 @@ def build_kpi_context(scenario, telemetry):
     target_altitude_m = as_float(scenario.get("target_altitude_m"))
     duration_s = as_float(scenario.get("duration_s"))
     waypoints = normalize_waypoints(scenario.get("waypoints"))
+    mission_goal = normalize_mission_goal(scenario.get("mission"))
     safety = dict(scenario.get("safety") or {})
     control = dict(scenario.get("control_limits") or {})
 
@@ -51,6 +52,7 @@ def build_kpi_context(scenario, telemetry):
 
     positions = [sample_position(sample) for sample in samples]
     valid_positions = [position for position in positions if position is not None]
+    valid_position_samples = [sample for sample in samples if sample_position(sample) is not None]
     altitudes = [sample_altitude(sample) for sample in samples]
     altitudes = [altitude for altitude in altitudes if altitude is not None]
     altitude_samples = [
@@ -78,12 +80,14 @@ def build_kpi_context(scenario, telemetry):
         "target_altitude_m": target_altitude_m,
         "duration_s": duration_s,
         "waypoints": waypoints,
+        "mission_goal": mission_goal,
         "safety": safety,
         "control_limits": control,
         "numeric_times": numeric_times,
         "mission_duration_s": mission_duration_s,
         "positions": positions,
         "valid_positions": valid_positions,
+        "valid_position_samples": valid_position_samples,
         "altitudes": altitudes,
         "altitude_samples": altitude_samples,
         "speeds": speeds,
@@ -171,7 +175,9 @@ def kpi_mission(context):
 
 def kpi_path(context):
     waypoints = context["waypoints"]
+    mission_goal = context["mission_goal"]
     valid_positions = context["valid_positions"]
+    valid_position_samples = context["valid_position_samples"]
     mission_positions = context["mission_positions"]
     kpis = {}
     if waypoints and valid_positions:
@@ -198,7 +204,17 @@ def kpi_path(context):
                 "kpi_mission_path_error_max_m": round(max(mission_horizontal_errors), 3),
             }
         )
-    if waypoints and valid_positions:
+    if mission_goal and valid_position_samples:
+        final_distance = distance_to_mission_goal_3d(valid_position_samples[-1], mission_goal)
+        final_horizontal = distance_to_mission_goal_2d(valid_position_samples[-1], mission_goal)
+        final_altitude_error = altitude_error_to_mission_goal(valid_position_samples[-1], mission_goal)
+        if final_distance is not None:
+            kpis["kpi_final_goal_distance_m"] = round(final_distance, 3)
+        if final_horizontal is not None:
+            kpis["kpi_final_goal_horizontal_distance_m"] = round(final_horizontal, 3)
+        if final_altitude_error is not None:
+            kpis["kpi_final_goal_altitude_error_m"] = round(final_altitude_error, 3)
+    elif waypoints and valid_positions:
         final_goal_distance = distance_to_goal_2d(valid_positions[-1], waypoints[-1])
         kpis["kpi_final_goal_distance_m"] = round(final_goal_distance, 3)
     return kpis
@@ -346,6 +362,19 @@ def normalize_waypoints(raw_waypoints):
     return waypoints
 
 
+def normalize_mission_goal(raw_mission):
+    mission = dict(raw_mission or {})
+    if mission.get("type") != "goal":
+        return None
+    goal = dict(mission.get("goal") or {})
+    x_m = as_float(goal.get("x"))
+    y_m = as_float(goal.get("y"))
+    z_m = as_float(goal.get("z"))
+    if x_m is None or y_m is None or z_m is None:
+        return None
+    return {"x_m": x_m, "y_m": y_m, "altitude_m": z_m}
+
+
 def sample_accelerations(samples):
     values = []
     previous_t = None
@@ -409,6 +438,31 @@ def distance_to_segment_2d(x_m, y_m, start, end):
 
 def distance_to_goal_2d(position, goal):
     return math.hypot(position["x_m"] - goal["x_m"], position["y_m"] - goal["y_m"])
+
+
+def distance_to_mission_goal_2d(sample, goal):
+    position = sample_position(sample)
+    if position is None:
+        return None
+    return math.hypot(position["x_m"] - goal["x_m"], position["y_m"] - goal["y_m"])
+
+
+def altitude_error_to_mission_goal(sample, goal):
+    altitude = sample_altitude(sample)
+    if altitude is None:
+        position = sample_position(sample)
+        if position is None or as_float(position.get("z_m")) is None:
+            return None
+        altitude = -float(position["z_m"])
+    return abs(float(altitude) - goal["altitude_m"])
+
+
+def distance_to_mission_goal_3d(sample, goal):
+    horizontal = distance_to_mission_goal_2d(sample, goal)
+    altitude_error = altitude_error_to_mission_goal(sample, goal)
+    if horizontal is None or altitude_error is None:
+        return None
+    return math.sqrt(horizontal * horizontal + altitude_error * altitude_error)
 
 
 def truth_position_errors(samples):

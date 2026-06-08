@@ -124,6 +124,19 @@ class AutotestPackTest(unittest.TestCase):
             self.assertEqual(report["status"], "passed")
             self.assertEqual(len(report["steps"]), 8)
             self.assertTrue(Path(report["saved_report"]["report_json"]).exists())
+            commands = {step["name"]: step["command"] for step in report["steps"]}
+            self.assertIn("--report-root {0}".format(root / "runs" / "live_smoke"), commands["live_smoke_fast"])
+            self.assertIn("--report-root {0}".format(root / "runs" / "suites"), commands["demo_degradation_suite"])
+            self.assertIn("--report-root {0}".format(root / "runs" / "scenario_fuzz"), commands["scenario_fuzz_demo_fast"])
+            self.assertIn("--report-root {0}".format(root / "runs" / "flight_log_analysis"), commands["flight_log_artifact_replay"])
+            self.assertIn(
+                "--report-root {0}".format(root / "runs" / "px4_failure_injection_acceptance"),
+                commands["px4_failure_acceptance_latest"],
+            )
+            self.assertIn(
+                "--report-root {0}".format(root / "runs" / "platform_acceptance"),
+                commands["platform_acceptance_latest"],
+            )
 
 
 if __name__ == "__main__":

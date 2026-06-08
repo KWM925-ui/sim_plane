@@ -23,6 +23,13 @@ from sim_plane.backends.ego_planner_marsim import (
     repo_root,
     resolve_workspace_dir,
 )
+from sim_plane.backends.planner_goal import (
+    finalize_goal_reach_diagnostics,
+    make_goal_reach_diagnostics,
+    sample_time_seconds,
+    update_goal_reach_diagnostics,
+    update_goal_reach_state,
+)
 from sim_plane.backends.fast_lio_marsim import (
     DEFAULT_FAST_LIO_WORKSPACE_CANDIDATES,
     launch_fast_lio,
@@ -35,6 +42,7 @@ from sim_plane.backends.marsim import (
     stop_roslaunch,
 )
 from sim_plane.processes import start_log_threads, terminate_process
+from sim_plane.ros_master import share_ros_master_uri
 
 
 DEFAULT_SHUTDOWN_NODES = [
@@ -107,6 +115,7 @@ class EgoPlannerFastLIOMARSIMBackend(Backend):
         marsim_env = load_sourced_environment([config["ros_setup"], config["marsim_workspace_setup"]])
         fast_lio_env = load_sourced_environment([config["ros_setup"], config["fast_lio_workspace_setup"]])
         ego_env = load_sourced_environment([config["ros_setup"], config["ego_workspace_setup"]])
+        share_ros_master_uri(marsim_env, fast_lio_env, ego_env)
         marsim_env = prepare_ros_runtime_env(marsim_env, sink.artifact_writer.artifact_dir)
         fast_lio_env = prepare_ros_runtime_env(fast_lio_env, sink.artifact_writer.artifact_dir)
         ego_env = prepare_ros_runtime_env(ego_env, sink.artifact_writer.artifact_dir)
@@ -337,6 +346,11 @@ def stream_telemetry(config, sink, telemetry_queue, marsim_process, fast_lio_pro
     goal_reached = False
     min_goal_distance_m = None
     goal_settled_since = None
+    goal_diagnostics = make_goal_reach_diagnostics(
+        tolerance_m=config["goal_reach_tolerance_m"],
+        settle_speed_mps=config["goal_settle_speed_mps"],
+        settle_hold_s=config["goal_settle_hold_s"],
+    )
     first_sample_seen = False
     first_sample_deadline = start_wall + config["startup_timeout_s"]
 
@@ -392,27 +406,39 @@ def stream_telemetry(config, sink, telemetry_queue, marsim_process, fast_lio_pro
         max_pointcloud_width = max(max_pointcloud_width, int(sample.get("pointcloud_width", 0) or 0))
         goal_distance_m = compute_goal_distance_m(config["goal"], sample)
         min_goal_distance_m = goal_distance_m if min_goal_distance_m is None else min(min_goal_distance_m, goal_distance_m)
+        sample_now = sample_time_seconds(sample, fallback=time.time() - start_wall)
         if float(sample.get("altitude_m", 0.0)) >= config["target_altitude_m"] * 0.95:
             reached_target_altitude = True
-        if goal_distance_m <= config["goal_reach_tolerance_m"] and float(sample.get("speed_mps", 0.0)) <= config["goal_settle_speed_mps"]:
-            if goal_settled_since is None:
-                goal_settled_since = time.time()
-            elif time.time() - goal_settled_since >= config["goal_settle_hold_s"]:
-                goal_reached = True
-                sink.emit_event(
-                    "info",
-                    "goal reached",
-                    {
-                        "goal": config["goal"],
-                        "goal_distance_m": round(goal_distance_m, 3),
-                        "speed_mps": sample.get("speed_mps", 0.0),
-                    },
-                )
-                break
-        else:
-            goal_settled_since = None
+        sample_goal_reached, goal_settled_since = update_goal_reach_state(
+            goal_distance_m=goal_distance_m,
+            speed_mps=float(sample.get("speed_mps", 0.0)),
+            tolerance_m=config["goal_reach_tolerance_m"],
+            settle_speed_mps=config["goal_settle_speed_mps"],
+            settle_hold_s=config["goal_settle_hold_s"],
+            settled_since=goal_settled_since,
+            now=sample_now,
+        )
+        update_goal_reach_diagnostics(
+            goal_diagnostics,
+            goal_distance_m=goal_distance_m,
+            speed_mps=float(sample.get("speed_mps", 0.0)),
+            settled_since=goal_settled_since,
+            now=sample_now,
+        )
+        if sample_goal_reached:
+            goal_reached = True
+            sink.emit_event(
+                "info",
+                "goal reached",
+                {
+                    "goal": config["goal"],
+                    "goal_distance_m": round(goal_distance_m, 3),
+                    "speed_mps": sample.get("speed_mps", 0.0),
+                },
+            )
+            break
 
-    return {
+    summary = {
         "telemetry_count": telemetry_count,
         "max_altitude_m": round(max_altitude_m, 3),
         "max_speed_mps": round(max_speed_mps, 3),
@@ -428,6 +454,8 @@ def stream_telemetry(config, sink, telemetry_queue, marsim_process, fast_lio_pro
         "fast_lio_launch_rviz": config["fast_lio_launch_rviz"],
         "cloud_only": True,
     }
+    summary.update(finalize_goal_reach_diagnostics(goal_diagnostics, goal_reached=goal_reached))
+    return summary
 
 
 def build_notes(config):

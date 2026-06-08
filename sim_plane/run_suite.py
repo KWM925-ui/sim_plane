@@ -545,8 +545,9 @@ def summarize_kpi_rankings(rows, limit=8):
     return rankings
 
 
-def write_suite_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST):
+def write_suite_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST, protected_report_dirs=None):
     root = Path(report_root) if report_root is not None else DEFAULT_SUITE_REPORT_ROOT
+    created_at_utc = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
     suite_name = sanitize_variant_name(report.get("suite_name", "suite"))
     report_dir = root / "{0}_{1}".format(suite_name, stamp)
@@ -556,13 +557,14 @@ def write_suite_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST):
     history_jsonl = root / "history_{0}.jsonl".format(suite_name)
     serializable = dict(report)
     serializable.pop("saved_report", None)
+    serializable.setdefault("created_at_utc", created_at_utc)
     report_json.write_text(json.dumps(serializable, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     latest_json.write_text(json.dumps(serializable, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     with history_jsonl.open("a", encoding="utf-8") as handle:
         handle.write(
             json.dumps(
                 {
-                    "created_at_utc": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "created_at_utc": created_at_utc,
                     "suite_name": report.get("suite_name"),
                     "status": report.get("status"),
                     "report_json": str(report_json),
@@ -571,29 +573,63 @@ def write_suite_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST):
             )
             + "\n"
         )
+    protected_dirs = collect_protected_suite_report_dirs(root, suite_name, protected_report_dirs)
+    pruned_report_dirs = []
     if keep_last and keep_last > 0:
-        prune_suite_reports(root, suite_name, keep_last)
+        pruned_report_dirs = prune_suite_reports(root, suite_name, keep_last, protected_dirs=protected_dirs)
     return {
         "report_dir": str(report_dir),
         "report_json": str(report_json),
         "latest_json": str(latest_json),
         "history_jsonl": str(history_jsonl),
+        "keep_last": keep_last,
+        "protected_report_dirs": [str(path) for path in sorted(protected_dirs, key=lambda item: str(item))],
+        "pruned_report_dirs": pruned_report_dirs,
     }
 
 
-def prune_suite_reports(report_root, suite_name, keep_last):
+def collect_protected_suite_report_dirs(report_root, suite_name, extra_protected_dirs=None):
+    root = Path(report_root)
+    protected = {
+        Path(path).resolve()
+        for path in (extra_protected_dirs or [])
+    }
+    for matrix_path in (REPO_ROOT / "configs").glob("*acceptance_matrix.json"):
+        try:
+            matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        reference_report = matrix.get("reference_report")
+        if not reference_report:
+            continue
+        reference_path = Path(reference_report)
+        if not reference_path.is_absolute():
+            reference_path = REPO_ROOT / reference_path
+        reference_dir = reference_path.parent
+        if reference_dir.name.startswith("{0}_".format(suite_name)) and reference_dir.parent.resolve() == root.resolve():
+            protected.add(reference_dir.resolve())
+    return protected
+
+
+def prune_suite_reports(report_root, suite_name, keep_last, protected_dirs=None):
     pattern = "{0}_*".format(suite_name)
+    protected_dirs = protected_dirs or set()
+    pruned = []
     report_dirs = sorted(
         [path for path in Path(report_root).glob(pattern) if path.is_dir()],
         key=lambda path: path.name,
     )
     for path in report_dirs[:-keep_last]:
+        if path.resolve() in protected_dirs:
+            continue
         for child in sorted(path.rglob("*"), reverse=True):
             if child.is_file() or child.is_symlink():
                 child.unlink()
             elif child.is_dir():
                 child.rmdir()
         path.rmdir()
+        pruned.append(str(path))
+    return pruned
 
 
 def format_suite_report(report):

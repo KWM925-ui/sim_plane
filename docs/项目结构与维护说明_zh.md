@@ -69,16 +69,27 @@
   平台顶层验收报告
 - `runs/platform_health/`
   全平台总健康报告，聚合 git、doctor、卫生检查、latest acceptance、suite/fuzz/flight-log/autotest 摘要和下一阶段候选计划
+- `runs/live_smoke/`
+  `live-smoke` 的 fast/default 启动体检报告
 - `runs/suites/`
   `run-suite` 功能套件报告，包括退化测试、任务族测试、参数扫描和 KPI 排名
+- `runs/quadrotor_exam_acceptance/`
+  论文级四旋翼考试卷的 latest/reference 验收报告
+- `runs/px4_failure_injection_acceptance/`
+  PX4-native 故障注入验收报告
 - `runs/algorithm_ingress/`
-  自定义算法接入体检产生的临时场景和报告入口
+  自定义算法接入体检保留的最新生成场景，例如
+  `latest_ingress_check_scenario.json`。体检结论主要通过 CLI JSON/stdout
+  返回；除非后续实现持久化报告，否则它不是 suite/acceptance 那种
+  `report.json` 目录。
 - `runs/flight_log_analysis/`
   artifact telemetry 或 PX4 `.ulg` 飞行日志复盘报告
 - `runs/scenario_fuzz/`
   可复现 seed fuzz/sweep 报告、最差 case 排名和生成出的 suite JSON
 - `runs/autotest/`
   本机 CI/autotest-like 一键复验报告
+- `runs/console_commands/`
+  dashboard console 按钮触发命令时保留的 `output.log` 和 `record.json`
 
 ### 3.3 手工探针产物
 
@@ -234,6 +245,13 @@ python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
 python3 -m sim_plane list-baselines
 ```
 
+默认只列出可以直接运行的 `ready` baseline。需要同时查看规划中的
+`planned` 条目时使用：
+
+```bash
+python3 -m sim_plane list-baselines --include-planned
+```
+
 运行一个 baseline：
 
 ```bash
@@ -256,6 +274,9 @@ python3 -m sim_plane serve runs
 ### 4.5 PX4 原生故障注入验收
 
 现在有一条独立的 PX4 原生故障注入验收面：
+
+下面第一条命令是 fresh PX4 运行，会新建 artifact；第二条 `--latest`
+只读取已有最新匹配 artifact 做验收，不重新启动仿真。
 
 ```bash
 python3 -m sim_plane run scenarios/px4_sih_quadx_mavsdk_failure_motor.json \

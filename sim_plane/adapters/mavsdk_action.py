@@ -64,6 +64,7 @@ class MAVSDKActionAdapter(AlgorithmAdapter):
         if System is None:
             raise AdapterError("MAVSDK Python is not importable: {0}".format(MAVSDK_IMPORT_ERROR))
 
+        self._last_takeoff_altitude_metrics = {}
         system_address = resolve_mavsdk_system_address(spec, context)
         connect_timeout_s = float(spec.get("connect_timeout_s", 15.0))
         armable_timeout_s = float(spec.get("armable_timeout_s", 20.0))
@@ -113,10 +114,12 @@ class MAVSDKActionAdapter(AlgorithmAdapter):
             await drone.action.takeoff()
             sink.emit_event("info", "algorithm adapter command", {"adapter": self.name, "command": "takeoff"})
             reached_target_altitude = await self._wait_with_timeout(
-                self._wait_for_local_altitude(drone, target_altitude_m, sink),
+                self._wait_for_takeoff_altitude(drone, target_altitude_m, sink),
                 takeoff_reach_timeout_s,
                 "MAVSDK takeoff altitude reach",
             )
+            if not reached_target_altitude:
+                raise AdapterError("MAVSDK takeoff altitude stream closed before target altitude reached")
             await asyncio.sleep(hold_after_takeoff_s)
 
             landed = False
@@ -157,7 +160,17 @@ class MAVSDKActionAdapter(AlgorithmAdapter):
         try:
             return await asyncio.wait_for(awaitable, timeout=float(timeout_s))
         except asyncio.TimeoutError as exc:
-            raise AdapterError("{0} timed out after {1:.1f}s".format(label, float(timeout_s))) from exc
+            details = ""
+            if label == "MAVSDK takeoff altitude reach":
+                metrics = getattr(self, "_last_takeoff_altitude_metrics", {})
+                if metrics:
+                    details = " ({0})".format(
+                        ", ".join(
+                            "{0}={1}".format(key, value)
+                            for key, value in sorted(metrics.items())
+                        )
+                    )
+            raise AdapterError("{0} timed out after {1:.1f}s{2}".format(label, float(timeout_s), details)) from exc
 
     async def _wait_for_connection(self, drone, sink):
         stream = drone.core.connection_state().__aiter__()
@@ -221,28 +234,120 @@ class MAVSDKActionAdapter(AlgorithmAdapter):
         finally:
             await self._close_stream(stream)
 
-    async def _wait_for_local_altitude(self, drone, target_altitude_m, sink):
+    async def _wait_for_takeoff_altitude(self, drone, target_altitude_m, sink):
         threshold_m = float(target_altitude_m) * 0.95
-        stream = drone.telemetry.position_velocity_ned().__aiter__()
+        samples = asyncio.Queue()
+        max_altitudes = {
+            "max_local_altitude_m": 0.0,
+            "max_relative_altitude_m": 0.0,
+            "threshold_m": round(threshold_m, 3),
+            "flight_mode": None,
+        }
+        self._last_takeoff_altitude_metrics = dict(max_altitudes)
+
+        def altitude_reached_event_details(source, altitude_m):
+            return {
+                "adapter": self.name,
+                "altitude_source": source,
+                "flight_mode": max_altitudes.get("flight_mode"),
+                "altitude_m": round(altitude_m, 3),
+                "target_altitude_m": float(target_altitude_m),
+                "max_local_altitude_m": max_altitudes["max_local_altitude_m"],
+                "max_relative_altitude_m": max_altitudes["max_relative_altitude_m"],
+            }
+
+        async def read_local_ned():
+            stream = drone.telemetry.position_velocity_ned().__aiter__()
+            try:
+                while True:
+                    sample = await stream.__anext__()
+                    altitude_m = max(0.0, -float(sample.position.down_m))
+                    await samples.put(("local_ned", altitude_m))
+            except StopAsyncIteration:
+                await samples.put(("local_ned_closed", None))
+            finally:
+                await self._close_stream(stream)
+
+        async def read_relative_altitude():
+            stream = drone.telemetry.position().__aiter__()
+            try:
+                while True:
+                    sample = await stream.__anext__()
+                    altitude_m = max(0.0, float(sample.relative_altitude_m))
+                    await samples.put(("relative", altitude_m))
+            except StopAsyncIteration:
+                await samples.put(("relative_closed", None))
+            finally:
+                await self._close_stream(stream)
+
+        async def read_flight_mode():
+            stream = drone.telemetry.flight_mode().__aiter__()
+            try:
+                while True:
+                    mode = await stream.__anext__()
+                    await samples.put(("flight_mode", format_flight_mode(mode)))
+            except StopAsyncIteration:
+                await samples.put(("flight_mode_closed", None))
+            finally:
+                await self._close_stream(stream)
+
+        tasks = [
+            asyncio.create_task(read_local_ned()),
+            asyncio.create_task(read_relative_altitude()),
+            asyncio.create_task(read_flight_mode()),
+        ]
+        closed_sources = set()
         try:
-            while True:
-                sample = await stream.__anext__()
-                altitude_m = max(0.0, -float(sample.position.down_m))
-                if altitude_m >= threshold_m:
+            while len(closed_sources) < 3:
+                source, value = await samples.get()
+                if source.endswith("_closed"):
+                    closed_sources.add(source)
+                    continue
+                if source == "flight_mode":
+                    max_altitudes["flight_mode"] = value
+                    self._last_takeoff_altitude_metrics = dict(max_altitudes)
+                    if (
+                        max_altitudes["max_local_altitude_m"] >= threshold_m
+                        and not is_takeoff_flight_mode(max_altitudes.get("flight_mode"))
+                    ):
+                        sink.emit_event(
+                            "info",
+                            "algorithm adapter altitude reached",
+                            altitude_reached_event_details("local_ned", max_altitudes["max_local_altitude_m"]),
+                        )
+                        return True
+                    continue
+                altitude_m = float(value)
+                if source == "local_ned":
+                    max_altitudes["max_local_altitude_m"] = round(
+                        max(max_altitudes["max_local_altitude_m"], altitude_m),
+                        3,
+                    )
+                elif source == "relative":
+                    max_altitudes["max_relative_altitude_m"] = round(
+                        max(max_altitudes["max_relative_altitude_m"], altitude_m),
+                        3,
+                    )
+                self._last_takeoff_altitude_metrics = dict(max_altitudes)
+                reached_by_relative_altitude = source == "relative" and altitude_m >= threshold_m
+                reached_by_local_after_takeoff = (
+                    source == "local_ned"
+                    and altitude_m >= threshold_m
+                    and max_altitudes.get("flight_mode") is not None
+                    and not is_takeoff_flight_mode(max_altitudes.get("flight_mode"))
+                )
+                if reached_by_relative_altitude or reached_by_local_after_takeoff:
                     sink.emit_event(
                         "info",
                         "algorithm adapter altitude reached",
-                        {
-                            "adapter": self.name,
-                            "altitude_m": round(altitude_m, 3),
-                            "target_altitude_m": float(target_altitude_m),
-                        },
+                        altitude_reached_event_details(source, altitude_m),
                     )
                     return True
-        except StopAsyncIteration:
             return False
         finally:
-            await self._close_stream(stream)
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
 
     async def _close_stream(self, stream):
         close = getattr(stream, "aclose", None)
@@ -256,3 +361,14 @@ class MAVSDKActionAdapter(AlgorithmAdapter):
                 stop()
             except Exception:
                 pass
+
+
+def format_flight_mode(mode):
+    text = str(mode)
+    if "." in text:
+        text = text.rsplit(".", 1)[-1]
+    return text.upper()
+
+
+def is_takeoff_flight_mode(mode):
+    return format_flight_mode(mode or "") == "TAKEOFF"

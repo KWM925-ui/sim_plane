@@ -85,6 +85,14 @@ class PX4SIHBackendTest(unittest.TestCase):
         )
         self.assertEqual(event["level"], "info")
 
+    def test_parse_px4_height_estimate_warning_is_demoted_to_info(self):
+        event = parse_px4_log_event(
+            "px4_stdout",
+            "stdout",
+            "WARN  [health_and_arming_checks] Preflight Fail: height estimate not stable",
+        )
+        self.assertEqual(event["level"], "info")
+
     def test_parse_px4_other_warning_remains_warning(self):
         event = parse_px4_log_event(
             "px4_stdout",
@@ -98,10 +106,22 @@ class PX4SIHBackendTest(unittest.TestCase):
             "adapter_takeoff",
             {
                 "algorithm_adapter_completed_successfully": True,
+                "algorithm_adapter_target_altitude_reached": True,
                 "target_altitude_reached": True,
             },
         )
         self.assertEqual(status, "passed")
+
+    def test_evaluate_run_status_rejects_adapter_takeoff_without_adapter_altitude_confirmation(self):
+        status = evaluate_run_status(
+            "adapter_takeoff",
+            {
+                "algorithm_adapter_completed_successfully": True,
+                "algorithm_adapter_target_altitude_reached": False,
+                "target_altitude_reached": True,
+            },
+        )
+        self.assertEqual(status, "failed")
 
     def test_runtime_config_defaults_early_stop_to_false(self):
         config = build_runtime_config({"backend_options": {}, "vehicle": "quadrotor"})
@@ -141,6 +161,63 @@ class PX4SIHBackendTest(unittest.TestCase):
         update_state_from_message(state, Heartbeat())
         self.assertEqual(state["mode"], "LOITER")
         self.assertTrue(state["armed"])
+
+    def test_run_requests_adapter_stop_when_collecting_report(self):
+        backend = PX4SIHBackend()
+        process = mock.Mock()
+        process.poll.return_value = 0
+        connection = mock.Mock()
+        heartbeat = mock.Mock()
+        heartbeat.get_srcSystem.return_value = 1
+        heartbeat.get_srcComponent.return_value = 1
+        scenario = {
+            "name": "px4_sih_adapter_stop",
+            "vehicle": "quadrotor",
+            "algorithm_adapter": {"type": "external_command", "join_timeout_s": 1.0},
+        }
+        config = {
+            "px4_dir": Path("/tmp/PX4-Autopilot"),
+            "model": "sihsim_quadx",
+            "mavlink_endpoint": "udpin:127.0.0.1:14540",
+            "launch_qgc": False,
+            "launch_jmavsim": False,
+            "launch_rviz": False,
+            "connect_timeout_s": 1.0,
+            "shell_commands": [],
+            "success_criteria": "telemetry",
+            "collect_ulog": False,
+            "collect_ulog_max_files": 0,
+        }
+        sink = mock.Mock()
+        sink.artifact_writer = mock.Mock(artifact_dir=Path("/tmp/sim-plane-artifact"))
+        adapter_handle = object()
+
+        with mock.patch("sim_plane.backends.px4_sih.build_runtime_config", return_value=config), mock.patch(
+            "sim_plane.backends.px4_sih.snapshot_px4_ulog_files", return_value=[]
+        ), mock.patch("sim_plane.backends.px4_sih.launch_px4", return_value=process), mock.patch(
+            "sim_plane.backends.px4_sih.mavutil.mavlink_connection", return_value=connection
+        ), mock.patch(
+            "sim_plane.backends.px4_sih.wait_for_heartbeat", return_value=heartbeat
+        ), mock.patch(
+            "sim_plane.backends.px4_sih.start_algorithm_adapter", return_value=adapter_handle
+        ), mock.patch(
+            "sim_plane.backends.px4_sih.stream_px4_telemetry", return_value={"telemetry_count": 1}
+        ), mock.patch(
+            "sim_plane.backends.px4_sih.collect_algorithm_adapter",
+            return_value={"metrics": {}, "notes": []},
+        ) as collect_mock, mock.patch(
+            "sim_plane.backends.px4_sih.terminate_process"
+        ), mock.patch(
+            "sim_plane.backends.px4_sih.collect_px4_ulog_artifacts_safely", return_value={}
+        ), mock.patch(
+            "sim_plane.backends.px4_sih.px4_ulog_metrics", return_value={}
+        ), mock.patch(
+            "sim_plane.backends.px4_sih.px4_ulog_note", return_value="ulog unavailable"
+        ):
+            result = backend.run(scenario, sink)
+
+        self.assertEqual(result["status"], "passed")
+        collect_mock.assert_called_once_with(adapter_handle, timeout_s=1.0, request_stop=True)
 
 
 if __name__ == "__main__":

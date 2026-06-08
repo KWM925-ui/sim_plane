@@ -38,6 +38,7 @@ from sim_plane.backends.marsim import (
     stop_roslaunch,
 )
 from sim_plane.processes import start_log_threads, terminate_process
+from sim_plane.ros_master import share_ros_master_uri
 
 
 DEFAULT_EGO_SWARM_WORKSPACE_CANDIDATES = [
@@ -112,6 +113,7 @@ class EgoPlannerSwarmFastLIOMARSIMBackend(Backend):
         marsim_env = load_sourced_environment([config["ros_setup"], config["marsim_workspace_setup"]])
         fast_lio_env = load_sourced_environment([config["ros_setup"], config["fast_lio_workspace_setup"]])
         swarm_env = load_sourced_environment([config["ros_setup"], config["ego_swarm_workspace_setup"]])
+        share_ros_master_uri(marsim_env, fast_lio_env, swarm_env)
         marsim_env = prepare_ros_runtime_env(marsim_env, sink.artifact_writer.artifact_dir)
         fast_lio_env = prepare_ros_runtime_env(fast_lio_env, sink.artifact_writer.artifact_dir)
         swarm_env = prepare_ros_runtime_env(swarm_env, sink.artifact_writer.artifact_dir)

@@ -120,7 +120,7 @@ The earlier exclusion of the upstream single-run `ego_planner_single` and
 
 Why it was safe to promote them:
 
-- fresh `2026-04-28` runs now keep both headless and visual single-run
+- retained `2026-04-28` runs now keep both headless and visual single-run
   artifacts on an `info`-only shared event surface
 - the prior `ego_planner_swarm_single` warning flood was bounded to internal
   retry chatter such as `a star error` and `Ran out of pool`, not to
@@ -136,7 +136,7 @@ Why it was safe to promote them:
   contract instead of a separate manual check.
 - The platform gate no longer only enforces absolute pass/fail thresholds; it
   also rejects tracked metric regressions versus the frozen reference artifacts.
-- The fresh `2026-04-28` core and upstream-demo reference artifacts all expose
+- The retained `2026-04-28` core and upstream-demo reference artifacts all expose
   an `info`-only shared event surface, including the newly landed GPU local
   sensing `MARSIM` rows, the newly landed `PX4 + JSBSim + FlightGear`
   visual row, the newly landed `PX4 + JSBSim + FlightGear + MAVSDK` visual

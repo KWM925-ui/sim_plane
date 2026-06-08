@@ -11,6 +11,7 @@ from threading import Thread
 from sim_plane.adapters import collect_algorithm_adapter, has_algorithm_adapter, start_algorithm_adapter, validate_algorithm_adapter
 from sim_plane.backends.base import Backend, BackendError
 from sim_plane.processes import start_log_threads, terminate_process
+from sim_plane.ros_master import ensure_ros_master_uri, share_ros_master_uri
 from sim_plane.ros_nodes import cleanup_live_ros_nodes
 
 
@@ -75,6 +76,7 @@ class FastLIOMARSIMBackend(Backend):
         marsim_env = load_sourced_environment([config["ros_setup"], config["marsim_workspace_setup"]])
         fast_lio_env = load_sourced_environment([config["ros_setup"], config["fast_lio_workspace_setup"]])
         probe_env = load_sourced_environment([config["ros_setup"]])
+        share_ros_master_uri(marsim_env, fast_lio_env, probe_env)
         marsim_env = prepare_ros_runtime_env(marsim_env, sink.artifact_writer.artifact_dir)
         fast_lio_env = prepare_ros_runtime_env(fast_lio_env, sink.artifact_writer.artifact_dir)
         probe_env = prepare_ros_runtime_env(probe_env, sink.artifact_writer.artifact_dir)
@@ -248,7 +250,7 @@ def prepare_ros_runtime_env(base_env, artifact_dir):
     env["ROS_LOG_DIR"] = str(ros_log_dir)
     env["ROS_HOSTNAME"] = "127.0.0.1"
     env["ROS_IP"] = "127.0.0.1"
-    env.setdefault("ROS_MASTER_URI", "http://127.0.0.1:11311")
+    ensure_ros_master_uri(env)
     return env
 
 

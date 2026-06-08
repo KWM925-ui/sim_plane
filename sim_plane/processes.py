@@ -74,6 +74,14 @@ def terminate_process(
             process.kill()
     except Exception:
         return
+    try:
+        process.wait(timeout=max(wait_timeout_s, 0.1))
+    except Exception:
+        sink.emit_event(
+            "warning",
+            "process did not exit after forced kill",
+            {"label": label, "pid": process.pid},
+        )
 
 
 def signal_name(signum):

@@ -306,22 +306,61 @@ function renderPlatformAcceptance() {
     elements.acceptanceSummary.textContent = "No latest platform acceptance snapshot found.";
     return;
   }
+  const topIssues = [
+    ...(report.issues || []),
+    ...(report.planner_acceptance_issues || []).map((issue) => `planner: ${issue}`),
+  ];
   elements.acceptanceSummary.innerHTML = `
     <strong>${escapeHtml(report.status || "unknown")}</strong>
-    <span>${escapeHtml(report.selection_mode || "-")} · changed rows: ${report.changed_rows_count ?? "-"}</span>
+    <span>${escapeHtml(report.selection_mode || "-")} · changed rows: ${report.changed_rows_count ?? "-"} · planner: ${escapeHtml(report.planner_acceptance_status || "-")}</span>
+    <span>${escapeHtml(report.report_path || "-")}</span>
+    ${topIssues.length ? `<span>${escapeHtml(topIssues.join("; "))}</span>` : ""}
   `;
   elements.acceptanceRows.innerHTML = "";
-  (report.row_deltas || []).filter((row) => row.changed).slice(0, 8).forEach((row) => {
+
+  const changedByName = new Map(
+    (report.row_deltas || []).filter((row) => row.changed).map((row) => [row.name, row])
+  );
+  const reportRowByName = new Map((report.rows || []).map((row) => [row.name, row]));
+  const rowsToShow = [];
+  (report.rows || []).forEach((row) => {
+    const issues = row.issues || [];
+    if (row.status !== "passed" || issues.length) {
+      rowsToShow.push({
+        name: row.name,
+        status: row.status || "unknown",
+        detail: issues.join("; ") || "row status is not passed",
+        artifact_dir: row.artifact_dir,
+        reference_artifact_dir: row.reference_artifact_dir,
+      });
+    }
+  });
+  changedByName.forEach((row, name) => {
+    if (rowsToShow.some((item) => item.name === name)) {
+      return;
+    }
+    const reportRow = reportRowByName.get(name) || {};
+    rowsToShow.push({
+      name,
+      status: row.current_status || "changed",
+      detail: (row.changed_metric_names || []).join(", ") || "status/metric change",
+      artifact_dir: row.artifact_dir || reportRow.artifact_dir,
+      reference_artifact_dir: row.reference_artifact_dir || reportRow.reference_artifact_dir,
+    });
+  });
+
+  rowsToShow.slice(0, 8).forEach((row) => {
     const item = document.createElement("div");
     item.className = "acceptance-row";
     item.innerHTML = `
       <strong>${escapeHtml(row.name)}</strong>
-      <span>${escapeHtml((row.changed_metric_names || []).join(", ") || "status change")}</span>
+      <span>${escapeHtml(row.status)} · ${escapeHtml(row.detail || "-")}</span>
+      <small>${escapeHtml(row.artifact_dir || "-")} vs ${escapeHtml(row.reference_artifact_dir || "-")}</small>
     `;
     elements.acceptanceRows.appendChild(item);
   });
   if (!elements.acceptanceRows.children.length) {
-    elements.acceptanceRows.textContent = "Latest report has no changed rows.";
+    elements.acceptanceRows.textContent = "Latest report has no failed, issue-bearing, or changed rows.";
   }
 }
 
@@ -582,7 +621,7 @@ function renderConsoleOutputs(run) {
   elements.consoleOutputList.innerHTML = "";
   const outputs = run && run.detected_outputs ? run.detected_outputs : [];
   if (!outputs.length) {
-    elements.consoleOutputList.textContent = "未检测到新的 artifact/report 路径；完整日志仍在 runs/console_commands/。";
+    elements.consoleOutputList.textContent = "未检测到新的 artifact/report 路径；完整日志见本次运行目录。";
     return;
   }
   outputs.forEach((path) => {
@@ -597,7 +636,7 @@ function renderConsoleCoverage() {
   const report = state.consoleCoverage || {};
   const summary = report.summary || {};
   const rows = report.rows || [];
-  elements.coverageSummary.textContent = `${summary.covered_count ?? 0}/${summary.cli_command_count ?? 0} 已有前端入口，${summary.hidden_count ?? 0} 个隐藏或待做`;
+  elements.coverageSummary.textContent = `${summary.fixed_preset_count ?? 0}/${summary.cli_command_count ?? 0} 个 CLI 子命令已有固定 preset，${summary.covered_count ?? 0} 个完整覆盖，${summary.hidden_count ?? 0} 个隐藏或待做；非完整参数覆盖`;
   elements.coverageList.innerHTML = "";
   rows.forEach((row) => {
     const item = document.createElement("div");
@@ -877,6 +916,22 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function disableBrowserOnlySurfaces(reason) {
+  [
+    document.getElementById("console"),
+    document.querySelector(".coverage-card"),
+    document.getElementById("evidence"),
+  ].forEach((item) => {
+    if (item) {
+      item.hidden = true;
+    }
+  });
+  document.querySelectorAll('.hero-nav a[href="#console"], .hero-nav a[href="#evidence"]').forEach((link) => {
+    link.hidden = true;
+  });
+  elements.scenarioDescription.textContent = `${elements.scenarioDescription.textContent} ${reason}`.trim();
+}
+
 elements.compareButton.addEventListener("click", runComparison);
 elements.copyCommandButton.addEventListener("click", () => {
   copySelectedConsoleCommand().catch((error) => {
@@ -889,19 +944,27 @@ elements.runCommandButton.addEventListener("click", () => {
   });
 });
 elements.clearLogButton.addEventListener("click", () => {
-  elements.consoleLogBox.textContent = "Log display cleared. Running commands still keep full logs under runs/console_commands/.";
+  elements.consoleLogBox.textContent = "Log display cleared. Running commands still keep full logs under the selected run directory.";
 });
 
 hydrateMeta()
-  .then(hydrateBrowser)
+  .then(() => {
+    if (state.meta && state.meta.mode === "live") {
+      disableBrowserOnlySurfaces("Live 模式只显示当前运行遥测和事件；artifact 浏览、acceptance、console、coverage 只在 replay/browser 模式启用。");
+      return null;
+    }
+    return hydrateBrowser();
+  })
   .then(poll)
   .then(() => {
     setInterval(() => {
       poll().catch((error) => console.error(error));
     }, 1000);
-    setInterval(() => {
-      refreshConsoleRuns().catch((error) => console.error(error));
-    }, 2000);
+    if (!state.meta || state.meta.mode !== "live") {
+      setInterval(() => {
+        refreshConsoleRuns().catch((error) => console.error(error));
+      }, 2000);
+    }
   })
   .catch((error) => {
     console.error(error);

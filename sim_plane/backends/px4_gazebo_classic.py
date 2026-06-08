@@ -130,6 +130,7 @@ class PX4GazeboClassicBackend(Backend):
         viewer_processes = []
         connection = None
         adapter_handle = None
+        adapter_collected = False
         result = None
         ulog_before = snapshot_px4_ulog_files(config)
         try:
@@ -169,7 +170,9 @@ class PX4GazeboClassicBackend(Backend):
             adapter_report = collect_algorithm_adapter(
                 adapter_handle,
                 timeout_s=float((scenario.get("algorithm_adapter") or {}).get("join_timeout_s", 3.0)),
+                request_stop=adapter_handle is not None,
             )
+            adapter_collected = True
             telemetry_summary.update(adapter_report["metrics"])
             telemetry_summary["headless"] = config["headless"]
             telemetry_summary["launch_qgc"] = config["launch_qgc"]
@@ -191,6 +194,12 @@ class PX4GazeboClassicBackend(Backend):
                     connection.close()
                 except Exception:
                     pass
+            if adapter_handle is not None and not adapter_collected:
+                collect_algorithm_adapter(
+                    adapter_handle,
+                    timeout_s=float((scenario.get("algorithm_adapter") or {}).get("join_timeout_s", 3.0)),
+                    request_stop=True,
+                )
             for process in reversed(viewer_processes):
                 terminate_process(process, sink, "viewer")
             terminate_process(

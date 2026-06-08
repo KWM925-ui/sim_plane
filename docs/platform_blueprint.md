@@ -1,5 +1,10 @@
 # Platform Blueprint
 
+This document is the original architecture blueprint and design rationale. It
+is kept for context, not as the live implementation status. For current usage
+and validated surfaces, start from `README.md`, `docs/平台总入口_zh.md`, and
+`python3 -m sim_plane doctor`.
+
 ## 1. Goal
 
 Build a UAV algorithm simulation platform that is:
@@ -48,13 +53,15 @@ If one backend tries to serve both goals, it usually becomes slow, fragile, and 
 
 ### 3.4 One Stable Entry Surface
 
-Users should not need to remember backend-specific startup commands. The platform should eventually present one consistent local surface such as:
+Users should not need to remember backend-specific startup commands. The
+current platform presents one consistent local surface through `python3 -m
+sim_plane ...`, with commands such as:
 
-- `sim-plane up`
-- `sim-plane run scenario/basic_takeoff`
-- `sim-plane eval scenario/mission_01`
+- `python3 -m sim_plane run scenarios/basic_takeoff.json`
+- `python3 -m sim_plane live-smoke --profile fast`
+- `python3 -m sim_plane platform-acceptance --latest --artifact-root runs`
 
-The specific command names can change later, but the principle should stay.
+The command set can keep evolving, but the stable-entry principle should stay.
 
 ## 4. Requirement Supplement
 
@@ -77,7 +84,9 @@ These are the requirements that are worth adding even if the user did not explic
 - User algorithms should plug in through a narrow adapter instead of binding directly to every simulator detail.
 - `MAVSDK` should be the first adapter target because it is simpler than a ROS-first path for command/control integration.
 - ROS should be optional and isolated behind an adapter boundary if later required for perception or high-rate integration.
-- Scenario configuration should live in simple local files such as YAML or TOML rather than hidden shell fragments.
+- Scenario configuration should live in simple local files rather than hidden
+  shell fragments. The current implementation uses JSON under `scenarios/` and
+  `configs/`.
 
 ### 4.3 Usability Requirements
 
@@ -173,7 +182,7 @@ Optional, not required for every run:
 
 - QGroundControl
 - backend-native UI
-- later a light local dashboard
+- local dashboard and artifact replay
 
 ## 5.2 Default Backend Stack
 
@@ -320,7 +329,12 @@ sim_plane/
 
 The exact paths can change, but the responsibility split should stay similar.
 
-## 8. Suggested Phased Roadmap
+## 8. Original Phased Roadmap
+
+This section is historical. The repo has already landed the thin runner,
+scenario schema, artifacts, dashboard, PX4 SIH, JSBSim, Gazebo Classic,
+MARSIM, FAST_LIO, and EGO-Planner-family managed surfaces. Keep it as a record
+of why the platform grew in this order, not as the current todo list.
 
 ### Phase 0: Repo Bootstrap
 
@@ -358,7 +372,10 @@ Success condition:
 - then promote modern Gazebo from optional to preferred rich-scene backend,
 - optionally add a ROS 2 adapter if a clear requirement exists.
 
-## 9. MVP Acceptance Criteria
+## 9. Initial MVP Acceptance Criteria
+
+This first-version target has been met and superseded by the current
+acceptance, suite, fuzz, live-smoke, and platform-health surfaces.
 
 The first meaningful version should satisfy all of the following:
 
@@ -371,7 +388,9 @@ The first meaningful version should satisfy all of the following:
 - emits a machine-readable run verdict,
 - and does not require ROS as a core dependency.
 
-## 10. Next Bounded Action
+## 10. Original Next Bounded Action
+
+This action is historical and has already been implemented.
 
 The next best move is not to add a heavy simulator first. It is to implement a thin local runner around:
 

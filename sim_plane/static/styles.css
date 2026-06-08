@@ -517,6 +517,12 @@ body {
   font-size: 13px;
 }
 
+.acceptance-row small {
+  color: #78958d;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
 .artifact-row .artifact-evidence {
   color: #95d8c8;
 }

@@ -6,7 +6,7 @@ This repository is positioned as an algorithm-validation and experiment-manageme
 
 ## Current Status
 
-The repository now has a runnable MVP skeleton with:
+The repository now has a working platform surface with:
 
 - a Python CLI,
 - a shared backend interface,
@@ -29,13 +29,18 @@ The repository now has a runnable MVP skeleton with:
 - a validated real `MARSIM` ROS1 3D sensor backend path on both CPU and GPU local sensing routes,
 - a validated real `FAST_LIO + MARSIM` ROS1 estimation backend path,
 - managed `SUPER` and `visPlanner` upstream probes that now build cleanly and
-  have fresh isolated `manual_probes` evidence outside the strict platform
+  have retained isolated `manual_probes` evidence outside the strict platform
   baseline,
 - those frontier probe scripts now auto-select a free isolated ROS master port
   by default so stale masters do not silently contaminate new reproductions,
 - and auxiliary `QGroundControl` plus `jMAVSim` viewer launch.
 
-Fresh validated local evidence on `2026-04-27`, `2026-04-28`, and `2026-04-29`:
+Retained reference local evidence from the initial bring-up on `2026-04-27`,
+`2026-04-28`, and `2026-04-29`:
+
+Latest machine-readable status is kept under `runs/platform_health/latest.json`
+and `runs/platform_acceptance/latest_latest.json`; use those files for the
+current local health and latest-vs-reference acceptance snapshots.
 
 - headless SIH takeoff passed at `runs/px4_sih_quadx_headless_20260427_114632`,
 - the default-path `QGroundControl` script passed at `runs/px4_sih_quadx_20260427_120430`,
@@ -83,7 +88,7 @@ Fresh validated local evidence on `2026-04-27`, `2026-04-28`, and `2026-04-29`:
 - the planner acceptance gate now anchors that baseline to the frozen reference artifacts themselves and fails loudly if the copied matrix value drifts away from the reference artifact metric,
 - each acceptance run now writes durable reports under `runs/acceptance/`, including timestamped report directories, stable `latest_reference.json` / `latest_latest.json` snapshots, append-only `history_reference.jsonl` / `history_latest.jsonl`, and a default retention rule that keeps only the newest 5 timestamped directories per mode,
 - each acceptance run now also writes compact compare snapshots at `latest_reference_delta.json` / `latest_latest_delta.json`, and the CLI prints the previous-vs-current delta summary directly,
-- a strict quadrotor platform acceptance matrix now exists at `configs/platform_acceptance_matrix.json`, and fresh `2026-04-28` reference artifacts were frozen for `ego_planner` single-run headless plus visual, `ego_planner_swarm` single-run headless plus visual, `px4_sih` headless plus 3D plus MAVSDK-action control, `px4_jsbsim` quadrotor headless plus headless-MAVSDK plus FlightGear visual plus FlightGear-visual-MAVSDK, `px4_gazebo_classic` quadrotor headless plus native GUI visual plus headless-MAVSDK plus native-GUI-MAVSDK, `marsim` CPU headless plus visual, `marsim` GPU headless plus visual, and `fast_lio_marsim` headless plus visual,
+- a strict quadrotor platform acceptance matrix now exists at `configs/platform_acceptance_matrix.json`, and `2026-04-28` reference artifacts were frozen for `ego_planner` single-run headless plus visual, `ego_planner_swarm` single-run headless plus visual, `px4_sih` headless plus 3D plus MAVSDK-action control, `px4_jsbsim` quadrotor headless plus headless-MAVSDK plus FlightGear visual plus FlightGear-visual-MAVSDK, `px4_gazebo_classic` quadrotor headless plus native GUI visual plus headless-MAVSDK plus native-GUI-MAVSDK, `marsim` CPU headless plus visual, `marsim` GPU headless plus visual, and `fast_lio_marsim` headless plus visual,
 - the strict top-level platform baseline now includes those upstream single-run legacy and swarm planner surfaces plus the clean GPU `MARSIM` sensor-stack rows because their shared event surfaces were normalized to `info`-only without relaxing true `EMERGENCY_STOP` handling,
 - the strict top-level platform baseline now also includes the clean headless and native-GUI `PX4 + Gazebo Classic + MAVSDK` rows, and those surfaces stay accepted only because the repo now isolates each Gazebo Classic run behind a dedicated local `GAZEBO_MASTER_URI` while keeping the shared telemetry collector on a GCS-facing UDP port such as `14550`,
 - the strict top-level platform gate now also rejects silent quantitative drift relative to the frozen reference artifacts: globally tracked `telemetry_count` cannot drop by more than `10`, and PX4-family `mode_changes` cannot regress,
@@ -94,7 +99,13 @@ Fresh validated local evidence on `2026-04-27`, `2026-04-28`, and `2026-04-29`:
 - the default stable `SUPER` probe now runs through `./scripts/run_super_benchmark.sh` with the cleaner `dense` profile, auto-selects a free ROS master port, and has retained canonical evidence at `runs/manual_probes/super_benchmark_dense_20260429_153853` with `click_goal_seen=true`, `pos_cmd_seen=true`, `planner_warn_count=3`, and `intensity_warn_count=0`,
 - the rerun `visPlanner` tracking probe now also auto-selects a free ROS master port and has retained canonical evidence at `runs/manual_probes/visplanner_tracking_20260429_153921` with both tracker and target command streams present, `tracker_exec_traj=true`, and `warn_count=5`,
 - `python3 -m sim_plane list-adapters` reports the generic adapter surface, including `external_command`, `mavsdk_action_takeoff`, `mavsdk_failure_injection`, and `ros_command`,
-- and `python3 -m sim_plane list-backends` reports `demo: ready`, `ego_planner: ready`, `ego_planner_fast_lio_marsim: ready`, `ego_planner_marsim: ready`, `ego_planner_swarm: ready`, `ego_planner_swarm_fast_lio_marsim: ready`, `ego_planner_swarm_marsim: ready`, `fast_lio_marsim: ready`, `marsim: ready`, `px4_gazebo_classic: ready`, `px4_jsbsim: ready`, and `px4_sih: ready`.
+- `python3 -m sim_plane list-backends` is the source of truth for current
+  machine readiness. Historical validation evidence above means the surface has
+  been integrated and retained as a platform path; it does not guarantee every
+  optional ROS/PX4 toolchain is ready after a reboot, cleanup, or workspace
+  rebuild. On a partially prepared machine, lab-stack paths may correctly show
+  `scaffolded` until their `devel/setup.bash` or PX4 build directory is
+  restored.
 
 ## Current Recommendation
 
@@ -105,7 +116,7 @@ Use a layered approach instead of forcing one heavy simulator to do everything:
 - Alternative dynamics backend: `PX4 + JSBSim`, with both the lighter headless quadrotor path and the FlightGear viewer path validated for the current quadrotor mainline.
 - Transitional scene-backed PX4 backend: `PX4 + Gazebo Classic`, with both lighter headless and native GUI paths validated on the current Ubuntu 20.04 host, while still treated as a bridge because Gazebo Classic is already end-of-life.
 - Transitional scene-backed MAVSDK control surface: `PX4 + Gazebo Classic + MAVSDK`, with both headless and native-GUI paths validated after isolating each run behind a dedicated local `GAZEBO_MASTER_URI` and keeping shared telemetry on `14550`.
-- Rich 3D and sensor backend: `MARSIM` on the current Ubuntu 20.04 host, with `RViz` as the main 3D viewer and a lighter headless CPU path still available.
+- Rich 3D and sensor backend: `MARSIM` on the current Ubuntu 20.04 host, with `RViz` as the main 3D viewer and headless CPU plus GPU local-sensing routes available.
 - First planner-on-scene backend: `legacy EGO-Planner + MARSIM` through the shared runner's cloud-only wrapper.
 - Second planner-on-scene backend: `EGO-Planner-Swarm + MARSIM` through the shared runner's direct-topic, manual-goal, cloud-only wrapper.
 - First planner-on-estimator backend: `legacy EGO-Planner + FAST_LIO + MARSIM` through the shared runner's aligned-odom adapter plus the stable MARSIM world cloud.
@@ -217,7 +228,9 @@ python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
   --suite configs/demo_disturbance_suite.json
 ```
 
-Run the PX4-native failure-injection proof:
+Run the PX4-native failure-injection proof. The first command is the fresh PX4
+run that creates a new artifact; the second command reads the latest matching
+artifact and checks it against the frozen acceptance matrix.
 
 ```bash
 python3 -m sim_plane run scenarios/px4_sih_quadx_mavsdk_failure_motor.json \
@@ -284,8 +297,9 @@ python3 -m sim_plane list-baselines
 python3 -m sim_plane run-baseline pid_position_demo --artifact-root runs
 ```
 
-The catalog includes ready baselines and planned entries. Planned entries are
-not runnable until an implementation and tests are landed.
+By default, the catalog lists runnable `ready` baselines only. Add
+`--include-planned` if you also want to see planned entries; planned entries
+are not runnable until an implementation and tests are landed.
 
 Replay a run artifact or PX4 `.ulg` flight log into normalized KPI evidence:
 
@@ -511,9 +525,11 @@ runs/live_smoke/history_fast.jsonl
 runs/live_smoke/history_default.jsonl
 ```
 
-The default retention rule keeps only the newest 5 timestamped report
-directories per mode. Use `--keep-last-reports 0` to disable pruning if you
-explicitly want unbounded acceptance-report history.
+Planner and platform acceptance commands default to keeping only the newest 5
+timestamped report directories per mode. Other report surfaces, such as live
+smoke and autotest, can use different defaults; check the command help before
+assuming the same retention count. Use `--keep-last-reports 0` on supported
+commands to disable pruning if you explicitly want unbounded report history.
 
 Install an editable command if you want the `sim-plane` shell entrypoint:
 
@@ -601,6 +617,17 @@ Run the same repo-local `MAVSDK` action adapter on top of native-GUI `PX4 + Gaze
 python3 -m sim_plane run scenarios/px4_gazebo_classic_iris_mavsdk_action_visual.json --visualize --no-hold-open
 ```
 
+Before running the ROS lab-stack paths below, check current machine readiness:
+
+```bash
+python3 -m sim_plane doctor
+python3 -m sim_plane list-backends
+```
+
+If a backend is `scaffolded`, run the build command printed by `doctor` first.
+The commands below are formal platform surfaces, but they require their
+workspace/toolchain prerequisites to be ready on the current machine.
+
 Run the validated `MARSIM` visual path:
 
 ```bash
@@ -611,6 +638,18 @@ Run the lighter headless `MARSIM` sensor-stack probe:
 
 ```bash
 python3 -m sim_plane run scenarios/marsim_single.json --no-hold-open
+```
+
+Run the validated GPU `MARSIM` headless local-sensing path:
+
+```bash
+python3 -m sim_plane run scenarios/marsim_single_gpu.json --no-hold-open
+```
+
+Run the validated GPU `MARSIM` visual local-sensing path:
+
+```bash
+python3 -m sim_plane run scenarios/marsim_single_gpu_visual.json --visualize --no-hold-open
 ```
 
 Run the shared `FAST_LIO + MARSIM` headless estimation path:
@@ -751,10 +790,16 @@ For flight-dynamics visualization without a ROS scene stack, there is now anothe
 
 - `PX4 + JSBSim + FlightGear`: PX4 SITL, JSBSim dynamics, FlightGear as the 3D viewer, local dashboard replay, and the same artifact-backed runner surface.
 
-The current 3D path is intentionally light:
+For PX4 scene-backed visualization, there is also a validated transitional path:
 
-- PX4 still runs in `SIH`,
-- `jMAVSim` is used as the 3D display-only viewer,
+- `PX4 + Gazebo Classic`: PX4 SITL, Gazebo Classic headless or native GUI, warehouse/empty world options, local dashboard replay, and the same artifact-backed runner surface.
+
+The current 3D path is intentionally layered instead of pretending to be one
+high-fidelity visual simulator:
+
+- `PX4 SIH + jMAVSim` is the light display-only path,
+- `PX4 + JSBSim + FlightGear` is the dynamics-viewer path,
+- `PX4 + Gazebo Classic` is the transitional PX4 scene-backed path,
 - `MARSIM` covers the richer ROS1 pointcloud-style scene path,
 - `FAST_LIO + MARSIM` covers the first shared estimator-on-scene path,
 - and the local dashboard remains the stable artifact and replay surface.
@@ -762,7 +807,10 @@ The current 3D path is intentionally light:
 Important boundary:
 
 - `QGroundControl` is useful, but it is not a full 3D world animation engine.
-- If you want obstacle-rich 3D scenes, camera-style views, and richer world interaction, that still requires a true 3D simulator backend such as `Gazebo`.
+- `Gazebo Classic` is available as a current bridge on Ubuntu 20.04, but it is
+  end-of-life and should not be treated as the forever core.
+- Modern Gazebo/Harmonic remains a future migration path, not the current
+  default backend.
 
 ## JSBSim Integration Means What
 
@@ -786,7 +834,7 @@ It is mainly valuable for:
 - better flight-dynamics realism than the simplest loop,
 - and future dynamics-sensitive validation.
 
-It is not the same thing as a rich obstacle-scene engine. `JSBSim` is about vehicle dynamics plus a viewer path, not the same product role as `MARSIM` or future `Gazebo` scene composition.
+It is not the same thing as a rich obstacle-scene engine. `JSBSim` is about vehicle dynamics plus a viewer path, not the same product role as `MARSIM`, current `Gazebo Classic`, or future modern Gazebo scene composition.
 
 ## Lab Stack Direction
 

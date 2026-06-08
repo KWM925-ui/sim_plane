@@ -44,8 +44,9 @@ def run_autotest_pack(
     steps.append(
         run_step(
             "live_smoke_fast",
-            "python3 -m sim_plane live-smoke --profile fast --artifact-root {0} --report-root runs/live_smoke --json".format(
-                artifact_root
+            "python3 -m sim_plane live-smoke --profile fast --artifact-root {0} --report-root {1} --json".format(
+                artifact_root,
+                artifact_root_path / "live_smoke",
             ),
             lambda: run_live_smoke_suite(
                 profile="fast",
@@ -58,8 +59,9 @@ def run_autotest_pack(
     steps.append(
         run_step(
             "demo_degradation_suite",
-            "python3 -m sim_plane run-suite scenarios/basic_takeoff.json --suite configs/demo_degradation_suite.json --artifact-root {0} --report-root runs/suites --json".format(
-                artifact_root
+            "python3 -m sim_plane run-suite scenarios/basic_takeoff.json --suite configs/demo_degradation_suite.json --artifact-root {0} --report-root {1} --json".format(
+                artifact_root,
+                artifact_root_path / "suites",
             ),
             lambda: run_suite(
                 "scenarios/basic_takeoff.json",
@@ -73,8 +75,9 @@ def run_autotest_pack(
     steps.append(
         run_step(
             "scenario_fuzz_demo_fast",
-            "python3 -m sim_plane scenario-fuzz scenarios/basic_takeoff.json --profile demo_fast --seed 20260528 --variants 4 --artifact-root {0} --report-root runs/scenario_fuzz --json".format(
-                artifact_root
+            "python3 -m sim_plane scenario-fuzz scenarios/basic_takeoff.json --profile demo_fast --seed 20260528 --variants 4 --artifact-root {0} --report-root {1} --json".format(
+                artifact_root,
+                artifact_root_path / "scenario_fuzz",
             ),
             lambda: run_scenario_fuzz(
                 "scenarios/basic_takeoff.json",
@@ -92,8 +95,9 @@ def run_autotest_pack(
         steps.append(
             run_step(
                 "flight_log_artifact_replay",
-                "python3 -m sim_plane flight-log-analyze {0} --report-root runs/flight_log_analysis --json".format(
-                    latest_px4_artifact
+                "python3 -m sim_plane flight-log-analyze {0} --report-root {1} --json".format(
+                    latest_px4_artifact,
+                    artifact_root_path / "flight_log_analysis",
                 ),
                 lambda: analyze_flight_log(
                     latest_px4_artifact,
@@ -113,7 +117,10 @@ def run_autotest_pack(
     steps.append(
         run_step(
             "px4_failure_acceptance_latest",
-            "python3 -m sim_plane px4-failure-acceptance --latest --artifact-root {0} --json".format(artifact_root),
+            "python3 -m sim_plane px4-failure-acceptance --latest --artifact-root {0} --report-root {1} --json".format(
+                artifact_root,
+                artifact_root_path / "px4_failure_injection_acceptance",
+            ),
             lambda: write_and_return(
                 validate_px4_failure_matrix(artifact_root=artifact_root, use_latest=True),
                 writer=write_px4_failure_report,
@@ -124,7 +131,10 @@ def run_autotest_pack(
     steps.append(
         run_step(
             "platform_acceptance_latest",
-            "python3 -m sim_plane platform-acceptance --latest --artifact-root {0} --json".format(artifact_root),
+            "python3 -m sim_plane platform-acceptance --latest --artifact-root {0} --report-root {1} --json".format(
+                artifact_root,
+                artifact_root_path / "platform_acceptance",
+            ),
             lambda: write_and_return(
                 validate_platform_matrix(artifact_root=artifact_root, use_latest=True),
                 writer=write_platform_acceptance_report,

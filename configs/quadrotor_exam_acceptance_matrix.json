@@ -1,7 +1,7 @@
 {
   "matrix_name": "quadrotor_exam_acceptance",
   "suite_name": "paper_quadrotor_exam_suite",
-  "reference_report": "runs/suites/paper_quadrotor_exam_suite_20260531_183803_761883/report.json",
+  "reference_report": "runs/suites/paper_quadrotor_exam_suite_20260601_050941_402055/report.json",
   "latest_report": "runs/suites/latest_paper_quadrotor_exam_suite.json",
   "required_scene_count": 8,
   "required_success_rate": 1.0,

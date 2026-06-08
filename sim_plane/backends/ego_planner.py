@@ -9,7 +9,15 @@ from queue import Empty, Queue
 from threading import Thread
 
 from sim_plane.backends.base import Backend, BackendError
+from sim_plane.backends.planner_goal import (
+    finalize_goal_reach_diagnostics,
+    make_goal_reach_diagnostics,
+    sample_time_seconds,
+    update_goal_reach_diagnostics,
+    update_goal_reach_state,
+)
 from sim_plane.processes import start_log_threads, terminate_process
+from sim_plane.ros_master import ensure_ros_master_uri
 from sim_plane.ros_nodes import cleanup_live_ros_nodes
 
 
@@ -196,6 +204,7 @@ def prepare_ros_runtime_env(base_env, artifact_dir):
     env["ROS_LOG_DIR"] = str(ros_log_dir)
     env["ROS_HOSTNAME"] = "127.0.0.1"
     env["ROS_IP"] = "127.0.0.1"
+    ensure_ros_master_uri(env)
     return env
 
 
@@ -365,6 +374,11 @@ def stream_telemetry(config, sink, telemetry_queue, roslaunch_process):
     goal_reached = False
     min_goal_distance_m = None
     goal_settled_since = None
+    goal_diagnostics = make_goal_reach_diagnostics(
+        tolerance_m=config["goal_reach_tolerance_m"],
+        settle_speed_mps=config["goal_settle_speed_mps"],
+        settle_hold_s=config["goal_settle_hold_s"],
+    )
     first_sample_seen = False
     first_sample_deadline = start_wall + config["startup_timeout_s"]
 
@@ -417,27 +431,39 @@ def stream_telemetry(config, sink, telemetry_queue, roslaunch_process):
         min_goal_distance_m = (
             goal_distance_m if min_goal_distance_m is None else min(min_goal_distance_m, goal_distance_m)
         )
+        sample_now = sample_time_seconds(sample, fallback=time.time() - start_wall)
         if float(sample.get("altitude_m", 0.0)) >= config["target_altitude_m"] * 0.95:
             reached_target_altitude = True
-        if goal_distance_m <= config["goal_reach_tolerance_m"] and float(sample.get("speed_mps", 0.0)) <= config["goal_settle_speed_mps"]:
-            if goal_settled_since is None:
-                goal_settled_since = time.time()
-            elif time.time() - goal_settled_since >= config["goal_settle_hold_s"]:
-                goal_reached = True
-                sink.emit_event(
-                    "info",
-                    "goal reached",
-                    {
-                        "goal": config["goal"],
-                        "goal_distance_m": round(goal_distance_m, 3),
-                        "speed_mps": sample.get("speed_mps", 0.0),
-                    },
-                )
-                break
-        else:
-            goal_settled_since = None
+        sample_goal_reached, goal_settled_since = update_goal_reach_state(
+            goal_distance_m=goal_distance_m,
+            speed_mps=float(sample.get("speed_mps", 0.0)),
+            tolerance_m=config["goal_reach_tolerance_m"],
+            settle_speed_mps=config["goal_settle_speed_mps"],
+            settle_hold_s=config["goal_settle_hold_s"],
+            settled_since=goal_settled_since,
+            now=sample_now,
+        )
+        update_goal_reach_diagnostics(
+            goal_diagnostics,
+            goal_distance_m=goal_distance_m,
+            speed_mps=float(sample.get("speed_mps", 0.0)),
+            settled_since=goal_settled_since,
+            now=sample_now,
+        )
+        if sample_goal_reached:
+            goal_reached = True
+            sink.emit_event(
+                "info",
+                "goal reached",
+                {
+                    "goal": config["goal"],
+                    "goal_distance_m": round(goal_distance_m, 3),
+                    "speed_mps": sample.get("speed_mps", 0.0),
+                },
+            )
+            break
 
-    return {
+    summary = {
         "telemetry_count": telemetry_count,
         "max_altitude_m": round(max_altitude_m, 3),
         "max_speed_mps": round(max_speed_mps, 3),
@@ -450,6 +476,8 @@ def stream_telemetry(config, sink, telemetry_queue, roslaunch_process):
         "duration_s": round(time.time() - start_wall, 3),
         "launch_rviz": config["launch_rviz"],
     }
+    summary.update(finalize_goal_reach_diagnostics(goal_diagnostics, goal_reached=goal_reached))
+    return summary
 
 
 def stop_roslaunch(process, sink, label, wait_timeout_s):
