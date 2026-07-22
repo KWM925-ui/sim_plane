@@ -656,3 +656,8 @@
   - static/contract checks, fresh lightweight demo/smoke/suite/fuzz/KPI-proxy runs, all four reference and latest acceptance surfaces, artifact/manual-probe hygiene, and platform health are green apart from the expected uncommitted-worktree warning;
   - final evidence is recorded in `.supervisor/supervisor_ledger.md` under `Pre-Commit Release Validation Closure - 2026-07-21`;
   - the only remaining work is cache cleanup, final payload review, commit/push, and clean-clone proof of scenarios, full units, four reference acceptances, and Git provenance on a fresh demo artifact.
+- 2026-07-22 release closure:
+  - structural payload commit `18c82c12e08fbcc704ebfc48159460ac54aaffa2` is present on `origin/main`;
+  - a clean remote clone passed scenario validation `35/35`, full units `307/307`, planner reference `4/4`, platform reference `21/21` with nested planner PASS, PX4 failure reference `1/1`, and quadrotor KPI/proxy reference `8/8`;
+  - fresh demo artifact `runs/basic_takeoff_20260722_151854_953731` passed and recorded commit `18c82c12e08fbcc704ebfc48159460ac54aaffa2` with `dirty=false`;
+  - this structural and portable-acceptance frontier is closed; later optimization must open a new bounded frontier rather than extending this release batch.

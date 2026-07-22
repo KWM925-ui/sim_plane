@@ -1077,3 +1077,30 @@
 - The complete intended payload is committed and present on `origin/main`.
 - A clean clone of that exact revision passes scenario validation, the full unit suite, and all four reference acceptance surfaces without relying on local ignored `runs/` history.
 - A fresh demo manifest in the clean clone records the committed revision and `dirty=false`.
+
+### Release Publication And Clean-Clone Proof - 2026-07-22
+
+#### Locked Facts
+
+- The complete structural and portable-acceptance payload was committed as `18c82c12e08fbcc704ebfc48159460ac54aaffa2` and pushed to `origin/main`.
+- A new clone from `git@github.com:KWM925-ui/sim_plane.git` checked out that exact revision with no tracked worktree changes.
+- Clean-clone scenario loading passed `35/35` and confirmed unique scenario names.
+- The clean-clone full unit command `PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest` passed `307/307` in `17.303s`. The printed planned-baseline parser error is the expected negative CLI contract test, not a test failure.
+- Reference acceptance from repository-tracked `baselines/` passed without local historical `runs/` input:
+  - `planner-acceptance`: `4/4` rows passed;
+  - `platform-acceptance`: `21/21` rows passed and required nested planner acceptance passed;
+  - `px4-failure-acceptance`: `1/1` row passed;
+  - `quadrotor-exam-acceptance`: `8/8` scenes passed.
+- The acceptance CLI uses reference mode by default; `--latest` is the only mode switch. An attempted explicit `--reference` was rejected by argparse before validation and created no evidence.
+- Fresh clean-clone demo artifact `runs/basic_takeoff_20260722_151854_953731` passed. Its manifest records `source_control.commit=18c82c12e08fbcc704ebfc48159460ac54aaffa2`, `source_control.recorded=true`, and `source_control.dirty=false`.
+- Remote verification returned `18c82c12e08fbcc704ebfc48159460ac54aaffa2` for `refs/heads/main`; all `123` compact baseline files are tracked.
+
+#### Hypotheses And Blockers
+
+- None remain for the structural release. The only pending repository change is this control-document record; it does not alter runtime, scenario, baseline, or acceptance behavior.
+
+#### Frontier Status
+
+- Structural foundation stabilization and portable acceptance release are closed.
+- Do not reopen this frontier without fresh contradictory evidence.
+- Any future functional optimization must start as a new bounded frontier after reading this closure record.
