@@ -1,8 +1,10 @@
-import json
 import subprocess
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
+
+from sim_plane.io_utils import atomic_write_json, atomic_write_text, append_jsonl, prune_directories, report_write_lock
+from sim_plane.paths import get_platform_paths, resolve_platform_path
 
 from sim_plane.artifact_hygiene import apply_artifact_hygiene, apply_manual_probe_hygiene
 from sim_plane.artifacts import safe_artifact_name, utc_timestamp
@@ -14,7 +16,7 @@ from sim_plane.quadrotor_exam_acceptance import validate_matrix as validate_quad
 from sim_plane.web import list_complete_artifacts, list_suite_reports, list_test_surface_reports
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = get_platform_paths().home
 DEFAULT_REPORT_ROOT = REPO_ROOT / "runs" / "platform_health"
 DEFAULT_KEEP_LAST = 10
 DEFAULT_HEALTH_NAME = "sim_plane_platform_health"
@@ -23,7 +25,7 @@ NON_BLOCKING_STATUSES = SUCCESS_STATUSES | {"warning"}
 
 
 def collect_platform_health(artifact_root="runs", repo_root=None):
-    artifact_root_path = Path(artifact_root)
+    artifact_root_path = resolve_platform_path(artifact_root)
     repo_root_path = Path(repo_root) if repo_root is not None else REPO_ROOT
     components = []
 
@@ -95,7 +97,6 @@ def collect_platform_health(artifact_root="runs", repo_root=None):
 
     latest_evidence = collect_latest_evidence(artifact_root_path)
     boundaries = build_objective_boundaries()
-    next_stage_plan = build_next_stage_plan()
     summary = build_health_summary(components, latest_evidence)
     blockers = build_component_messages(components, accepted_statuses=NON_BLOCKING_STATUSES)
     warnings = build_component_messages(components, accepted_statuses=SUCCESS_STATUSES | {"failed"})
@@ -112,7 +113,6 @@ def collect_platform_health(artifact_root="runs", repo_root=None):
         "components": components,
         "latest_evidence": latest_evidence,
         "objective_boundaries": boundaries,
-        "next_stage_plan": next_stage_plan,
     }
 
 
@@ -458,47 +458,6 @@ def build_objective_boundaries():
     ]
 
 
-def build_next_stage_plan():
-    return [
-        {
-            "priority": 1,
-            "frontier": "PX4 ULog KPI replay alignment",
-            "optimize": "把 artifact-local px4_ulog/index.json 和 flight-log-analyze 更紧地联动，优先从已收集 .ulg 中提取飞控层 KPI。",
-            "meaning": "自动采集和索引解决了原始日志留存问题；下一步要把这些原始日志更直接地转成可比较指标。",
-            "value": "以后复盘模式切换、failsafe、速度峰值、控制异常时，可以直接从 run artifact 进入 PX4 原始日志分析。",
-            "why_before_others": "这是已落地证据链的自然加深，比新增一个重后端更能提升平台验收含金量。",
-            "basis": "internal_system_analysis + PX4/ArduPilot autotest-style log replay practice",
-        },
-        {
-            "priority": 2,
-            "frontier": "PX4-native failure expansion",
-            "optimize": "在官方支持和 fresh artifact 能证明的前提下，逐个扩展 GPS/RC/MAVLink 等 PX4 原生 failure injection 验收面。",
-            "meaning": "demo 退化能测算法鲁棒性，但不能替代真实 PX4 failure command 接受链。",
-            "value": "把故障注入从已证明的电机层扩大到更贴近上层算法风险的飞控输入/链路故障。",
-            "why_before_others": "外部评价明确指出传感器退化和链路退化比单一电机故障更有业务价值，但必须用 PX4 原生证据推进，不能伪造。",
-            "basis": "external_review_feedback + PX4 failure injection practice",
-        },
-        {
-            "priority": 3,
-            "frontier": "dashboard health/report consolidation",
-            "optimize": "把 platform-health、suite KPI、latest-vs-reference、worst-case ranking 汇到 dashboard 的总览页。",
-            "meaning": "平台已有很多报告，但查看路径分散；网页端应承担实验管理视图，而不只是轨迹回放。",
-            "value": "用户打开 `serve runs` 就能判断哪条线绿、哪条线退化、下一步该看哪个 artifact。",
-            "why_before_others": "在继续增加算法或后端前，先降低现有能力的理解和使用成本。",
-            "basis": "internal_system_analysis + CI dashboard / experiment tracking practice",
-        },
-        {
-            "priority": 4,
-            "frontier": "baseline catalog hardening",
-            "optimize": "把 planned baseline 按价值逐个升级成 ready，并纳入可比较实验面。",
-            "meaning": "平台不能只提供空接口；稳定 baseline 是新算法对照实验的基准线。",
-            "value": "你的算法接入后可以直接和 PID、MAVSDK mission、planner baseline 做同场景 KPI 对比。",
-            "why_before_others": "这比盲目扩后端更贴近算法评测平台定位，但应在日志和故障证据闭环后推进。",
-            "basis": "external_review_feedback + internal_system_analysis",
-        },
-    ]
-
-
 def format_platform_health_report(report):
     lines = [
         "platform health: {0}".format(report.get("status")),
@@ -538,13 +497,6 @@ def format_platform_health_report(report):
     lines.append("objective boundaries:")
     for item in report.get("objective_boundaries", []):
         lines.append("- {0}: {1} | {2}".format(item["name"], item["status"], item["detail"]))
-    lines.append("")
-    lines.append("next stage plan:")
-    for item in report.get("next_stage_plan", []):
-        lines.append("{0}. {1}".format(item["priority"], item["frontier"]))
-        lines.append("   optimize: {0}".format(item["optimize"]))
-        lines.append("   value: {0}".format(item["value"]))
-        lines.append("   why_now: {0}".format(item["why_before_others"]))
     saved = report.get("saved_report")
     if saved:
         lines.append("")
@@ -554,7 +506,14 @@ def format_platform_health_report(report):
 
 
 def write_platform_health_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST):
-    root = Path(report_root) if report_root is not None else DEFAULT_REPORT_ROOT
+    root = resolve_platform_path(report_root) if report_root is not None else DEFAULT_REPORT_ROOT
+    root.mkdir(parents=True, exist_ok=True)
+    with report_write_lock(root):
+        return _write_platform_health_report_locked(report, root, keep_last)
+
+
+def _write_platform_health_report_locked(report, root, keep_last):
+    root = root if hasattr(root, "joinpath") else resolve_platform_path(root)
     root.mkdir(parents=True, exist_ok=True)
     health_name = safe_artifact_name(report.get("health_name", DEFAULT_HEALTH_NAME))
     stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
@@ -570,49 +529,40 @@ def write_platform_health_report(report, report_root=None, keep_last=DEFAULT_KEE
     latest_txt = root / "latest.txt"
     history_jsonl = root / "history.jsonl"
     text = format_platform_health_report(payload) + "\n"
-    report_json.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    report_txt.write_text(text, encoding="utf-8")
-    latest_json.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    latest_txt.write_text(text, encoding="utf-8")
-    manifest.write_text(
-        json.dumps(
-            {
-                "created_at_utc": payload["written_at_utc"],
-                "health_name": payload.get("health_name", DEFAULT_HEALTH_NAME),
-                "status": payload.get("status"),
-                "report_dir": str(report_dir),
-                "files": {
-                    "report_json": "report.json",
-                    "report_text": "report.txt",
-                },
-                "latest_files": {
-                    "report_json": str(latest_json),
-                    "report_text": str(latest_txt),
-                },
-                "history_file": str(history_jsonl),
-                "keep_last": keep_last,
+    atomic_write_json(report_json, payload)
+    atomic_write_text(report_txt, text)
+    atomic_write_json(latest_json, payload)
+    atomic_write_text(latest_txt, text)
+    atomic_write_json(
+        manifest,
+        {
+            "created_at_utc": payload["written_at_utc"],
+            "health_name": payload.get("health_name", DEFAULT_HEALTH_NAME),
+            "status": payload.get("status"),
+            "report_dir": str(report_dir),
+            "files": {
+                "report_json": "report.json",
+                "report_text": "report.txt",
             },
-            indent=2,
-            ensure_ascii=False,
-        )
-        + "\n",
-        encoding="utf-8",
+            "latest_files": {
+                "report_json": str(latest_json),
+                "report_text": str(latest_txt),
+            },
+            "history_file": str(history_jsonl),
+            "keep_last": keep_last,
+        },
     )
-    with history_jsonl.open("a", encoding="utf-8") as handle:
-        handle.write(
-            json.dumps(
-                {
-                    "written_at_utc": payload["written_at_utc"],
-                    "health_name": payload.get("health_name", DEFAULT_HEALTH_NAME),
-                    "status": payload.get("status"),
-                    "failed_component_count": payload.get("summary", {}).get("failed_component_count"),
-                    "warning_component_count": payload.get("summary", {}).get("warning_component_count"),
-                    "report_json": str(report_json),
-                },
-                ensure_ascii=False,
-            )
-            + "\n"
-        )
+    append_jsonl(
+        history_jsonl,
+        {
+            "written_at_utc": payload["written_at_utc"],
+            "health_name": payload.get("health_name", DEFAULT_HEALTH_NAME),
+            "status": payload.get("status"),
+            "failed_component_count": payload.get("summary", {}).get("failed_component_count"),
+            "warning_component_count": payload.get("summary", {}).get("warning_component_count"),
+            "report_json": str(report_json),
+        },
+    )
     pruned_report_dirs = prune_platform_health_reports(root, health_name, keep_last)
     return {
         "report_root": str(root),
@@ -627,23 +577,8 @@ def write_platform_health_report(report, report_root=None, keep_last=DEFAULT_KEE
 
 
 def prune_platform_health_reports(report_root, health_name, keep_last):
-    if not keep_last or keep_last <= 0:
-        return []
-    report_dirs = sorted(
-        [
-            path
-            for path in Path(report_root).glob("{0}_*".format(health_name))
-            if path.is_dir()
-        ],
-        key=lambda path: path.name,
+    return prune_directories(
+        report_root,
+        "{0}_*".format(health_name),
+        keep_last,
     )
-    pruned = []
-    for path in report_dirs[:-keep_last]:
-        for child in sorted(path.rglob("*"), reverse=True):
-            if child.is_file() or child.is_symlink():
-                child.unlink()
-            elif child.is_dir():
-                child.rmdir()
-        path.rmdir()
-        pruned.append(str(path))
-    return pruned

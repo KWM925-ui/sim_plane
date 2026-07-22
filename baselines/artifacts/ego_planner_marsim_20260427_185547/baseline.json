@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_artifact",
+  "source_artifact": "runs/ego_planner_marsim_20260427_185547",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": "2026-04-27T18:55:56Z",
+  "files": {
+    "manifest.json": "dda09ac9b88e9c545ba61189adb9a22b114cf4c1c60d2ebf9b09a2d738713b6f",
+    "result.json": "4d857dcef98bb488fd5fc1afab0a2cfc720e42e214e279b53f2a410cdab41524",
+    "events.jsonl": "45de2703eb1ed5db6268d0642fa8b7631cf6a7c80c79f9e5e1835b4550938493"
+  }
+}

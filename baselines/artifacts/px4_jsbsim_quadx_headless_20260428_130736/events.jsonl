@@ -1,0 +1,18 @@
+{"ts_utc": "2026-04-28T13:07:36Z", "level": "info", "message": "run started", "details": {"backend": "px4_jsbsim", "scenario": "px4_jsbsim_quadx_headless"}}
+{"ts_utc": "2026-04-28T13:07:36Z", "level": "info", "message": "px4_jsbsim launch plan", "details": {"px4_dir": "/home/coco/sim_plane_ws/src/core/PX4-Autopilot", "jsbsim_root_dir": "/home/coco/sim_plane_ws/toolchains/jsbsim", "model": "quadrotor_x", "world": "LSZH", "build_target": "px4_sitl_default", "mavlink_endpoint": "udpin:127.0.0.1:14540", "headless": true, "launch_qgc": false}}
+{"ts_utc": "2026-04-28T13:07:36Z", "level": "info", "message": "building px4_jsbsim dependencies", "details": {"command": "cmake --build /home/coco/sim_plane_ws/src/core/PX4-Autopilot/build/px4_sitl_default --target px4 jsbsim_bridge -j4", "cwd": "/home/coco/sim_plane_ws/src/core/PX4-Autopilot"}}
+{"ts_utc": "2026-04-28T13:07:42Z", "level": "info", "message": "launching px4_jsbsim", "details": {"command": "/home/coco/sim_plane_ws/src/core/PX4-Autopilot/Tools/simulation/jsbsim/sitl_run.sh /home/coco/sim_plane_ws/src/core/PX4-Autopilot/build/px4_sitl_default/bin/px4 quadrotor_x LSZH /home/coco/sim_plane_ws/src/core/PX4-Autopilot /home/coco/sim_plane_ws/src/core/PX4-Autopilot/build/px4_sitl_default", "cwd": "/home/coco/sim_plane_ws/src/core/PX4-Autopilot"}}
+{"ts_utc": "2026-04-28T13:07:43Z", "level": "info", "message": "px4_jsbsim_stdout log", "details": {"line": "INFO  [mavlink] MAVLink only on localhost (set param MAV_{i}_BROADCAST = 1 to enable network)", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:07:43Z", "level": "info", "message": "px4_jsbsim_stdout log", "details": {"line": "INFO  [mavlink] MAVLink only on localhost (set param MAV_{i}_BROADCAST = 1 to enable network)", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:07:43Z", "level": "info", "message": "px4_jsbsim_stdout log", "details": {"line": "INFO  [px4] Startup script returned successfully", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:07:45Z", "level": "info", "message": "px4_jsbsim_stdout log", "details": {"line": "WARN  [health_and_arming_checks] Preflight Fail: heading estimate invalid", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:07:45Z", "level": "info", "message": "px4 heartbeat received", "details": {"system_id": 1, "component_id": 1}}
+{"ts_utc": "2026-04-28T13:07:47Z", "level": "info", "message": "px4_jsbsim_stdout log", "details": {"line": "INFO  [commander] \u001b[32mReady for takeoff!\u001b[0m", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:07:50Z", "level": "info", "message": "sending px4 shell command", "details": {"command": "param set MIS_TAKEOFF_ALT 5"}}
+{"ts_utc": "2026-04-28T13:07:52Z", "level": "info", "message": "sending px4 shell command", "details": {"command": "commander takeoff"}}
+{"ts_utc": "2026-04-28T13:07:54Z", "level": "info", "message": "px4 mode change", "details": {"mode": "BOOT", "t": 0.0}}
+{"ts_utc": "2026-04-28T13:07:54Z", "level": "info", "message": "px4 arm state change", "details": {"armed": false, "t": 0.0}}
+{"ts_utc": "2026-04-28T13:07:55Z", "level": "info", "message": "px4 mode change", "details": {"mode": "TAKEOFF", "t": 0.59}}
+{"ts_utc": "2026-04-28T13:07:55Z", "level": "info", "message": "px4 arm state change", "details": {"armed": true, "t": 0.59}}
+{"ts_utc": "2026-04-28T13:08:03Z", "level": "info", "message": "px4 mode change", "details": {"mode": "LOITER", "t": 8.9}}
+{"ts_utc": "2026-04-28T13:08:14Z", "level": "info", "message": "stopping process", "details": {"label": "px4_jsbsim", "pid": 48458, "signal": "SIGTERM"}}

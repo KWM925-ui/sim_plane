@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT=${SIM_PLANE_HOME:-"$(cd "$(dirname "$0")/.." && pwd)"}
 ARTIFACT_ROOT="${SIM_PLANE_MANUAL_PROBE_ROOT:-$REPO_ROOT/runs/manual_probes}"
 ARTIFACT_DIR="$ARTIFACT_ROOT/visplanner_tracking_$(date +%Y%m%d_%H%M%S)"
 REQUESTED_ROS_MASTER_PORT="${SIM_PLANE_ROS_MASTER_PORT:-}"
 WORKSPACE_DIR="/home/coco/sim_plane_ws/workspaces/ros1_visplanner"
 
 source "$REPO_ROOT/scripts/process_cleanup.sh"
+source "$REPO_ROOT/scripts/manual_probe_lifecycle.sh"
 
 if [[ -n "$REQUESTED_ROS_MASTER_PORT" ]]; then
   ROS_MASTER_PORT="$(python3 "$REPO_ROOT/scripts/select_ros_master_port.py" --requested-port "$REQUESTED_ROS_MASTER_PORT")"
@@ -16,6 +17,7 @@ else
 fi
 
 mkdir -p "$ARTIFACT_DIR"
+manual_probe_start "$ARTIFACT_DIR"
 
 "$REPO_ROOT/scripts/build_visplanner_ws.sh" >/dev/null
 
@@ -30,12 +32,16 @@ LAUNCH_PID=""
 TRACKER_TELEM_PID=""
 TARGET_TELEM_PID=""
 BG_PIDS=()
+PROBE_RESULT_STATUS=""
 
 cleanup() {
   set +e
   stop_pid_list_gracefully "${BG_PIDS[@]}"
   stop_pid_list_gracefully "$TARGET_TELEM_PID" "$TRACKER_TELEM_PID" "$LAUNCH_PID"
   stop_pid_gracefully "$ROSCORE_PID"
+  if [[ -n "$PROBE_RESULT_STATUS" ]]; then
+    manual_probe_complete "$ARTIFACT_DIR" "$PROBE_RESULT_STATUS"
+  fi
 }
 trap cleanup EXIT
 
@@ -109,6 +115,7 @@ sleep 18
 rosnode list >"$ARTIFACT_DIR/rosnode_list.txt" 2>&1 || true
 rostopic list >"$ARTIFACT_DIR/rostopic_list.txt" 2>&1 || true
 
+set +e
 python3 - <<'PY' "$ARTIFACT_DIR" "$ROS_MASTER_PORT"
 import json
 import re
@@ -162,3 +169,11 @@ raise SystemExit(
     0 if summary["target_pos_cmd_seen"] and summary["tracker_pos_cmd_seen"] and summary["tracker_exec_traj"] else 2
 )
 PY
+PROBE_EXIT_CODE=$?
+set -e
+if [[ "$PROBE_EXIT_CODE" -eq 0 ]]; then
+  PROBE_RESULT_STATUS="passed"
+else
+  PROBE_RESULT_STATUS="failed"
+fi
+exit "$PROBE_EXIT_CODE"

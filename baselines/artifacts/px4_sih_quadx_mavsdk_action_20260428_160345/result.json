@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "backend": "px4_sih",
+  "vehicle": "quadrotor",
+  "scenario_name": "px4_sih_quadx_mavsdk_action",
+  "metrics": {
+    "telemetry_count": 225,
+    "mavlink_message_count": 16484,
+    "max_altitude_m": 3.918,
+    "max_speed_mps": 1.189,
+    "target_altitude_reached": true,
+    "ever_armed": true,
+    "mode_changes": 6,
+    "duration_s": 46.0,
+    "algorithm_adapter_name": "mavsdk_action_takeoff",
+    "algorithm_adapter_completed_successfully": true,
+    "algorithm_adapter_connected": true,
+    "algorithm_adapter_armable": true,
+    "algorithm_adapter_arm_commanded": true,
+    "algorithm_adapter_takeoff_commanded": true,
+    "algorithm_adapter_target_altitude_reached": true,
+    "algorithm_adapter_land_commanded": true,
+    "algorithm_adapter_landed": true,
+    "algorithm_adapter_system_address": "udp://127.0.0.1:14580"
+  },
+  "notes": [
+    "The px4_sih backend uses pymavlink to feed the local dashboard from live MAVLink telemetry.",
+    "A repo-local MAVSDK action adapter commanded arm, takeoff, and land through PX4's onboard MAVLink UDP listener.",
+    "The local MAVSDK path on this host connects to PX4's onboard UDP listener on 14580 while the telemetry collector can stay on a separate port such as 14550."
+  ],
+  "written_at_utc": "2026-04-28T16:04:36Z"
+}

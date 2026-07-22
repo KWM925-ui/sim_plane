@@ -9,6 +9,8 @@ from sim_plane.artifact_hygiene import (
     scan_artifact_root,
     scan_manual_probe_root,
 )
+from sim_plane.artifacts import ArtifactWriter
+from sim_plane.io_utils import exclusive_file_lock
 
 
 def write_complete_artifact(path, scenario_name="demo"):
@@ -28,6 +30,46 @@ def write_complete_artifact(path, scenario_name="demo"):
 
 
 class ArtifactHygieneTest(unittest.TestCase):
+    def test_scan_treats_locked_running_artifact_as_clean_and_unprunable(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            runs_root = Path(tmpdir) / "runs"
+            artifact_dir = runs_root / "active_probe"
+            writer = ArtifactWriter(
+                artifact_dir,
+                {"name": "active_probe", "vehicle": "quadrotor"},
+                "demo",
+            )
+            writer.initialize()
+            try:
+                report = scan_artifact_root(artifact_root=runs_root)
+                entry = report["entries"][0]
+
+                self.assertEqual(report["status"], "clean")
+                self.assertEqual(report["summary"]["active_artifact_count"], 1)
+                self.assertEqual(entry["category"], "active_artifact")
+                self.assertFalse(entry["safe_to_prune"])
+            finally:
+                writer.close()
+
+    def test_scan_preserves_crashed_managed_artifact_for_review(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            runs_root = Path(tmpdir) / "runs"
+            artifact_dir = runs_root / "stale_managed_probe"
+            writer = ArtifactWriter(
+                artifact_dir,
+                {"name": "stale_managed_probe", "vehicle": "quadrotor"},
+                "demo",
+            )
+            writer.initialize()
+            writer.close()
+
+            report = scan_artifact_root(artifact_root=runs_root)
+            entry = report["entries"][0]
+
+            self.assertEqual(report["status"], "attention_needed")
+            self.assertEqual(entry["category"], "stale_incomplete_directory")
+            self.assertEqual(entry["lifecycle"], "stale_incomplete")
+            self.assertFalse(entry["safe_to_prune"])
     def test_scan_marks_referenced_manual_probe_and_prunable_stale_directories(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -187,6 +229,45 @@ class ArtifactHygieneTest(unittest.TestCase):
             self.assertTrue(retained.exists())
             self.assertFalse(stale.exists())
             self.assertEqual(len(report["actions"]["pruned"]), 1)
+
+    def test_manual_probe_root_cannot_escape_artifact_root(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            runs_root = root / "runs"
+            outside = root / "outside"
+            outside.mkdir()
+            sentinel = outside / "keep.txt"
+            sentinel.write_text("keep", encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "one directory name"):
+                apply_manual_probe_hygiene(
+                    artifact_root=runs_root,
+                    manual_probe_root_name="../outside",
+                    prune_safe=True,
+                )
+
+            self.assertTrue(sentinel.is_file())
+
+    def test_active_manual_probe_is_clean_and_not_pruned(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            runs_root = Path(tmpdir) / "runs"
+            probe = runs_root / "manual_probes" / "active_probe"
+            probe.mkdir(parents=True)
+            (probe / ".running").write_text("{}\n", encoding="utf-8")
+            (probe / "partial.log").write_text("still running\n", encoding="utf-8")
+
+            with exclusive_file_lock(probe / ".probe.lock"):
+                report = apply_manual_probe_hygiene(
+                    artifact_root=runs_root,
+                    prune_safe=True,
+                    reference_search_paths=(),
+                )
+
+            entry = report["before"]["entries"][0]
+            self.assertEqual(entry["category"], "active_manual_probe")
+            self.assertEqual(entry["lifecycle"], "active")
+            self.assertFalse(entry["safe_to_prune"])
+            self.assertTrue(probe.is_dir())
 
     def test_scan_manual_probe_root_keeps_latest_successful_canonical_probe(self):
         with tempfile.TemporaryDirectory() as tmpdir:

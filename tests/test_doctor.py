@@ -1,6 +1,7 @@
 from contextlib import redirect_stdout
 from io import StringIO
 import unittest
+from unittest.mock import patch
 
 from sim_plane.cli import main
 from sim_plane.doctor import collect_platform_doctor_report, format_platform_doctor_report
@@ -46,11 +47,15 @@ class DoctorReportTest(unittest.TestCase):
         self.assertNotIn("first issue: The external_command adapter requires", rendered)
         self.assertIn("external_command: ready | note:", rendered)
 
-    def test_cli_list_adapters_uses_doctor_ready_classification(self):
+    def test_cli_list_adapters_uses_adapter_classification_without_full_doctor(self):
         stdout = StringIO()
 
-        with redirect_stdout(stdout):
-            exit_code = main(["list-adapters"])
+        with patch(
+            "sim_plane.cli.collect_platform_doctor_report",
+            side_effect=AssertionError("list-adapters must not run the full doctor"),
+        ):
+            with redirect_stdout(stdout):
+                exit_code = main(["list-adapters"])
 
         rendered = stdout.getvalue()
         self.assertEqual(0, exit_code)

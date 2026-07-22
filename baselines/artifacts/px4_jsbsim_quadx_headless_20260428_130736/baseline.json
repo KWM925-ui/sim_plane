@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_artifact",
+  "source_artifact": "runs/px4_jsbsim_quadx_headless_20260428_130736",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": "2026-04-28T13:08:14Z",
+  "files": {
+    "manifest.json": "b810ac918af2823892deebc4bc4e1ea3f4d4a6edba5b2d2cf2dd48b6ce31ea7b",
+    "result.json": "fb40766d8dfd07b9bc1b34c8cf8c51da60553dca0077b4bf56ec6da8c95b1782",
+    "events.jsonl": "fa105d81adc0c57bb4d30c52c16ae70945e77961c7b207865c1e950c61fd7973"
+  }
+}

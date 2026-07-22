@@ -4,11 +4,14 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
+from sim_plane.io_utils import atomic_write_json, atomic_write_text, append_jsonl, prune_directories, report_write_lock
+from sim_plane.paths import get_platform_paths, resolve_platform_path
+
 from sim_plane.artifacts import read_jsonl
 from sim_plane.evaluation import compute_kpis
 
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = get_platform_paths().home
 DEFAULT_REPORT_ROOT = REPO_ROOT / "runs" / "flight_log_analysis"
 DEFAULT_KEEP_LAST = 10
 
@@ -19,7 +22,7 @@ def analyze_flight_log(
     keep_last=DEFAULT_KEEP_LAST,
     save_report=True,
 ):
-    source_path = Path(source)
+    source_path = resolve_platform_path(source)
     if not source_path.exists():
         raise ValueError("flight-log source does not exist: {0}".format(source))
     if source_path.is_dir():
@@ -392,7 +395,14 @@ def prefix_mapping(mapping, prefix):
 
 
 def write_flight_log_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST):
-    root = Path(report_root) if report_root is not None else DEFAULT_REPORT_ROOT
+    root = resolve_platform_path(report_root) if report_root is not None else DEFAULT_REPORT_ROOT
+    root.mkdir(parents=True, exist_ok=True)
+    with report_write_lock(root):
+        return _write_flight_log_report_locked(report, root, keep_last)
+
+
+def _write_flight_log_report_locked(report, root, keep_last):
+    root = root if hasattr(root, "joinpath") else resolve_platform_path(root)
     source_name = safe_name(Path(report.get("source", "source")).stem)
     stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
     report_dir = root / "{0}_{1}_{2}".format(report.get("source_type", "source"), source_name, stamp)
@@ -405,24 +415,21 @@ def write_flight_log_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAS
     serializable = dict(report)
     serializable.pop("saved_report", None)
     serializable = make_jsonable(serializable)
-    report_json.write_text(json.dumps(serializable, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    report_txt.write_text(format_flight_log_report(serializable) + "\n", encoding="utf-8")
-    latest_json.write_text(json.dumps(serializable, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    latest_txt.write_text(format_flight_log_report(serializable) + "\n", encoding="utf-8")
-    with history_jsonl.open("a", encoding="utf-8") as handle:
-        handle.write(
-            json.dumps(
-                {
-                    "created_at_utc": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-                    "source_type": report.get("source_type"),
-                    "source": report.get("source"),
-                    "status": report.get("status"),
-                    "report_json": str(report_json),
-                },
-                ensure_ascii=False,
-            )
-            + "\n"
-        )
+    text_report = format_flight_log_report(serializable) + "\n"
+    atomic_write_json(report_json, serializable)
+    atomic_write_text(report_txt, text_report)
+    atomic_write_json(latest_json, serializable)
+    atomic_write_text(latest_txt, text_report)
+    append_jsonl(
+        history_jsonl,
+        {
+            "created_at_utc": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "source_type": report.get("source_type"),
+            "source": report.get("source"),
+            "status": report.get("status"),
+            "report_json": str(report_json),
+        },
+    )
     if keep_last and keep_last > 0:
         prune_reports(root, "{0}_{1}_*".format(report.get("source_type", "source"), source_name), keep_last)
     return {
@@ -436,17 +443,7 @@ def write_flight_log_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAS
 
 
 def prune_reports(root, pattern, keep_last):
-    report_dirs = sorted(
-        [path for path in Path(root).glob(pattern) if path.is_dir()],
-        key=lambda path: path.name,
-    )
-    for path in report_dirs[:-keep_last]:
-        for child in sorted(path.rglob("*"), reverse=True):
-            if child.is_file() or child.is_symlink():
-                child.unlink()
-            elif child.is_dir():
-                child.rmdir()
-        path.rmdir()
+    return prune_directories(root, pattern, keep_last)
 
 
 def safe_name(value):

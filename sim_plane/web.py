@@ -6,13 +6,14 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from sim_plane.artifacts import read_jsonl
+from sim_plane.artifacts import is_complete_artifact_dir, read_jsonl
 from sim_plane.console_commands import ConsoleCommandRunner, build_cli_coverage
+from sim_plane.paths import get_platform_paths
 from sim_plane.px4_ulog import read_px4_ulog_index
 
 
-STATIC_DIR = Path(__file__).resolve().parent / "static"
-REQUIRED_ARTIFACT_FILES = ("manifest.json", "result.json", "events.jsonl")
+PLATFORM_PATHS = get_platform_paths()
+STATIC_DIR = PLATFORM_PATHS.static
 
 
 class LiveRunState:
@@ -78,7 +79,7 @@ class ArtifactReplay:
         self.artifact_root = self.artifact_dir.parent
         self.console_runner = ConsoleCommandRunner(
             run_root=self.artifact_root / "console_commands",
-            repo_root=Path(__file__).resolve().parent.parent,
+            repo_root=PLATFORM_PATHS.home,
         )
         self.manifest = load_json(self.artifact_dir / "manifest.json")
         self.scenario = load_json(self.artifact_dir / "scenario.json")
@@ -156,7 +157,7 @@ class ArtifactRootBrowser:
         self.artifact_root = Path(artifact_root)
         self.console_runner = ConsoleCommandRunner(
             run_root=self.artifact_root / "console_commands",
-            repo_root=Path(__file__).resolve().parent.parent,
+            repo_root=PLATFORM_PATHS.home,
         )
         artifacts = list_complete_artifacts(self.artifact_root, limit=1)
         self.active_artifact_dir = Path(artifacts[0]["path"]) if artifacts else None
@@ -256,11 +257,6 @@ def load_json_or_empty(path):
         return load_json(path)
     except (OSError, json.JSONDecodeError):
         return {}
-
-
-def is_complete_artifact_dir(path):
-    directory = Path(path)
-    return directory.is_dir() and all((directory / name).exists() for name in REQUIRED_ARTIFACT_FILES)
 
 
 def list_complete_artifacts(artifact_root, limit=100, active_name=None):

@@ -85,7 +85,7 @@ Planner-on-estimator composition plus RViz and the local dashboard:
 
 Both scripts write run artifacts under:
 
-- `/home/coco/sim_plane/runs`
+- `runs/`
 
 ## Scene-Backed Composition
 
@@ -94,7 +94,7 @@ Both scripts write run artifacts under:
 - `ego-planner-swarm` workspace:
   `/home/coco/sim_plane_ws/workspaces/ros1_ego_swarm`
 - repo-local wrapper:
-  `/home/coco/sim_plane/sim_plane/ros/ego_planner_swarm_marsim.launch`
+  `sim_plane/ros/ego_planner_swarm_marsim.launch`
 
 The shared scene-backed path keeps `ego-planner-swarm` in single-drone manual
 goal mode and does not launch the upstream swarm simulator stack. The wrapper:
@@ -109,7 +109,7 @@ goal mode and does not launch the upstream swarm simulator stack. The wrapper:
 
 The repo now also carries a planner-on-estimator wrapper at:
 
-- `/home/coco/sim_plane/sim_plane/ros/ego_planner_swarm_fast_lio_marsim.launch`
+- `sim_plane/ros/ego_planner_swarm_fast_lio_marsim.launch`
 
 That wrapper keeps the same swarm planner shape but swaps planner odometry onto
 the aligned FAST_LIO world-odom topic:
@@ -199,7 +199,7 @@ composition could run cleanly:
   fields so both workspaces now report the same ROS MD5
   `d008e86de36e11deb1e4033ac2c394a9`.
 - file:
-  `/home/coco/sim_plane/sim_plane/ros/ego_planner_swarm_marsim.launch`
+  `sim_plane/ros/ego_planner_swarm_marsim.launch`
   fix:
   launch `drone_0_ego_planner_node` directly with explicit `MARSIM` odom and
   cloud remaps. The first wrapper attempt tried to chain remaps through
@@ -210,7 +210,7 @@ One more repo-local runtime adapter was required before the swarm
 planner-on-estimator surface could become stable:
 
 - file:
-  `/home/coco/sim_plane/scripts/ros_align_odometry.py`
+  `scripts/ros_align_odometry.py`
   fix:
   anchor FAST_LIO `/Odometry` to the first `MARSIM`
   `/quad_0/lidar_slam/odom` sample and republish

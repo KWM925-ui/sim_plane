@@ -7,7 +7,8 @@ from pathlib import Path
 
 from sim_plane.adapters import collect_algorithm_adapter, start_algorithm_adapter
 from sim_plane.adapters.base import AdapterError
-from sim_plane.adapters.external_command import ExternalCommandAdapter, merge_payload_metrics
+from sim_plane.adapters.external_command import ExternalCommandAdapter, merge_payload_metrics, resolve_path
+from sim_plane.paths import get_platform_paths
 
 
 class RecordingSink:
@@ -24,6 +25,12 @@ class RecordingSink:
 
 
 class ExternalCommandAdapterTest(unittest.TestCase):
+    def test_relative_adapter_paths_are_platform_relative(self):
+        self.assertEqual(
+            get_platform_paths().home / "examples",
+            resolve_path("examples"),
+        )
+
     def test_result_json_success_cannot_override_nonzero_exit(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             sink = RecordingSink(Path(tmpdir) / "artifact")

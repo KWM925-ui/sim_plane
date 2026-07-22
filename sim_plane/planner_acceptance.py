@@ -1,20 +1,31 @@
 import json
-import shutil
 from collections import Counter
-from datetime import datetime, timezone
 from pathlib import Path
 
+from sim_plane.acceptance_common import (
+    append_history_entry,
+    build_acceptance_report_dir,
+    load_previous_acceptance_report,
+    load_reference_result as load_common_reference_result,
+    prune_acceptance_reports,
+    resolve_artifact_dir,
+    resolve_artifact_root,
+    resolve_reference_artifact_dir,
+    validate_matrix_rows,
+)
 from sim_plane.artifacts import read_jsonl, utc_timestamp
+from sim_plane.io_utils import atomic_write_json, atomic_write_text, report_write_lock
+from sim_plane.paths import get_platform_paths, resolve_platform_path
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = get_platform_paths().home
 DEFAULT_MATRIX_PATH = REPO_ROOT / "configs" / "planner_acceptance_matrix.json"
 DEFAULT_ACCEPTANCE_REPORT_ROOT = REPO_ROOT / "runs" / "acceptance"
 DEFAULT_ACCEPTANCE_KEEP_LAST = 5
 
 
 def load_acceptance_matrix(path=None):
-    matrix_path = Path(path) if path is not None else DEFAULT_MATRIX_PATH
+    matrix_path = resolve_platform_path(path) if path is not None else DEFAULT_MATRIX_PATH
     payload = json.loads(matrix_path.read_text(encoding="utf-8"))
     payload["_matrix_path"] = matrix_path
     return payload
@@ -24,12 +35,12 @@ def validate_acceptance_matrix(path=None, artifact_root=None, use_latest=False):
     matrix = load_acceptance_matrix(path)
     matrix_path = matrix["_matrix_path"]
     required_event_levels = set(matrix.get("required_event_levels", ["info"]))
-    artifact_root_path = _resolve_artifact_root(matrix_path, artifact_root)
+    artifact_root_path = resolve_artifact_root(matrix_path, artifact_root)
     rows = []
-    issues = []
+    row_specs, issues = validate_matrix_rows(matrix, "planner acceptance matrix")
     max_goal_distance_regression_m = matrix.get("max_goal_distance_regression_m")
 
-    for row_spec in matrix.get("rows", []):
+    for row_spec in row_specs:
         row_report = validate_acceptance_row(
             row_spec,
             matrix_path=matrix_path,
@@ -75,6 +86,8 @@ def validate_acceptance_row(
             matrix_path=matrix_path,
             artifact_root=artifact_root,
             use_latest=use_latest,
+            expected_backend=backend,
+            expected_vehicle="quadrotor",
         )
         reference_artifact_dir = resolve_reference_artifact_dir(
             mode_spec,
@@ -107,78 +120,6 @@ def validate_acceptance_row(
     }
     summary.update(modes)
     return summary
-
-
-def resolve_artifact_dir(mode_spec, matrix_path, artifact_root, use_latest=False):
-    if use_latest:
-        scenario_name = mode_spec["scenario_name"]
-        candidates = []
-        for path in artifact_root.iterdir():
-            if not path.is_dir():
-                continue
-            result_path = path / "result.json"
-            if not result_path.exists():
-                continue
-            try:
-                result = json.loads(result_path.read_text(encoding="utf-8"))
-            except json.JSONDecodeError:
-                continue
-            if result.get("scenario_name") == scenario_name:
-                candidates.append(path)
-        if not candidates:
-            return None, "no artifact found for latest scenario {0}".format(scenario_name)
-        return max(candidates, key=artifact_sort_key), None
-
-    artifact_dir = Path(mode_spec["reference_artifact"])
-    if not artifact_dir.is_absolute():
-        artifact_dir = (matrix_path.parent.parent / artifact_dir).resolve()
-    return artifact_dir, None
-
-
-def artifact_sort_key(artifact_dir):
-    return (artifact_created_timestamp(artifact_dir), artifact_dir.name)
-
-
-def artifact_created_timestamp(artifact_dir):
-    manifest_path = artifact_dir / "manifest.json"
-    if manifest_path.exists():
-        try:
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            manifest = {}
-        timestamp = parse_artifact_timestamp(manifest.get("created_at_utc"))
-        if timestamp is not None:
-            return timestamp
-
-    mtimes = []
-    for child_name in ("result.json", "manifest.json", "events.jsonl"):
-        child = artifact_dir / child_name
-        if child.exists():
-            mtimes.append(child.stat().st_mtime)
-    try:
-        mtimes.append(artifact_dir.stat().st_mtime)
-    except OSError:
-        pass
-    return max(mtimes) if mtimes else 0.0
-
-
-def parse_artifact_timestamp(value):
-    if not value:
-        return None
-    try:
-        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
-    return parsed.timestamp()
-
-
-def resolve_reference_artifact_dir(mode_spec, matrix_path):
-    artifact_dir = Path(mode_spec["reference_artifact"])
-    if not artifact_dir.is_absolute():
-        artifact_dir = (matrix_path.parent.parent / artifact_dir).resolve()
-    return artifact_dir
 
 
 def validate_acceptance_mode(
@@ -229,6 +170,8 @@ def validate_acceptance_mode(
         reference_artifact_dir=reference_artifact_dir,
         backend=backend,
         scenario_name=mode_spec["scenario_name"],
+        require_baseline_metadata=bool(mode_spec.get("source_artifact")),
+        expected_source_artifact=mode_spec.get("source_artifact"),
     )
     report["issues"].extend(reference_issues)
     metrics = result.get("metrics", {})
@@ -393,15 +336,15 @@ def format_acceptance_report(report):
     return "\n".join(lines)
 
 
-def _resolve_artifact_root(matrix_path, artifact_root):
-    if artifact_root is not None:
-        return Path(artifact_root)
-    return matrix_path.parent.parent / "runs"
-
-
 def write_acceptance_report(report, report_root=None, keep_last=DEFAULT_ACCEPTANCE_KEEP_LAST):
-    report_root_path = Path(report_root) if report_root is not None else DEFAULT_ACCEPTANCE_REPORT_ROOT
+    report_root_path = resolve_platform_path(report_root) if report_root is not None else DEFAULT_ACCEPTANCE_REPORT_ROOT
     report_root_path.mkdir(parents=True, exist_ok=True)
+    with report_write_lock(report_root_path):
+        return _write_acceptance_report_locked(report, report_root_path, keep_last)
+
+
+def _write_acceptance_report_locked(report, report_root_path, keep_last):
+    report_root_path = Path(report_root_path)
     matrix_name = report.get("matrix_name", "planner_acceptance")
     selection_mode = report.get("selection_mode", "reference")
     report_dir = build_acceptance_report_dir(
@@ -432,10 +375,10 @@ def write_acceptance_report(report, report_root=None, keep_last=DEFAULT_ACCEPTAN
     text_report = format_acceptance_report(payload) + "\n"
     delta_text = format_acceptance_delta(delta) + "\n"
 
-    json_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    text_path.write_text(text_report, encoding="utf-8")
-    delta_json_path.write_text(json.dumps(delta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    delta_text_path.write_text(delta_text, encoding="utf-8")
+    atomic_write_json(json_path, payload)
+    atomic_write_text(text_path, text_report)
+    atomic_write_json(delta_json_path, delta)
+    atomic_write_text(delta_text_path, delta_text)
     append_history_entry(
         history_jsonl_path,
         {
@@ -460,40 +403,35 @@ def write_acceptance_report(report, report_root=None, keep_last=DEFAULT_ACCEPTAN
         selection_mode=selection_mode,
         keep_last=keep_last,
     )
-    manifest_path.write_text(
-        json.dumps(
-            {
-                "created_at_utc": payload["written_at_utc"],
-                "matrix_name": matrix_name,
-                "selection_mode": selection_mode,
-                "status": payload.get("status"),
-                "report_dir": str(report_dir),
-                "files": {
-                    "report_json": "report.json",
-                    "report_text": "report.txt",
-                    "delta_json": "delta.json",
-                    "delta_text": "delta.txt",
-                },
-                "latest_files": {
-                    "report_json": str(latest_json_path),
-                    "report_text": str(latest_text_path),
-                    "delta_json": str(latest_delta_json_path),
-                    "delta_text": str(latest_delta_text_path),
-                },
-                "history_file": str(history_jsonl_path),
-                "keep_last": keep_last,
-                "pruned_report_dirs": pruned_report_dirs,
+    atomic_write_json(
+        manifest_path,
+        {
+            "created_at_utc": payload["written_at_utc"],
+            "matrix_name": matrix_name,
+            "selection_mode": selection_mode,
+            "status": payload.get("status"),
+            "report_dir": str(report_dir),
+            "files": {
+                "report_json": "report.json",
+                "report_text": "report.txt",
+                "delta_json": "delta.json",
+                "delta_text": "delta.txt",
             },
-            indent=2,
-            ensure_ascii=False,
-        )
-        + "\n",
-        encoding="utf-8",
+            "latest_files": {
+                "report_json": str(latest_json_path),
+                "report_text": str(latest_text_path),
+                "delta_json": str(latest_delta_json_path),
+                "delta_text": str(latest_delta_text_path),
+            },
+            "history_file": str(history_jsonl_path),
+            "keep_last": keep_last,
+            "pruned_report_dirs": pruned_report_dirs,
+        },
     )
-    latest_json_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    latest_text_path.write_text(text_report, encoding="utf-8")
-    latest_delta_json_path.write_text(json.dumps(delta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    latest_delta_text_path.write_text(delta_text, encoding="utf-8")
+    atomic_write_json(latest_json_path, payload)
+    atomic_write_text(latest_text_path, text_report)
+    atomic_write_json(latest_delta_json_path, delta)
+    atomic_write_text(latest_delta_text_path, delta_text)
 
     return {
         "report_root": str(report_root_path),
@@ -513,40 +451,22 @@ def write_acceptance_report(report, report_root=None, keep_last=DEFAULT_ACCEPTAN
     }
 
 
-def build_acceptance_report_dir(report_root, matrix_name, selection_mode):
-    safe_matrix_name = matrix_name.replace(" ", "_")
-    stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
-    return Path(report_root) / "{0}_{1}_{2}".format(safe_matrix_name, selection_mode, stamp)
-
-
-def load_reference_result(reference_artifact_dir, backend, scenario_name):
-    issues = []
-    if reference_artifact_dir is None:
-        return None, ["reference artifact directory could not be resolved"]
-
-    result_path = reference_artifact_dir / "result.json"
-    if not result_path.exists():
-        return None, ["missing reference result.json"]
-
-    try:
-        reference_result = json.loads(result_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return None, ["reference result.json is not valid JSON"]
-
-    if reference_result.get("backend") != backend:
-        issues.append(
-            "reference backend mismatch: expected {0}, got {1}".format(
-                backend, reference_result.get("backend")
-            )
-        )
-    if reference_result.get("scenario_name") != scenario_name:
-        issues.append(
-            "reference scenario_name mismatch: expected {0}, got {1}".format(
-                scenario_name, reference_result.get("scenario_name")
-            )
-        )
-    if reference_result.get("status") != "passed":
-        issues.append("reference result status is not passed")
+def load_reference_result(
+    reference_artifact_dir,
+    backend,
+    scenario_name,
+    require_baseline_metadata=False,
+    expected_source_artifact=None,
+):
+    reference_result, issues = load_common_reference_result(
+        reference_artifact_dir,
+        backend,
+        scenario_name,
+        require_baseline_metadata=require_baseline_metadata,
+        expected_source_artifact=expected_source_artifact,
+    )
+    if reference_result is None:
+        return None, issues
 
     reference_metrics = reference_result.get("metrics", {})
     if reference_metrics.get("goal_reached") is not True:
@@ -555,43 +475,6 @@ def load_reference_result(reference_artifact_dir, backend, scenario_name):
         issues.append("reference min_goal_distance_m is missing")
 
     return reference_result, issues
-
-
-def append_history_entry(path, entry):
-    with Path(path).open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
-
-
-def prune_acceptance_reports(report_root_path, matrix_name, selection_mode, keep_last):
-    if keep_last is None or keep_last <= 0:
-        return []
-
-    safe_matrix_name = matrix_name.replace(" ", "_")
-    prefix = "{0}_{1}_".format(safe_matrix_name, selection_mode)
-    candidates = sorted(
-        path
-        for path in report_root_path.iterdir()
-        if path.is_dir() and path.name.startswith(prefix)
-    )
-    if len(candidates) <= keep_last:
-        return []
-
-    stale = candidates[:-keep_last]
-    pruned = []
-    for path in stale:
-        shutil.rmtree(path)
-        pruned.append(str(path))
-    return pruned
-
-
-def load_previous_acceptance_report(path):
-    report_path = Path(path)
-    if not report_path.exists():
-        return None
-    try:
-        return json.loads(report_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return None
 
 
 def build_acceptance_delta(current_report, previous_report):

@@ -7,7 +7,7 @@ later sessions do not need to rediscover which combinations are already proven.
 
 The canonical machine-readable source for this matrix now lives at:
 
-- [configs/planner_acceptance_matrix.json](/home/coco/sim_plane/configs/planner_acceptance_matrix.json)
+- [configs/planner_acceptance_matrix.json](../configs/planner_acceptance_matrix.json)
 
 Validate the frozen reference artifacts with:
 
@@ -59,12 +59,12 @@ The current acceptance gate requires:
 
 ## Current Matrix
 
-| Backend | Surface | Odom source | Obstacle source | Headless evidence | Visual evidence | Status |
+| Backend | Surface | Odom source | Obstacle source | Tracked headless baseline | Tracked visual baseline | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| `ego_planner_marsim` | legacy planner on scene | `/quad_0/lidar_slam/odom` | `/quad0_pcl_render_node/cloud` | `runs/ego_planner_marsim_20260427_185547` | `runs/ego_planner_marsim_visual_20260427_185758` | passed |
-| `ego_planner_swarm_marsim` | swarm planner on scene | `/quad_0/lidar_slam/odom` | `/quad0_pcl_render_node/cloud` | `runs/ego_planner_swarm_marsim_20260427_191923` | `runs/ego_planner_swarm_marsim_visual_20260427_192755` | passed |
-| `ego_planner_fast_lio_marsim` | legacy planner on estimator | `/sim_plane/fast_lio_world_odom` | `/quad0_pcl_render_node/cloud` | `runs/ego_planner_fast_lio_marsim_20260427_194838` | `runs/ego_planner_fast_lio_marsim_visual_20260427_194947` | passed |
-| `ego_planner_swarm_fast_lio_marsim` | swarm planner on estimator | `/sim_plane/fast_lio_world_odom` | `/quad0_pcl_render_node/cloud` | `runs/ego_planner_swarm_fast_lio_marsim_20260427_195903` | `runs/ego_planner_swarm_fast_lio_marsim_visual_20260427_200020` | passed |
+| `ego_planner_marsim` | legacy planner on scene | `/quad_0/lidar_slam/odom` | `/quad0_pcl_render_node/cloud` | `baselines/artifacts/ego_planner_marsim_20260427_185547` | `baselines/artifacts/ego_planner_marsim_visual_20260427_185758` | passed |
+| `ego_planner_swarm_marsim` | swarm planner on scene | `/quad_0/lidar_slam/odom` | `/quad0_pcl_render_node/cloud` | `baselines/artifacts/ego_planner_swarm_marsim_20260427_191923` | `baselines/artifacts/ego_planner_swarm_marsim_visual_20260427_192755` | passed |
+| `ego_planner_fast_lio_marsim` | legacy planner on estimator | `/sim_plane/fast_lio_world_odom` | `/quad0_pcl_render_node/cloud` | `baselines/artifacts/ego_planner_fast_lio_marsim_20260607_221938_879736` | `baselines/artifacts/ego_planner_fast_lio_marsim_visual_20260427_194947` | passed |
+| `ego_planner_swarm_fast_lio_marsim` | swarm planner on estimator | `/sim_plane/fast_lio_world_odom` | `/quad0_pcl_render_node/cloud` | `baselines/artifacts/ego_planner_swarm_fast_lio_marsim_20260607_222057_101517` | `baselines/artifacts/ego_planner_swarm_fast_lio_marsim_visual_20260427_200020` | passed |
 
 ## Key Metrics
 
@@ -72,8 +72,8 @@ The current acceptance gate requires:
 | --- | --- | --- | --- | --- | --- |
 | `ego_planner_marsim` | `true` | `0.064` | `true` | `0.066` | info-only |
 | `ego_planner_swarm_marsim` | `true` | `0.011` | `true` | `0.005` | info-only |
-| `ego_planner_fast_lio_marsim` | `true` | `0.042` | `true` | `0.052` | info-only |
-| `ego_planner_swarm_fast_lio_marsim` | `true` | `0.030` | `true` | `0.027` | info-only |
+| `ego_planner_fast_lio_marsim` | `true` | `0.051` | `true` | `0.052` | info-only |
+| `ego_planner_swarm_fast_lio_marsim` | `true` | `0.019` | `true` | `0.027` | info-only |
 
 ## Shared Constraints
 
@@ -82,7 +82,7 @@ The current acceptance gate requires:
   `depth + cloud` branch without fresh contradictory evidence.
 - The two planner-on-estimator surfaces both depend on the repo-local aligned
   odometry adapter:
-  `/home/coco/sim_plane/scripts/ros_align_odometry.py`
+  `scripts/ros_align_odometry.py`
 - The aligned adapter anchors FAST_LIO `/Odometry` against the first
   `MARSIM` `/quad_0/lidar_slam/odom` sample and republishes
   `/sim_plane/fast_lio_world_odom`.

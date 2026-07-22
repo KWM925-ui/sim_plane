@@ -1,4 +1,3 @@
-import json
 import os
 import shlex
 import signal
@@ -6,25 +5,37 @@ import subprocess
 import time
 from pathlib import Path
 from queue import Empty, Queue
-from threading import Thread
 
 from sim_plane.backends.base import Backend, BackendError
+from sim_plane.backends.ego_runtime import (
+    DEFAULT_EGO_WORKSPACE_CANDIDATES,
+    evaluate_run_status,
+    launch_telemetry_probe,
+    parse_ros_log_event,
+    run_goal_publisher,
+)
 from sim_plane.backends.planner_goal import (
+    compute_goal_distance_m,
     finalize_goal_reach_diagnostics,
     make_goal_reach_diagnostics,
     sample_time_seconds,
     update_goal_reach_diagnostics,
     update_goal_reach_state,
 )
+from sim_plane.backends.ros_runtime import (
+    DEFAULT_ROS_SETUP,
+    load_sourced_environment,
+    prepare_ros_runtime_env,
+    repo_root,
+    resolve_workspace_dir as resolve_ros_workspace_dir,
+    shutdown_ros_nodes,
+    stop_roslaunch,
+)
 from sim_plane.processes import start_log_threads, terminate_process
-from sim_plane.ros_master import ensure_ros_master_uri
 from sim_plane.ros_nodes import cleanup_live_ros_nodes
 
 
-DEFAULT_ROS_SETUP = Path("/opt/ros/noetic/setup.bash")
-DEFAULT_WORKSPACE_CANDIDATES = [
-    Path("/home/coco/sim_plane_ws/workspaces/ros1_ego_planner"),
-]
+DEFAULT_WORKSPACE_CANDIDATES = DEFAULT_EGO_WORKSPACE_CANDIDATES
 DEFAULT_SHUTDOWN_NODES = [
     "/mockamap_node",
     "/quadrotor_simulator_so3",
@@ -159,53 +170,12 @@ def build_runtime_config(scenario):
     }
 
 
-def repo_root():
-    return Path(__file__).resolve().parents[2]
-
-
 def resolve_workspace_dir(explicit_path=None):
-    candidates = []
-    if explicit_path:
-        candidates.append(Path(explicit_path).expanduser())
-    env_path = os.environ.get("SIM_PLANE_EGO_PLANNER_WS")
-    if env_path:
-        candidates.append(Path(env_path).expanduser())
-    candidates.extend(DEFAULT_WORKSPACE_CANDIDATES)
-
-    for candidate in candidates:
-        if (candidate / "src").is_dir():
-            return candidate.resolve()
-    return None
-
-
-def load_sourced_environment(setup_paths):
-    command_parts = []
-    for path in setup_paths:
-        command_parts.append("source {0}".format(shlex.quote(str(path))))
-    command_parts.append("env -0")
-    raw = subprocess.check_output(["bash", "-lc", " && ".join(command_parts)])
-    env = {}
-    for item in raw.split(b"\0"):
-        if not item:
-            continue
-        key, _, value = item.partition(b"=")
-        env[key.decode("utf-8")] = value.decode("utf-8")
-    return env
-
-
-def prepare_ros_runtime_env(base_env, artifact_dir):
-    env = dict(base_env)
-    artifact_root = Path(artifact_dir).resolve()
-    ros_home = artifact_root / "ros_home"
-    ros_log_dir = artifact_root / "ros_logs"
-    ros_home.mkdir(parents=True, exist_ok=True)
-    ros_log_dir.mkdir(parents=True, exist_ok=True)
-    env["ROS_HOME"] = str(ros_home)
-    env["ROS_LOG_DIR"] = str(ros_log_dir)
-    env["ROS_HOSTNAME"] = "127.0.0.1"
-    env["ROS_IP"] = "127.0.0.1"
-    ensure_ros_master_uri(env)
-    return env
+    return resolve_ros_workspace_dir(
+        explicit_path,
+        env_var="SIM_PLANE_EGO_PLANNER_WS",
+        candidates=DEFAULT_WORKSPACE_CANDIDATES,
+    )
 
 
 def launch_roslaunch(config, sink, env, package, launch_file, label):
@@ -241,124 +211,6 @@ def preflight_ros_cleanup(config, sink, env):
         success_message="stale legacy ego_planner nodes removed",
         failure_message="stale legacy ego_planner nodes still present after cleanup",
     )
-
-
-def launch_telemetry_probe(config, sink, env, telemetry_queue):
-    command = [
-        "python3",
-        str(config["probe_script"]),
-        "--odom-topic",
-        config["odom_topic"],
-        "--command-topic",
-        config["command_topic"],
-        "--pointcloud-topic",
-        config["pointcloud_topic"],
-        "--sample-hz",
-        str(config["sample_hz"]),
-        "--target-altitude-m",
-        str(config["target_altitude_m"]),
-        "--master-timeout-s",
-        str(config["startup_timeout_s"]),
-    ]
-    sink.emit_event(
-        "info",
-        "launching ros telemetry probe",
-        {"command": " ".join(shlex.quote(part) for part in command)},
-    )
-    process = subprocess.Popen(
-        command,
-        cwd=str(config["workspace_dir"]),
-        env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        bufsize=1,
-        preexec_fn=os.setsid,
-    )
-    thread = Thread(target=read_probe_stdout, args=(process.stdout, telemetry_queue), daemon=True)
-    thread.start()
-    stderr_thread = Thread(target=stream_probe_stderr, args=(process.stderr, sink), daemon=True)
-    stderr_thread.start()
-    return process
-
-
-def run_goal_publisher(config, sink, env):
-    command = [
-        "python3",
-        str(config["goal_script"]),
-        "--goal-topic",
-        config["goal_topic"],
-        "--odom-topic",
-        config["odom_topic"],
-        "--pointcloud-topic",
-        config["pointcloud_topic"],
-        "--command-topic",
-        config["command_topic"],
-        "--frame-id",
-        config["goal_frame_id"],
-        "--goal-x",
-        str(config["goal"]["x"]),
-        "--goal-y",
-        str(config["goal"]["y"]),
-        "--goal-z",
-        str(config["goal"]["z"]),
-        "--master-timeout-s",
-        str(config["startup_timeout_s"]),
-        "--command-timeout-s",
-        str(config["goal_timeout_s"]),
-    ]
-    sink.emit_event(
-        "info",
-        "launching ros goal publisher",
-        {"command": " ".join(shlex.quote(part) for part in command)},
-    )
-    completed = subprocess.run(
-        command,
-        cwd=str(config["workspace_dir"]),
-        env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        timeout=config["startup_timeout_s"] + config["goal_timeout_s"] + 20.0,
-    )
-    if completed.stderr.strip():
-        sink.emit_backend_log("stderr", "[ros_goal_publisher_stderr] {0}".format(completed.stderr.strip()))
-
-    raw_stdout = completed.stdout.strip()
-    if not raw_stdout:
-        raise BackendError("ros goal publisher exited without a result.")
-    try:
-        result = json.loads(raw_stdout.splitlines()[-1])
-    except json.JSONDecodeError as exc:
-        raise BackendError("ros goal publisher emitted invalid JSON: {0}".format(exc)) from exc
-    if completed.returncode != 0:
-        raise BackendError("ros goal publisher failed: {0}".format(json.dumps(result, ensure_ascii=False)))
-    return result
-
-
-def read_probe_stdout(stream, telemetry_queue):
-    if stream is None:
-        return
-    for raw_line in iter(stream.readline, ""):
-        line = raw_line.strip()
-        if not line:
-            continue
-        telemetry_queue.put(json.loads(line))
-    stream.close()
-
-
-def stream_probe_stderr(stream, sink):
-    if stream is None:
-        return
-    for raw_line in iter(stream.readline, ""):
-        line = raw_line.rstrip()
-        if not line:
-            continue
-        sink.emit_backend_log("stderr", "[ros_probe_stderr] {0}".format(line))
-        event = parse_ros_probe_event("ros_probe_stderr", "stderr", line)
-        if event:
-            sink.emit_event(event["level"], event["message"], event["details"])
-    stream.close()
 
 
 def stream_telemetry(config, sink, telemetry_queue, roslaunch_process):
@@ -480,55 +332,6 @@ def stream_telemetry(config, sink, telemetry_queue, roslaunch_process):
     return summary
 
 
-def stop_roslaunch(process, sink, label, wait_timeout_s):
-    if process is None or process.poll() is not None:
-        return True
-    sink.emit_event(
-        "info",
-        "stopping process",
-        {"label": label, "pid": process.pid, "signal": "SIGINT"},
-    )
-    try:
-        os.killpg(process.pid, signal.SIGINT)
-        process.wait(timeout=wait_timeout_s)
-        return True
-    except subprocess.TimeoutExpired:
-        sink.emit_event(
-            "warning",
-            "roslaunch did not exit after SIGINT",
-            {"label": label, "pid": process.pid, "timeout_s": wait_timeout_s},
-        )
-        return False
-    except ProcessLookupError:
-        return True
-
-
-def shutdown_ros_nodes(config, sink, env):
-    cleanup_live_ros_nodes(
-        config["shutdown_nodes"],
-        sink,
-        env,
-        request_message="requesting ros node shutdown",
-    )
-
-
-def evaluate_run_status(success_criteria, telemetry_summary):
-    if success_criteria == "telemetry":
-        return "passed" if telemetry_summary["telemetry_count"] > 0 else "failed"
-    if success_criteria == "command":
-        return "passed" if telemetry_summary["position_cmd_seen"] else "failed"
-    if success_criteria == "sensor_stack":
-        return "passed" if telemetry_summary["pointcloud_seen"] and telemetry_summary["position_cmd_seen"] else "failed"
-    return (
-        "passed"
-        if telemetry_summary["target_altitude_reached"]
-        and telemetry_summary["position_cmd_seen"]
-        and telemetry_summary["pointcloud_seen"]
-        and telemetry_summary["goal_reached"]
-        else "failed"
-    )
-
-
 def build_notes(config):
     notes = [
         "The ego_planner backend launches the dedicated ROS1 catkin workspace under /home/coco/sim_plane_ws/workspaces/ros1_ego_planner.",
@@ -538,39 +341,3 @@ def build_notes(config):
     if config["launch_rviz"]:
         notes.append("RViz was requested as the auxiliary 3D viewer for the legacy planner stack.")
     return notes
-
-
-def compute_goal_distance_m(goal, sample):
-    dx = float(sample["position"]["x_m"]) - float(goal["x"])
-    dy = float(sample["position"]["y_m"]) - float(goal["y"])
-    dz = float(sample["altitude_m"]) - float(goal["z"])
-    return (dx * dx + dy * dy + dz * dz) ** 0.5
-
-
-def parse_ros_log_event(label, stream_name, line):
-    if line.startswith("[FSM]:"):
-        return {"level": "info", "message": "fsm transition", "details": {"line": line, "stream": stream_name}}
-    if line.startswith("[TRIG]:"):
-        return {"level": "info", "message": "planner trigger", "details": {"line": line, "stream": stream_name}}
-    if line.startswith("[SAFETY]:"):
-        level = "warning" if "EMERGENCY_STOP" in line else "info"
-        return {"level": level, "message": "planner safety transition", "details": {"line": line, "stream": stream_name}}
-    if (
-        "Global Pointcloud received" in line
-        or "ready." in line
-        or "Failed to generate direction. It doesn't matter." in line
-        or "older format" in line
-        or "_missing_material_" in line
-    ):
-        return {"level": "info", "message": "{0} log".format(label), "details": {"line": line, "stream": stream_name}}
-    if "[ERROR]" in line or "terminate called after throwing" in line:
-        return {"level": "warning", "message": "{0} log".format(label), "details": {"line": line, "stream": stream_name}}
-    if "[WARN]" in line:
-        return {"level": "warning", "message": "{0} log".format(label), "details": {"line": line, "stream": stream_name}}
-    return None
-
-
-def parse_ros_probe_event(label, stream_name, line):
-    if "Traceback" in line or "ERROR" in line:
-        return {"level": "warning", "message": "{0} log".format(label), "details": {"line": line, "stream": stream_name}}
-    return None

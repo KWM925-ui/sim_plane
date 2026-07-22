@@ -59,17 +59,21 @@ python3 -m sim_plane run scenarios/my_px4_controller.json --visualize --no-hold-
 
 现成模板场景：
 
-- [px4_sih_quadx_external_command_template.json](/home/coco/sim_plane/scenarios/px4_sih_quadx_external_command_template.json)
+- [px4_sih_quadx_external_command_template.json](../scenarios/px4_sih_quadx_external_command_template.json)
 
 现成模板算法：
 
-- [mavsdk_takeoff_template.py](/home/coco/sim_plane/examples/user_algorithms/mavsdk_takeoff_template.py)
+- [mavsdk_takeoff_template.py](../examples/user_algorithms/mavsdk_takeoff_template.py)
 
 直接跑：
 
 ```bash
 python3 -m sim_plane run scenarios/px4_sih_quadx_external_command_template.json --visualize --no-hold-open
 ```
+
+场景里的相对 `workdir` 以平台根目录为基准；生成器收到用户传入的
+`--workdir` 时会把它固化成绝对路径，避免换启动目录后含义漂移。平台还会
+向算法进程提供 `SIM_PLANE_HOME`，用于定位当前 checkout。
 
 这条命令的意义不是“跑一个新官方 demo”，而是验证：
 
@@ -112,12 +116,12 @@ python3 -m sim_plane generate-scenario \
 
 现成模板场景：
 
-- [marsim_ros_command_template.json](/home/coco/sim_plane/scenarios/marsim_ros_command_template.json)
-- [fast_lio_marsim_ros_command_template.json](/home/coco/sim_plane/scenarios/fast_lio_marsim_ros_command_template.json)
+- [marsim_ros_command_template.json](../scenarios/marsim_ros_command_template.json)
+- [fast_lio_marsim_ros_command_template.json](../scenarios/fast_lio_marsim_ros_command_template.json)
 
 现成模板算法：
 
-- [ros_position_command_template.py](/home/coco/sim_plane/examples/user_algorithms/ros_position_command_template.py)
+- [ros_position_command_template.py](../examples/user_algorithms/ros_position_command_template.py)
 
 先确认 ROS 场景后端当前是 `ready`：
 
@@ -174,6 +178,7 @@ python3 -m sim_plane run scenarios/fast_lio_marsim_ros_command_template.json --r
 - `SIM_PLANE_GOAL_TOPIC`
 - `SIM_PLANE_ROS_SETUP`
 - `SIM_PLANE_ROS_WORKSPACE_SETUPS`
+- `SIM_PLANE_HOME`
 
 其中最关键的是：
 

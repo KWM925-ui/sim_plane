@@ -1,0 +1,15 @@
+{
+  "created_at_utc": "2026-04-27T20:00:20Z",
+  "backend": "ego_planner_swarm_fast_lio_marsim",
+  "scenario_name": "ego_planner_swarm_fast_lio_marsim_visual",
+  "vehicle": "quadrotor",
+  "artifact_dir": "/home/coco/sim_plane/runs/ego_planner_swarm_fast_lio_marsim_visual_20260427_200020",
+  "files": {
+    "scenario": "scenario.json",
+    "telemetry": "telemetry.jsonl",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "backend_stdout": "backend_stdout.log",
+    "backend_stderr": "backend_stderr.log"
+  }
+}

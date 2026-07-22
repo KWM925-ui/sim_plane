@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "px4_sih_quadx_external_command_template",
   "description": "PX4 SIH quadrotor run driven by the repo-local external_command adapter. Replace the command with your own algorithm entrypoint.",
   "backend": "px4_sih",
@@ -12,7 +13,7 @@
       "python3",
       "examples/user_algorithms/mavsdk_takeoff_template.py"
     ],
-    "workdir": "/home/coco/sim_plane",
+    "workdir": ".",
     "max_runtime_s": 36.0,
     "join_timeout_s": 6.0
   },

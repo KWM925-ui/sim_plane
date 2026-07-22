@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "fast_lio_marsim",
   "description": "Single-drone FAST_LIO plus MARSIM estimation-stack run in dedicated ROS1 workspaces without RViz.",
   "backend": "fast_lio_marsim",

@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "backend": "px4_gazebo_classic",
+  "vehicle": "quadrotor",
+  "scenario_name": "px4_gazebo_classic_iris_headless",
+  "metrics": {
+    "telemetry_count": 100,
+    "mavlink_message_count": 8729,
+    "max_altitude_m": 4.989,
+    "max_speed_mps": 1.24,
+    "target_altitude_reached": true,
+    "ever_armed": true,
+    "mode_changes": 3,
+    "duration_s": 20.0,
+    "headless": true,
+    "launch_qgc": false,
+    "gazebo_gui": false,
+    "world": "empty",
+    "model": "iris"
+  },
+  "notes": [
+    "The px4_gazebo_classic backend runs PX4 SITL against Gazebo Classic through PX4's upstream sitl_run.sh wrapper.",
+    "The selected Gazebo Classic world was empty.",
+    "Gazebo Classic was requested in headless mode for a lighter scene-backed PX4 probe."
+  ],
+  "written_at_utc": "2026-04-28T15:20:59Z"
+}

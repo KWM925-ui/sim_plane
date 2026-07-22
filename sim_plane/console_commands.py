@@ -7,8 +7,11 @@ import time
 import glob
 from pathlib import Path
 
+from sim_plane.io_utils import atomic_write_json
+from sim_plane.paths import get_platform_paths
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+
+REPO_ROOT = get_platform_paths().home
 DEFAULT_CONSOLE_RUN_ROOT = REPO_ROOT / "runs" / "console_commands"
 CONSOLE_RUN_LOG_OUTPUTS = [
     "runs/console_commands/<run_id>/output.log",
@@ -83,22 +86,22 @@ EVIDENCE_META = {
     "read_only": {
         "evidence_type": "只读检查",
         "freshness": "CLI 本体不启动仿真，不新建正式 artifact；从前端运行时仍会写 console 日志。",
-        "concurrency_policy": "可与普通阅读并行；不要和正在写 runs/ 的卫生扫描结论混用。",
+        "concurrency_policy": "可与普通阅读并行；若同时有 fresh 运行，结论只代表检查时已经完成的证据。",
     },
     "fresh_artifact": {
         "evidence_type": "Fresh 运行证据",
         "freshness": "会重新跑场景并新建 artifact/report。",
-        "concurrency_policy": "建议单独运行；运行中不要同时点 hygiene、health、acceptance。",
+        "concurrency_policy": "建议单独运行，避免仿真端口和主机资源竞争；读取类检查会跳过尚未完成的 artifact。",
     },
     "latest_artifact_check": {
         "evidence_type": "历史证据回归",
         "freshness": "读取已有 latest artifact/report，不重新跑仿真。",
-        "concurrency_policy": "不要和正在写 runs/ 的长任务并行，否则 latest 选择可能读到中间状态。",
+        "concurrency_policy": "活动 artifact 会被跳过；若与 fresh 运行并行，latest 可能仍指向上一条已完成证据。",
     },
     "artifact_scan": {
         "evidence_type": "artifact 卫生扫描",
         "freshness": "扫描已有 runs/ 目录，不启动仿真，不删除 artifact。",
-        "concurrency_policy": "不要和正在写 runs/ 的长任务并行，否则可能把正在生成的 artifact 误判为不完整。",
+        "concurrency_policy": "活动 artifact 会被识别并保留；若要检查本轮最终状态，应在 fresh 运行完成后再扫。",
     },
     "mixed_autotest": {
         "evidence_type": "混合一键复验",
@@ -197,9 +200,9 @@ CONSOLE_COMMANDS = [
         "risk": "会新建 artifact/report",
         "duration_hint": "很快",
         "command": ["python3", "-m", "sim_plane", "live-smoke", "--profile", "fast", "--artifact-root", "runs"],
-        "description": "运行最快的 fresh smoke suite，证明重启后真实运行链还能起。",
-        "value": "比只看历史 acceptance 更可靠，因为它会重新跑一条 fresh 链。",
-        "when_to_use": "开机后、代码变更后、正式跑重任务前。",
+        "description": "只 fresh 运行内置 demo backend，检查 runner、artifact 和基础 KPI 链路；不启动 PX4/ROS。",
+        "value": "比只看历史 acceptance 多一条 fresh demo 证据，但不能证明真实飞控或重仿真 backend 已就绪。",
+        "when_to_use": "开机后或通用平台代码变更后先做最轻体检；真实 backend 仍需单独运行。",
         "outputs": ["runs/live_smoke/", "runs/basic_takeoff_*"],
     },
     {
@@ -231,13 +234,13 @@ CONSOLE_COMMANDS = [
         "workflow_id": "kpi_evaluation",
         "evidence_id": "fresh_artifact",
         "category": "评测/KPI",
-        "title": "四旋翼标准考试",
+        "title": "四旋翼轻量 KPI 考试",
         "risk": "会新建多个 artifact/report",
         "duration_hint": "中等到较久",
         "command": ["python3", "-m", "sim_plane", "quadrotor-exam", "--artifact-root", "runs"],
-        "description": "运行论文/项目式四旋翼标准场景集，输出成功率、耗时、轨迹、速度、加速度、平滑性等 KPI。",
-        "value": "形成可以反复复现实验结果的标准考试卷。",
-        "when_to_use": "算法阶段性完成、需要拿一套完整指标评估时。",
+        "description": "在内置 demo backend 上运行固定任务和退化 proxy，输出成功率、轨迹、速度、加速度、平滑性等 KPI。",
+        "value": "验证 KPI、suite 和回归报告体系能否重复工作；默认结果不代表真实飞控、规划器或物理仿真性能。",
+        "when_to_use": "改动通用评价层、任务族或报告后；评估真实算法时应显式换成对应真实 scenario/suite。",
         "outputs": ["runs/suites/", "runs/basic_takeoff_*"],
     },
     {
@@ -291,8 +294,8 @@ CONSOLE_COMMANDS = [
         "risk": "读取现有 report，写 report",
         "duration_hint": "较快",
         "command": ["python3", "-m", "sim_plane", "quadrotor-exam-acceptance", "--latest", "--artifact-root", "runs"],
-        "description": "检查最新四旋翼考试报告是否相对冻结 reference 退化。",
-        "value": "回答“标准考试成绩是否变差”。它不重新跑考试。",
+        "description": "检查最新 demo-backend 四旋翼 KPI/proxy 报告是否相对冻结 reference 退化。",
+        "value": "回答“轻量评价流水线的固定结果是否变差”。它不重新跑考试，也不证明真实 backend。",
         "when_to_use": "跑完 quadrotor-exam 后，或者比较新旧版本考试成绩时。",
         "outputs": ["runs/quadrotor_exam_acceptance/"],
     },
@@ -428,8 +431,6 @@ HIDDEN_CLI_COMMANDS = {
     "serve": "当前页面本身就是 serve 的结果，不需要在页面里再启动一个 serve。",
     "show-scenario": "需要一个场景路径参数，适合做成后续场景浏览/详情页，而不是固定按钮。",
     "generate-scenario": "需要用户填写 adapter、命令、后端、输出路径等参数，后续应做成算法接入向导。",
-    "check-algorithm-ingress": "需要用户填写自己的算法命令或场景，后续应做成算法接入体检向导。",
-    "run-baseline": "需要选择 baseline 名称，后续应和 baseline 列表合成一个可选运行入口。",
     "flight-log-analyze": "需要选择 artifact 或 .ulg 文件，后续应从 artifact 详情页触发。",
     "planner-acceptance": "低层 planner baseline 验收，当前由 platform-health/platform-acceptance 间接覆盖，默认不露出。",
 }
@@ -683,7 +684,7 @@ class ConsoleCommandRunner:
 
     def _write_record(self, record):
         path = Path(record["record_path"])
-        path.write_text(json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        atomic_write_json(path, record)
 
 
 def build_cli_coverage(cli_commands):
@@ -716,7 +717,6 @@ def build_cli_coverage(cli_commands):
     return {
         "summary": {
             "cli_command_count": len(cli_commands),
-            "covered_count": len([row for row in rows if row["frontend_status"] == "covered"]),
             "fixed_preset_count": len([row for row in rows if row["frontend_status"] == "fixed_preset"]),
             "hidden_count": len([row for row in rows if row["frontend_status"] == "hidden"]),
             "scope": "CLI subcommand-level fixed-entry coverage, not full parameter coverage",

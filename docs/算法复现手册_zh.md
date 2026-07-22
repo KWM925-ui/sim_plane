@@ -173,7 +173,7 @@ python3 -m sim_plane generate-scenario \
 - `perfect_drone.log`
 - `telemetry.jsonl`
 
-当前默认 stable canonical 证据：
+当前机器保留的 stable 证据（不随 git 分发）：
 
 - `runs/manual_probes/super_benchmark_dense_20260429_153853/`
 
@@ -189,7 +189,7 @@ python3 -m sim_plane generate-scenario \
 - `tracker_telemetry.jsonl`
 - `target_telemetry.jsonl`
 
-当前 canonical 证据：
+当前机器保留的证据（不随 git 分发）：
 
 - `runs/manual_probes/visplanner_tracking_20260429_153921/`
 

@@ -1,14 +1,9 @@
 {
+  "schema_version": 1,
+  "extends": "marsim_single_gpu.json",
   "name": "marsim_single_gpu_visual",
   "description": "Single-drone MARSIM run using the GPU local sensing path with RViz and the local sim_plane dashboard.",
-  "backend": "marsim",
-  "vehicle": "quadrotor",
-  "duration_s": 18.0,
-  "update_hz": 5.0,
-  "target_altitude_m": 1.0,
   "backend_options": {
-    "launch_rviz": true,
-    "use_gpu": true,
-    "success_criteria": "sensor_stack"
+    "launch_rviz": true
   }
 }

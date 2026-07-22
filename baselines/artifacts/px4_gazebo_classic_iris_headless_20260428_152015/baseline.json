@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_artifact",
+  "source_artifact": "runs/px4_gazebo_classic_iris_headless_20260428_152015",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": "2026-04-28T15:20:59Z",
+  "files": {
+    "manifest.json": "71952cda0a55013e6f296c09ad73a40b348b04c3dce022d7459541f234cedc85",
+    "result.json": "c54cfe5af4cb730ebbd92d083739425430ab9b2b7659b2cce474d2376bf6f7f1",
+    "events.jsonl": "9f1a0e2d0e445754b6d7f3ee6f667b881edf116286dd1d6f4ae64c6400a80c3b"
+  }
+}

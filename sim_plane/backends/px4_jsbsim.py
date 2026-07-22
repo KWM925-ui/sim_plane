@@ -9,7 +9,7 @@ from pymavlink import mavutil
 
 from sim_plane.adapters import collect_algorithm_adapter, has_algorithm_adapter, start_algorithm_adapter, validate_algorithm_adapter
 from sim_plane.backends.base import Backend, BackendError
-from sim_plane.backends.px4_sih import (
+from sim_plane.backends.px4_common import (
     discover_toolchain_bin_dirs,
     evaluate_run_status,
     infer_phase,

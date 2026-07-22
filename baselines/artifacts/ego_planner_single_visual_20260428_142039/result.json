@@ -1,0 +1,40 @@
+{
+  "status": "passed",
+  "backend": "ego_planner",
+  "vehicle": "quadrotor",
+  "scenario_name": "ego_planner_single_visual",
+  "metrics": {
+    "telemetry_count": 74,
+    "max_altitude_m": 1.415,
+    "max_speed_mps": 2.165,
+    "max_pointcloud_width": 11804,
+    "pointcloud_seen": true,
+    "target_altitude_reached": true,
+    "position_cmd_seen": true,
+    "goal_reached": true,
+    "min_goal_distance_m": 0.056,
+    "duration_s": 13.8,
+    "launch_rviz": true,
+    "goal_publisher": {
+      "odom_seen": true,
+      "pointcloud_seen": true,
+      "pos_cmd_seen": true,
+      "goal_topic": "/move_base_simple/goal",
+      "command_topic": "/planning/pos_cmd",
+      "goal": {
+        "x": 2.5,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "odom_altitude_m": 0.0,
+      "pointcloud_width": 6499
+    }
+  },
+  "notes": [
+    "The ego_planner backend launches the dedicated ROS1 catkin workspace under /home/coco/sim_plane_ws/workspaces/ros1_ego_planner.",
+    "It auto-publishes a bounded /move_base_simple/goal so the legacy upstream manual-goal launch can run unattended through the shared control surface.",
+    "Live telemetry is derived from /visual_slam/odom, /planning/pos_cmd, and /pcl_render_node/cloud.",
+    "RViz was requested as the auxiliary 3D viewer for the legacy planner stack."
+  ],
+  "written_at_utc": "2026-04-28T14:21:02Z"
+}

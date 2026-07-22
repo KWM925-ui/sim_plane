@@ -2,9 +2,15 @@ import json
 import os
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from sim_plane.planner_acceptance import validate_acceptance_matrix, write_acceptance_report
+from sim_plane.artifacts import ArtifactWriter, atomic_write_json
+from sim_plane.planner_acceptance import (
+    resolve_artifact_dir,
+    validate_acceptance_matrix,
+    write_acceptance_report,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -21,6 +27,7 @@ def write_artifact(
     manifest = {
         "backend": backend,
         "scenario_name": scenario_name,
+        "vehicle": "quadrotor",
     }
     if created_at_utc is not None:
         manifest["created_at_utc"] = created_at_utc
@@ -36,6 +43,7 @@ def write_artifact(
                 "status": "passed",
                 "backend": backend,
                 "scenario_name": scenario_name,
+                "vehicle": "quadrotor",
                 "metrics": {
                     "goal_reached": True,
                     "min_goal_distance_m": min_goal_distance_m,
@@ -86,6 +94,111 @@ def write_matrix(matrix_path, artifact_root):
 
 
 class PlannerAcceptanceTest(unittest.TestCase):
+    def test_matrix_name_cannot_escape_report_root(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report_root = root / "reports"
+            report = {
+                "matrix_name": "../outside*[probe]",
+                "matrix_path": "matrix.json",
+                "artifact_root": "runs",
+                "selection_mode": "reference",
+                "status": "passed",
+                "issues": [],
+                "rows": [],
+            }
+
+            saved = write_acceptance_report(report, report_root=report_root)
+
+            report_dir = Path(saved["report_dir"])
+            self.assertEqual(report_dir.parent, report_root)
+            self.assertFalse((root / "outside*[probe]").exists())
+
+    def test_concurrent_report_writers_publish_one_complete_latest(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            report_root = Path(tmpdir) / "acceptance"
+            report = {
+                "matrix_name": "concurrent_matrix",
+                "matrix_path": "matrix.json",
+                "artifact_root": str(report_root / "runs"),
+                "selection_mode": "latest",
+                "status": "passed",
+                "issues": [],
+                "rows": [],
+            }
+
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                saved = list(
+                    pool.map(
+                        lambda _: write_acceptance_report(
+                            report,
+                            report_root=report_root,
+                            keep_last=1,
+                        ),
+                        range(2),
+                    )
+                )
+
+            latest = json.loads(
+                (report_root / "latest_latest.json").read_text(encoding="utf-8")
+            )
+            report_dirs = sorted(report_root.glob("concurrent_matrix_latest_*"))
+            history = [
+                json.loads(line)
+                for line in (report_root / "history_latest.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+
+            self.assertEqual(len(report_dirs), 1)
+            self.assertEqual(len(history), 2)
+            self.assertTrue(Path(latest["report_dir"]).is_dir())
+            self.assertTrue((Path(latest["report_dir"]) / "report.json").is_file())
+            self.assertTrue(any(Path(item["report_dir"]).is_dir() for item in saved))
+
+    def test_latest_selection_skips_locked_artifact_even_if_result_exists(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            artifact_root = root / "runs"
+            complete = artifact_root / "ego_planner_marsim_20260428_010101"
+            write_artifact(
+                complete,
+                backend="ego_planner_marsim",
+                scenario_name="ego_planner_marsim",
+                min_goal_distance_m=0.064,
+                launch_rviz=False,
+                event_levels=["info"],
+            )
+            active = artifact_root / "ego_planner_marsim_99999999_999999"
+            writer = ArtifactWriter(
+                active,
+                {"name": "ego_planner_marsim", "vehicle": "quadrotor"},
+                "ego_planner_marsim",
+            )
+            writer.initialize()
+            atomic_write_json(
+                active / "result.json",
+                {
+                    "status": "passed",
+                    "backend": "ego_planner_marsim",
+                    "scenario_name": "ego_planner_marsim",
+                    "vehicle": "quadrotor",
+                },
+            )
+            try:
+                selected, issue = resolve_artifact_dir(
+                    {
+                        "scenario_name": "ego_planner_marsim",
+                        "reference_artifact": str(complete),
+                    },
+                    matrix_path=root / "matrix.json",
+                    artifact_root=artifact_root,
+                    use_latest=True,
+                )
+            finally:
+                writer.close()
+
+            self.assertIsNone(issue)
+            self.assertEqual(selected, complete)
     def test_reference_acceptance_passes(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -137,6 +250,14 @@ class PlannerAcceptanceTest(unittest.TestCase):
                 min_goal_distance_m=0.05,
                 launch_rviz=False,
                 event_levels=["info"],
+            )
+            write_artifact(
+                artifact_root / "ego_planner_marsim_99999999_999999",
+                backend="wrong_backend",
+                scenario_name="ego_planner_marsim",
+                min_goal_distance_m=0.5,
+                launch_rviz=False,
+                event_levels=["error"],
             )
             write_artifact(
                 artifact_root / "ego_planner_marsim_visual_20260428_010201",

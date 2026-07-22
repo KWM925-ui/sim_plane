@@ -1,25 +1,11 @@
 {
+  "schema_version": 1,
+  "extends": "ego_planner_marsim.json",
   "name": "ego_planner_marsim_visual",
   "description": "Legacy EGO-Planner on the stable MARSIM single-drone scene path with RViz.",
-  "backend": "ego_planner_marsim",
-  "vehicle": "quadrotor",
-  "duration_s": 20.0,
-  "update_hz": 20.0,
-  "target_altitude_m": 1.0,
-  "mission": {
-    "type": "goal",
-    "goal": {
-      "x": 2.5,
-      "y": 0.0,
-      "z": 1.0
-    }
-  },
   "backend_options": {
     "launch_rviz": true,
     "marsim_launch_rviz": true,
-    "use_gpu": false,
-    "goal_reach_tolerance_m": 0.076,
-    "goal_settle_hold_s": 0.2,
-    "success_criteria": "trajectory"
+    "goal_reach_tolerance_m": 0.076
   }
 }

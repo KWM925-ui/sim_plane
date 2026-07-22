@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "backend": "px4_jsbsim",
+  "vehicle": "quadrotor",
+  "scenario_name": "px4_jsbsim_quadx_headless",
+  "metrics": {
+    "telemetry_count": 99,
+    "mavlink_message_count": 7415,
+    "max_altitude_m": 5.385,
+    "max_speed_mps": 2.154,
+    "target_altitude_reached": true,
+    "ever_armed": true,
+    "mode_changes": 3,
+    "duration_s": 20.0
+  },
+  "notes": [
+    "The px4_jsbsim backend runs PX4 SITL against the local JSBSim dynamics bridge via sitl_run.sh.",
+    "This JSBSim path is currently validated in headless mode; rich 3D scene rendering is not part of this backend yet."
+  ],
+  "written_at_utc": "2026-04-28T13:08:14Z"
+}

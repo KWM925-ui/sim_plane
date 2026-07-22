@@ -4,12 +4,15 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+from sim_plane.io_utils import atomic_write_json, append_jsonl, prune_directories, report_write_lock
+from sim_plane.paths import get_platform_paths, resolve_platform_path
+
 from sim_plane.runner import ensure_artifact_root
-from sim_plane.scenario import load_scenario
+from sim_plane.scenario import load_scenario, normalize_scenario
 from sim_plane.evaluation import enrich_result_with_kpis
 
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = get_platform_paths().home
 DEFAULT_SUITE_REPORT_ROOT = REPO_ROOT / "runs" / "suites"
 DEFAULT_KEEP_LAST = 10
 
@@ -23,6 +26,7 @@ def run_suite(
     keep_last=DEFAULT_KEEP_LAST,
     runtime_options=None,
 ):
+    artifact_root_path = resolve_platform_path(artifact_root)
     base_scenario = load_scenario(scenario_path)
     if suite_path is not None and suite_definition is not None:
         raise ValueError("suite_path and suite_definition cannot both be provided")
@@ -31,14 +35,14 @@ def run_suite(
         if suite_definition is not None
         else load_suite_definition(suite_path)
     )
-    ensure_artifact_root(artifact_root)
+    ensure_artifact_root(artifact_root_path)
     rows = []
     issues = []
     for variant in suite["variants"]:
         variant_scenario = build_variant_scenario(base_scenario, variant)
         outcome = run_scenario_data(
             variant_scenario,
-            artifact_root=artifact_root,
+            artifact_root=artifact_root_path,
             runtime_options=runtime_options or {},
         )
         row = build_variant_report(variant, outcome)
@@ -47,7 +51,7 @@ def run_suite(
     report = {
         "suite_name": suite["name"],
         "base_scenario": str(scenario_path),
-        "artifact_root": str(Path(artifact_root)),
+        "artifact_root": str(artifact_root_path),
         "status": "passed" if not issues else "failed",
         "issues": issues,
         "rows": rows,
@@ -94,7 +98,7 @@ def load_suite_definition(path=None):
                 },
             ],
         })
-    suite_path = Path(path)
+    suite_path = resolve_platform_path(path)
     payload = json.loads(suite_path.read_text(encoding="utf-8"))
     return normalize_suite_definition(payload, default_name=suite_path.stem)
 
@@ -287,17 +291,17 @@ def build_variant_scenario(base_scenario, variant):
     scenario["name"] = "{0}_{1}".format(base_scenario["name"], sanitize_variant_name(variant["name"]))
     scenario["suite_variant"] = variant["name"]
     deep_merge(scenario, copy.deepcopy(variant.get("overrides", {})))
-    return scenario
+    return normalize_scenario(scenario, source_path=scenario.get("source_path"))
 
 
 def run_scenario_data(scenario, artifact_root, runtime_options):
     from sim_plane.runner import apply_runtime_options, get_backend, RunSink
-    from sim_plane.artifacts import ArtifactWriter, build_artifact_dir
+    from sim_plane.artifacts import ArtifactWriter, allocate_artifact_dir
 
     scenario = apply_runtime_options(scenario, runtime_options)
     backend_name = scenario["backend"]
     backend = get_backend(backend_name)
-    artifact_dir = build_artifact_dir(artifact_root, scenario["name"])
+    artifact_dir = allocate_artifact_dir(resolve_platform_path(artifact_root), scenario["name"])
     writer = ArtifactWriter(artifact_dir, scenario, backend_name)
     writer.initialize()
     sink = RunSink(writer, None)
@@ -315,6 +319,13 @@ def run_scenario_data(scenario, artifact_root, runtime_options):
             "error": str(exc),
         }
         sink.emit_event("error", "suite variant failed", {"error": str(exc)})
+    pending_threads = sink.wait_for_background_threads()
+    if pending_threads:
+        sink.emit_event(
+            "warning",
+            "background output threads did not drain before artifact completion",
+            {"threads": pending_threads},
+        )
     result = enrich_result_with_kpis(result, scenario, sink.telemetry)
     writer.write_result(result)
     return {
@@ -546,7 +557,14 @@ def summarize_kpi_rankings(rows, limit=8):
 
 
 def write_suite_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST, protected_report_dirs=None):
-    root = Path(report_root) if report_root is not None else DEFAULT_SUITE_REPORT_ROOT
+    root = resolve_platform_path(report_root) if report_root is not None else DEFAULT_SUITE_REPORT_ROOT
+    root.mkdir(parents=True, exist_ok=True)
+    with report_write_lock(root):
+        return _write_suite_report_locked(report, root, keep_last, protected_report_dirs)
+
+
+def _write_suite_report_locked(report, root, keep_last, protected_report_dirs=None):
+    root = Path(root)
     created_at_utc = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
     suite_name = sanitize_variant_name(report.get("suite_name", "suite"))
@@ -558,21 +576,17 @@ def write_suite_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST, pr
     serializable = dict(report)
     serializable.pop("saved_report", None)
     serializable.setdefault("created_at_utc", created_at_utc)
-    report_json.write_text(json.dumps(serializable, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    latest_json.write_text(json.dumps(serializable, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    with history_jsonl.open("a", encoding="utf-8") as handle:
-        handle.write(
-            json.dumps(
-                {
-                    "created_at_utc": created_at_utc,
-                    "suite_name": report.get("suite_name"),
-                    "status": report.get("status"),
-                    "report_json": str(report_json),
-                },
-                ensure_ascii=False,
-            )
-            + "\n"
-        )
+    atomic_write_json(report_json, serializable)
+    atomic_write_json(latest_json, serializable)
+    append_jsonl(
+        history_jsonl,
+        {
+            "created_at_utc": created_at_utc,
+            "suite_name": report.get("suite_name"),
+            "status": report.get("status"),
+            "report_json": str(report_json),
+        },
+    )
     protected_dirs = collect_protected_suite_report_dirs(root, suite_name, protected_report_dirs)
     pruned_report_dirs = []
     if keep_last and keep_last > 0:
@@ -599,37 +613,26 @@ def collect_protected_suite_report_dirs(report_root, suite_name, extra_protected
             matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
-        reference_report = matrix.get("reference_report")
-        if not reference_report:
-            continue
-        reference_path = Path(reference_report)
-        if not reference_path.is_absolute():
-            reference_path = REPO_ROOT / reference_path
-        reference_dir = reference_path.parent
-        if reference_dir.name.startswith("{0}_".format(suite_name)) and reference_dir.parent.resolve() == root.resolve():
-            protected.add(reference_dir.resolve())
+        for reference_key in ("reference_report", "source_reference_report"):
+            reference_report = matrix.get(reference_key)
+            if not reference_report:
+                continue
+            reference_path = Path(reference_report)
+            if not reference_path.is_absolute():
+                reference_path = REPO_ROOT / reference_path
+            reference_dir = reference_path.parent
+            if reference_dir.name.startswith("{0}_".format(suite_name)) and reference_dir.parent.resolve() == root.resolve():
+                protected.add(reference_dir.resolve())
     return protected
 
 
 def prune_suite_reports(report_root, suite_name, keep_last, protected_dirs=None):
-    pattern = "{0}_*".format(suite_name)
-    protected_dirs = protected_dirs or set()
-    pruned = []
-    report_dirs = sorted(
-        [path for path in Path(report_root).glob(pattern) if path.is_dir()],
-        key=lambda path: path.name,
+    return prune_directories(
+        report_root,
+        "{0}_*".format(suite_name),
+        keep_last,
+        protected_dirs=protected_dirs,
     )
-    for path in report_dirs[:-keep_last]:
-        if path.resolve() in protected_dirs:
-            continue
-        for child in sorted(path.rglob("*"), reverse=True):
-            if child.is_file() or child.is_symlink():
-                child.unlink()
-            elif child.is_dir():
-                child.rmdir()
-        path.rmdir()
-        pruned.append(str(path))
-    return pruned
 
 
 def format_suite_report(report):

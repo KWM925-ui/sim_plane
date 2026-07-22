@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "backend": "fast_lio_marsim",
+  "vehicle": "quadrotor",
+  "scenario_name": "fast_lio_marsim_visual",
+  "metrics": {
+    "telemetry_count": 98,
+    "odometry_seen": true,
+    "pointcloud_seen": true,
+    "max_pointcloud_width": 20278,
+    "max_altitude_m": 0.0,
+    "max_speed_mps": 0.0,
+    "target_altitude_reached": false,
+    "duration_s": 20.0,
+    "launch_rviz": true,
+    "fast_lio_launch_rviz": true,
+    "marsim_launch_rviz": false,
+    "pcd_save_disabled": true
+  },
+  "notes": [
+    "The fast_lio_marsim backend composes the dedicated ROS1 workspaces under /home/coco/sim_plane_ws/workspaces/ros1_marsim and /home/coco/sim_plane_ws/workspaces/ros1_fast_lio.",
+    "Live telemetry is derived from FAST_LIO's /Odometry output and the MARSIM input cloud on /quad0_pcl_render_node/sensor_cloud.",
+    "The repo-local wrapper launch disables FAST_LIO's default shutdown-time PCD dump so artifacts stay bounded to the run directory.",
+    "A viewer was requested for this estimation-stack probe.",
+    "FAST_LIO's estimator RViz path was enabled."
+  ],
+  "written_at_utc": "2026-04-28T13:12:55Z"
+}

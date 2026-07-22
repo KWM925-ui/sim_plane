@@ -1,5 +1,7 @@
 import json
 import tempfile
+import threading
+import time
 import unittest
 from contextlib import redirect_stdout
 from io import StringIO
@@ -11,6 +13,7 @@ from sim_plane.cli import main
 import sim_plane.run_suite as run_suite_module
 from sim_plane.run_suite import load_suite_definition, run_suite, write_suite_report
 from sim_plane.quadrotor_exam import run_quadrotor_exam
+from sim_plane.scenario import normalize_scenario
 
 
 def write_base_scenario(path):
@@ -37,6 +40,46 @@ def write_base_scenario(path):
 
 
 class RunSuiteTest(unittest.TestCase):
+    def test_suite_waits_for_registered_output_threads_before_completion(self):
+        class ThreadedBackend:
+            def validate_environment(self, scenario):
+                return []
+
+            def run(self, scenario, sink):
+                def emit_late_event():
+                    time.sleep(0.02)
+                    sink.emit_event("info", "late backend event")
+
+                thread = threading.Thread(target=emit_late_event)
+                sink.register_background_thread(thread)
+                thread.start()
+                return {
+                    "status": "passed",
+                    "backend": "demo",
+                    "vehicle": "quadrotor",
+                    "scenario_name": scenario["name"],
+                    "metrics": {},
+                }
+
+        with tempfile.TemporaryDirectory() as tmpdir, patch(
+            "sim_plane.runner.get_backend",
+            return_value=ThreadedBackend(),
+        ):
+            outcome = run_suite_module.run_scenario_data(
+                normalize_scenario({"name": "threaded_suite_probe"}),
+                artifact_root=Path(tmpdir),
+                runtime_options={},
+            )
+            events = [
+                json.loads(line)
+                for line in (Path(outcome["artifact_dir"]) / "events.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+                if line.strip()
+            ]
+
+        self.assertTrue(any(event["message"] == "late backend event" for event in events))
+
     def test_artifact_dir_uses_collision_resistant_stamp(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             first = build_artifact_dir(tmpdir, "same_name")
@@ -178,6 +221,50 @@ class RunSuiteTest(unittest.TestCase):
             self.assertFalse(stale_dir.exists())
             self.assertIn(str(protected_dir.resolve()), saved["protected_report_dirs"])
             self.assertIn(str(stale_dir), saved["pruned_report_dirs"])
+
+    def test_suite_report_pruning_preserves_source_reference_report(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir) / "repo"
+            config_root = repo_root / "configs"
+            report_root = repo_root / "runs" / "suites"
+            protected_dir = report_root / "paper_quadrotor_exam_suite_20250101_000000_000000"
+            stale_dir = report_root / "paper_quadrotor_exam_suite_20250101_000001_000000"
+            config_root.mkdir(parents=True)
+            for directory in (protected_dir, stale_dir):
+                directory.mkdir(parents=True)
+                (directory / "report.json").write_text("{}", encoding="utf-8")
+            (config_root / "quadrotor_exam_acceptance_matrix.json").write_text(
+                json.dumps(
+                    {
+                        "reference_report": "baselines/reports/exam/report.json",
+                        "source_reference_report": (
+                            "runs/suites/"
+                            "paper_quadrotor_exam_suite_20250101_000000_000000/"
+                            "report.json"
+                        ),
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(run_suite_module, "REPO_ROOT", repo_root):
+                saved = write_suite_report(
+                    {
+                        "suite_name": "paper_quadrotor_exam_suite",
+                        "base_scenario": "scenario.json",
+                        "artifact_root": str(repo_root / "runs"),
+                        "status": "passed",
+                        "issues": [],
+                        "rows": [],
+                        "metric_summary": {},
+                    },
+                    report_root=report_root,
+                    keep_last=1,
+                )
+
+            self.assertTrue(protected_dir.exists())
+            self.assertFalse(stale_dir.exists())
+            self.assertIn(str(protected_dir.resolve()), saved["protected_report_dirs"])
 
     def test_cli_run_suite_returns_success(self):
         with tempfile.TemporaryDirectory() as tmpdir:

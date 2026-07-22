@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_artifact",
+  "source_artifact": "runs/px4_gazebo_classic_iris_mavsdk_action_visual_20260428_172755",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": "2026-04-28T17:28:54Z",
+  "files": {
+    "manifest.json": "2cf7b08a9a312b789aa9dcf28ed86ea184a187c664f032b4562298eb2f73ecba",
+    "result.json": "3f3f380b8a5d8596bacc419f189b44df114ef0f0ecb5dddbb3545150258afb9b",
+    "events.jsonl": "794c8c584473a1352fc796275b2aa741c99b136d5b0f1a3b49aec79c987696dd"
+  }
+}

@@ -3,8 +3,16 @@ import shutil
 from collections import Counter
 from pathlib import Path
 
+from sim_plane.artifacts import (
+    REQUIRED_ARTIFACT_FILES,
+    artifact_lifecycle_state,
+    artifact_root_lock,
+    file_lock_is_held,
+)
+from sim_plane.paths import get_platform_paths, resolve_platform_path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+
+REPO_ROOT = get_platform_paths().home
 DEFAULT_ARTIFACT_ROOT = REPO_ROOT / "runs"
 DEFAULT_REFERENCE_SEARCH_PATHS = (
     REPO_ROOT / "README.md",
@@ -28,11 +36,6 @@ DEFAULT_RESERVED_ROOT_NAMES = {
     "suites",
 }
 DEFAULT_MANUAL_PROBE_ROOT_NAME = "manual_probes"
-REQUIRED_ARTIFACT_FILES = (
-    "manifest.json",
-    "result.json",
-    "events.jsonl",
-)
 MANUAL_SIGNAL_FILES = {
     "telemetry.jsonl",
     "smoke_probe.json",
@@ -49,6 +52,9 @@ MANUAL_SIGNAL_DIRS = {
     "ros_logs",
 }
 MANUAL_PROBE_META_FILE = "probe_meta.json"
+MANUAL_PROBE_RUNNING_MARKER = ".running"
+MANUAL_PROBE_COMPLETE_MARKER = ".complete"
+MANUAL_PROBE_LOCK_FILE = ".probe.lock"
 
 
 def scan_artifact_root(
@@ -56,7 +62,7 @@ def scan_artifact_root(
     reference_search_paths=None,
     reserved_root_names=None,
 ):
-    artifact_root_path = Path(artifact_root) if artifact_root is not None else DEFAULT_ARTIFACT_ROOT
+    artifact_root_path = resolve_platform_path(artifact_root) if artifact_root is not None else DEFAULT_ARTIFACT_ROOT
     reserved_names = set(reserved_root_names or DEFAULT_RESERVED_ROOT_NAMES)
     search_paths = tuple(reference_search_paths or DEFAULT_REFERENCE_SEARCH_PATHS)
     entries = []
@@ -110,13 +116,24 @@ def classify_artifact_directory(
     clean = False
     safe_to_prune = True
     reason = "unreferenced incomplete directory"
+    lifecycle = artifact_lifecycle_state(directory_path)
 
     if directory_path.name in reserved_names:
         category = "reserved_root"
         clean = True
         safe_to_prune = False
         reason = "reserved non-artifact root"
-    elif all(required_files.values()):
+    elif lifecycle == "active":
+        category = "active_artifact"
+        clean = True
+        safe_to_prune = False
+        reason = "artifact is still owned by a running process"
+    elif lifecycle == "stale_incomplete":
+        category = "stale_incomplete_directory"
+        clean = False
+        safe_to_prune = False
+        reason = "managed artifact stopped before writing its completion marker"
+    elif lifecycle in {"complete", "legacy_complete"} and all(required_files.values()):
         category = "complete_artifact"
         clean = True
         safe_to_prune = False
@@ -147,6 +164,7 @@ def classify_artifact_directory(
         "missing_required_files": missing_required_files,
         "reference_hits": reference_hits,
         "reason": reason,
+        "lifecycle": lifecycle,
     }
 
 
@@ -181,6 +199,7 @@ def build_scan_summary(entries):
     return {
         "reserved_root_count": counts.get("reserved_root", 0),
         "complete_artifact_count": counts.get("complete_artifact", 0),
+        "active_artifact_count": counts.get("active_artifact", 0),
         "retained_manual_probe_count": counts.get("retained_manual_probe", 0),
         "stale_manual_probe_count": counts.get("stale_manual_probe", 0),
         "stale_incomplete_directory_count": counts.get("stale_incomplete_directory", 0),
@@ -194,8 +213,11 @@ def scan_manual_probe_root(
     manual_probe_root_name=DEFAULT_MANUAL_PROBE_ROOT_NAME,
     reference_search_paths=None,
 ):
-    artifact_root_path = Path(artifact_root) if artifact_root is not None else DEFAULT_ARTIFACT_ROOT
-    manual_probe_root = artifact_root_path / manual_probe_root_name
+    artifact_root_path = resolve_platform_path(artifact_root) if artifact_root is not None else DEFAULT_ARTIFACT_ROOT
+    manual_probe_root = resolve_manual_probe_root(
+        artifact_root_path,
+        manual_probe_root_name,
+    )
     search_paths = tuple(reference_search_paths or DEFAULT_REFERENCE_SEARCH_PATHS)
     raw_entries = []
     if manual_probe_root.exists():
@@ -240,6 +262,19 @@ def scan_manual_probe_root(
     }
 
 
+def resolve_manual_probe_root(artifact_root, manual_probe_root_name):
+    if not isinstance(manual_probe_root_name, str) or not manual_probe_root_name.strip():
+        raise ValueError("manual_probe_root_name must be a non-empty directory name")
+    name = manual_probe_root_name.strip()
+    if name in {".", ".."} or Path(name).name != name or Path(name).is_absolute():
+        raise ValueError("manual_probe_root_name must be one directory name under artifact_root")
+    root = Path(artifact_root).expanduser().resolve()
+    candidate = (root / name).resolve()
+    if candidate.parent != root:
+        raise ValueError("manual_probe_root_name escapes artifact_root")
+    return candidate
+
+
 def read_manual_probe_directory(path, reference_search_paths=None):
     directory_path = Path(path)
     child_names = sorted(child.name for child in directory_path.iterdir())
@@ -260,7 +295,23 @@ def read_manual_probe_directory(path, reference_search_paths=None):
         "reference_hits": reference_hits,
         "probe_meta": probe_meta,
         "file_count": len(child_names),
+        "lifecycle": manual_probe_lifecycle_state(directory_path),
     }
+
+
+def manual_probe_lifecycle_state(path):
+    directory = Path(path)
+    if not directory.is_dir():
+        return "missing"
+    if file_lock_is_held(directory / MANUAL_PROBE_LOCK_FILE):
+        return "active"
+    if (directory / MANUAL_PROBE_RUNNING_MARKER).is_file():
+        return "stale_incomplete"
+    if (directory / MANUAL_PROBE_COMPLETE_MARKER).is_file():
+        return "complete"
+    if (directory / MANUAL_PROBE_META_FILE).is_file():
+        return "legacy_complete"
+    return "incomplete"
 
 
 def classify_manual_probe_directory(entry, latest_success_by_probe=None):
@@ -270,7 +321,10 @@ def classify_manual_probe_directory(entry, latest_success_by_probe=None):
     clean = True
     safe_to_prune = False
     reason = "manual probe is referenced by repo docs or control files"
-    if entry["reference_hits"]:
+    if entry["lifecycle"] == "active":
+        category = "active_manual_probe"
+        reason = "manual probe is still owned by a running process"
+    elif entry["reference_hits"]:
         reason = "manual probe is referenced by repo docs or control files"
     elif probe_meta.get("retention") == "keep_latest_success":
         probe_name = probe_meta.get("probe_name")
@@ -296,6 +350,7 @@ def classify_manual_probe_directory(entry, latest_success_by_probe=None):
         "reference_hits": entry["reference_hits"],
         "probe_meta": probe_meta,
         "file_count": entry["file_count"],
+        "lifecycle": entry["lifecycle"],
         "reason": reason,
     }
 
@@ -303,6 +358,7 @@ def classify_manual_probe_directory(entry, latest_success_by_probe=None):
 def build_manual_probe_summary(entries):
     counts = Counter(entry["category"] for entry in entries)
     return {
+        "active_manual_probe_count": counts.get("active_manual_probe", 0),
         "retained_manual_probe_count": counts.get("retained_manual_probe", 0),
         "stale_manual_probe_count": counts.get("stale_manual_probe", 0),
         "attention_count": sum(0 if entry["clean"] else 1 for entry in entries),
@@ -317,7 +373,30 @@ def apply_artifact_hygiene(
     reference_search_paths=None,
     reserved_root_names=None,
 ):
-    artifact_root_path = Path(artifact_root) if artifact_root is not None else DEFAULT_ARTIFACT_ROOT
+    artifact_root_path = resolve_platform_path(artifact_root) if artifact_root is not None else DEFAULT_ARTIFACT_ROOT
+    with artifact_root_lock(artifact_root_path):
+        return _apply_artifact_hygiene_locked(
+            artifact_root_path=artifact_root_path,
+            migrate_retained_manual=migrate_retained_manual,
+            prune_safe=prune_safe,
+            manual_probe_root_name=manual_probe_root_name,
+            reference_search_paths=reference_search_paths,
+            reserved_root_names=reserved_root_names,
+        )
+
+
+def _apply_artifact_hygiene_locked(
+    artifact_root_path,
+    migrate_retained_manual=False,
+    prune_safe=False,
+    manual_probe_root_name="manual_probes",
+    reference_search_paths=None,
+    reserved_root_names=None,
+):
+    manual_probe_root = resolve_manual_probe_root(
+        artifact_root_path,
+        manual_probe_root_name,
+    )
     reserved_names = set(reserved_root_names or DEFAULT_RESERVED_ROOT_NAMES)
     reserved_names.add(manual_probe_root_name)
     search_paths = tuple(reference_search_paths or DEFAULT_REFERENCE_SEARCH_PATHS)
@@ -334,7 +413,6 @@ def apply_artifact_hygiene(
     }
 
     if migrate_retained_manual:
-        manual_probe_root = artifact_root_path / manual_probe_root_name
         for entry in before["entries"]:
             if entry["category"] != "retained_manual_probe":
                 continue
@@ -392,7 +470,11 @@ def apply_manual_probe_hygiene(
     prune_safe=False,
     reference_search_paths=None,
 ):
-    artifact_root_path = Path(artifact_root) if artifact_root is not None else DEFAULT_ARTIFACT_ROOT
+    artifact_root_path = resolve_platform_path(artifact_root) if artifact_root is not None else DEFAULT_ARTIFACT_ROOT
+    manual_probe_root = resolve_manual_probe_root(
+        artifact_root_path,
+        manual_probe_root_name,
+    )
     search_paths = tuple(reference_search_paths or DEFAULT_REFERENCE_SEARCH_PATHS)
     before = scan_manual_probe_root(
         artifact_root=artifact_root_path,
@@ -407,6 +489,10 @@ def apply_manual_probe_hygiene(
             if not entry["safe_to_prune"]:
                 continue
             target = Path(entry["path"])
+            if target.parent.resolve() != manual_probe_root.resolve():
+                raise ValueError("manual probe prune target escapes manual probe root")
+            if manual_probe_lifecycle_state(target) == "active":
+                continue
             shutil.rmtree(target)
             actions["pruned"].append(str(target))
     after = scan_manual_probe_root(

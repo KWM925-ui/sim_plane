@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "marsim_ros_command_template",
   "description": "Generic ROS planner/perception ingress on top of MARSIM. The repo-local sample node subscribes odom/cloud/map and publishes PositionCommand into the native MARSIM control chain.",
   "backend": "marsim",

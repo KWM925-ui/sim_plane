@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "basic_takeoff",
   "description": "Demo multirotor takeoff, square mission, and landing for platform bring-up.",
   "backend": "demo",

@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "px4_sih_quadx_mavsdk_failure_motor",
   "description": "Real PX4 SIH quadrotor run that proves PX4-native MAV_CMD_INJECT_FAILURE support for the currently supported motor failure path through MAVSDK.",
   "backend": "px4_sih",

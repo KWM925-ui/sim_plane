@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "backend": "px4_jsbsim",
+  "vehicle": "quadrotor",
+  "scenario_name": "px4_jsbsim_quadx_visual",
+  "metrics": {
+    "telemetry_count": 98,
+    "mavlink_message_count": 6661,
+    "max_altitude_m": 5.833,
+    "max_speed_mps": 1.4,
+    "target_altitude_reached": true,
+    "ever_armed": true,
+    "mode_changes": 3,
+    "duration_s": 20.0,
+    "headless": false,
+    "launch_qgc": false,
+    "flightgear_viewer": true
+  },
+  "notes": [
+    "The px4_jsbsim backend runs PX4 SITL against the local JSBSim dynamics bridge via sitl_run.sh.",
+    "FlightGear was requested as the 3D viewer for this JSBSim run."
+  ],
+  "written_at_utc": "2026-04-28T14:58:43Z"
+}

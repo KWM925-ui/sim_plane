@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_artifact",
+  "source_artifact": "runs/px4_sih_quadx_headless_20260428_130601",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": "2026-04-28T13:06:47Z",
+  "files": {
+    "manifest.json": "56bda68959b698b0980d68e3718ad7d91ad593ef9019726c092a0670c4eb3ea6",
+    "result.json": "6382701f9b2b0ee2efa1ec26e82db34e998aeabe8535936a17e97bd51fbb80ab",
+    "events.jsonl": "24e8bd5895aecc0d9c0fa1f53e1e8f144fc41208dee73b8cafa64b30a5a4912a"
+  }
+}

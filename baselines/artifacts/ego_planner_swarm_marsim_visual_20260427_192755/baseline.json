@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_artifact",
+  "source_artifact": "runs/ego_planner_swarm_marsim_visual_20260427_192755",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": "2026-04-27T19:28:22Z",
+  "files": {
+    "manifest.json": "3f48e23d2baff287485c0c31f26a25620fe44423c94ebd7e5d57afdd3c969bfd",
+    "result.json": "6e09a45b03b32e58f510a7dc301f9290152679b6addb0a0c70896abfef2fd891",
+    "events.jsonl": "3ab085da48398dbd8dc83c004905a442e55f65da380a49f4691945b85e799236"
+  }
+}

@@ -60,11 +60,16 @@ class MARSIMBackendTest(unittest.TestCase):
         process = mock.Mock()
         process.pid = 2468
         process.poll.return_value = None
-        with mock.patch("sim_plane.backends.marsim.os.killpg") as killpg:
+        with mock.patch("sim_plane.backends.marsim.os.killpg") as killpg, mock.patch(
+            "sim_plane.backends.ros_runtime.process_group_exists", return_value=True
+        ), mock.patch(
+            "sim_plane.backends.ros_runtime.wait_for_process_group_exit", return_value=True
+        ):
             stopped = stop_roslaunch(process, sink, "marsim", wait_timeout_s=4.0)
         self.assertTrue(stopped)
         killpg.assert_called_once()
-        process.wait.assert_called_once_with(timeout=4.0)
+        process.wait.assert_called_once()
+        self.assertLessEqual(process.wait.call_args.kwargs["timeout"], 4.0)
 
     def test_prepare_ros_runtime_env_isolates_ros_logs(self):
         with tempfile.TemporaryDirectory() as tmpdir:

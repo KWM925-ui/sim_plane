@@ -2,15 +2,17 @@
 import argparse
 import json
 import subprocess
-import sys
 from pathlib import Path
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def build_parser():
     parser = argparse.ArgumentParser(description="Clone or update structured upstream repos for sim_plane.")
     parser.add_argument(
         "--manifest",
-        default="configs/upstreams.json",
+        default=str(REPO_ROOT / "configs" / "upstreams.json"),
         help="Path to the upstream manifest JSON file.",
     )
     parser.add_argument(
@@ -31,26 +33,43 @@ def build_parser():
 
 
 def main(argv=None):
-    args = build_parser().parse_args(argv)
-    manifest_path = Path(args.manifest).resolve()
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    manifest_path = Path(args.manifest).expanduser()
+    if not manifest_path.is_absolute():
+        manifest_path = REPO_ROOT / manifest_path
+    manifest_path = manifest_path.resolve()
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    workspace_root = Path(args.workspace_root or manifest["workspace_root"]).expanduser().resolve()
+    workspace_root = Path(args.workspace_root or manifest["workspace_root"]).expanduser()
+    if not workspace_root.is_absolute():
+        workspace_root = REPO_ROOT / workspace_root
+    workspace_root = workspace_root.resolve()
     entries = manifest["entries"]
 
     if args.names:
         wanted = set(args.names)
+        available = {entry["name"] for entry in entries}
+        unknown = sorted(wanted - available)
+        if unknown:
+            parser.error(
+                "unknown upstream name(s): {0}; available: {1}".format(
+                    ", ".join(unknown),
+                    ", ".join(sorted(available)),
+                )
+            )
         entries = [entry for entry in entries if entry["name"] in wanted]
 
-    workspace_root.mkdir(parents=True, exist_ok=True)
+    if not args.status_only:
+        workspace_root.mkdir(parents=True, exist_ok=True)
     print("workspace_root={0}".format(workspace_root))
 
     summary = []
     for entry in entries:
         repo_path = workspace_root / entry["path"]
-        repo_path.parent.mkdir(parents=True, exist_ok=True)
         if args.status_only:
             summary.append(report_status(entry, repo_path))
             continue
+        repo_path.parent.mkdir(parents=True, exist_ok=True)
         if not repo_path.exists():
             clone_repo(entry, repo_path)
         else:

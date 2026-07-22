@@ -636,14 +636,14 @@ function renderConsoleCoverage() {
   const report = state.consoleCoverage || {};
   const summary = report.summary || {};
   const rows = report.rows || [];
-  elements.coverageSummary.textContent = `${summary.fixed_preset_count ?? 0}/${summary.cli_command_count ?? 0} 个 CLI 子命令已有固定 preset，${summary.covered_count ?? 0} 个完整覆盖，${summary.hidden_count ?? 0} 个隐藏或待做；非完整参数覆盖`;
+  elements.coverageSummary.textContent = `${summary.fixed_preset_count ?? 0}/${summary.cli_command_count ?? 0} 个 CLI 子命令已有固定 preset，${summary.hidden_count ?? 0} 个未提供固定入口；这里只统计子命令入口，不代表完整参数覆盖`;
   elements.coverageList.innerHTML = "";
   rows.forEach((row) => {
     const item = document.createElement("div");
     item.className = "coverage-row";
     item.innerHTML = `
       <strong>${escapeHtml(row.cli_command || "-")}</strong>
-      <span class="artifact-status" data-status="${row.frontend_status === "covered" ? "passed" : "unknown"}">${escapeHtml(row.frontend_status || "-")}</span>
+      <span class="artifact-status" data-status="unknown">${escapeHtml(row.frontend_status === "fixed_preset" ? "固定 preset" : "未提供固定入口")}</span>
       <p>${escapeHtml(row.reason || "-")}</p>
     `;
     elements.coverageList.appendChild(item);

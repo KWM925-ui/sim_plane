@@ -1,0 +1,221 @@
+{"ts_utc": "2026-04-28T14:19:21Z", "level": "info", "message": "run started", "details": {"backend": "ego_planner_swarm", "scenario": "ego_planner_swarm_single_visual"}}
+{"ts_utc": "2026-04-28T14:19:21Z", "level": "info", "message": "ego_planner_swarm launch plan", "details": {"workspace_dir": "/home/coco/sim_plane_ws/workspaces/ros1_ego_swarm", "launch": "ego_planner single_run_in_sim.launch", "launch_rviz": true, "odom_topic": "/drone_0_visual_slam/odom", "command_topic": "/drone_0_planning/pos_cmd", "ros_log_dir": "runs/ego_planner_swarm_single_visual_20260428_141921/ros_logs"}}
+{"ts_utc": "2026-04-28T14:19:21Z", "level": "info", "message": "launching roslaunch", "details": {"label": "ego_swarm", "command": "roslaunch ego_planner single_run_in_sim.launch", "cwd": "/home/coco/sim_plane_ws/workspaces/ros1_ego_swarm"}}
+{"ts_utc": "2026-04-28T14:19:22Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from INIT to WAIT_TARGET", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:22Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385962.791020033]: Finished generate random map", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:22Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385962.835595865]: Global Pointcloud received..", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:23Z", "level": "info", "message": "launching roslaunch", "details": {"label": "rviz", "command": "roslaunch ego_planner rviz.launch", "cwd": "/home/coco/sim_plane_ws/workspaces/ros1_ego_swarm"}}
+{"ts_utc": "2026-04-28T14:19:23Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385963.286910249]: [Traj server]: ready.", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:23Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: WAIT_TARGET", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:23Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385963.440819271]: Waiting for trigger from [n3ctrl] from RC", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:23Z", "level": "info", "message": "planner trigger", "details": {"line": "[TRIG]: from WAIT_TARGET to GEN_NEW_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:23Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from GEN_NEW_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:23Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:23Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:24Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:24Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:24Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:24Z", "level": "info", "message": "launching ros telemetry probe", "details": {"command": "python3 /home/coco/sim_plane/scripts/ros_telemetry_probe.py --odom-topic /drone_0_visual_slam/odom --command-topic /drone_0_planning/pos_cmd --sample-hz 5.0 --target-altitude-m 1.0"}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "ros odometry received", "details": {"odom_topic": "/drone_0_visual_slam/odom", "position": {"x_m": -13.005, "y_m": 0.698, "z_m": -0.183}, "altitude_m": 0.183}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "planner command stream detected", "details": {"command_topic": "/drone_0_planning/pos_cmd", "count": 20}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385965.555074237]: Can't find the new base points at the opposite within the threshold. i=0, j=0", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:25Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:26Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385966.005252409]: Can't find the new base points at the opposite within the threshold. i=1, j=0", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:26Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:26Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:26Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:26Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385966.305029457]: base_point and control point are too close!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:26Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:26Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:26Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:26Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:27Z", "level": "info", "message": "rviz_stderr log", "details": {"line": "[WARN] [1777385967.240488855]: WARNING: package://odom_visualization/meshes/hummingbird.mesh is an older format ([MeshSerializer_v1.41]); you should upgrade it as soon as possible using the OgreMeshUpgrade tool.", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:27Z", "level": "info", "message": "rviz_stderr log", "details": {"line": "[WARN] [1777385967.240611242]: Can't assign material _missing_material_ to SubEntity of mesh_resource_marker_0 because this Material does not exist. Have you forgotten to define it in a .material script?", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:27Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:27Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:27Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:27Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:28Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:28Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:28Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:29Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:29Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:29Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:30Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:30Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:30Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:30Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:30Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:30Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:30Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:31Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:31Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:32Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:32Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:32Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:32Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:32Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:32Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385973.655324634]: Can't find the new base points at the opposite within the threshold. i=0, j=1", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.660960742]: Ran out of pool, index=100 24 58", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.660989197]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.660997040]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.661028862]: Ran out of pool, index=100 24 58", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.661036143]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.661041342]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.661066623]: Ran out of pool, index=100 24 58", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.661073494]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.661078532]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.661101890]: Ran out of pool, index=100 24 58", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.661108360]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.661113438]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.661139000]: Ran out of pool, index=100 24 58", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.661145350]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385973.661150668]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:33Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:34Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:34Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:34Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385974.693423332]: Failed to generate direction. It doesn't matter.", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:34Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385974.693498834]: Failed to generate direction. It doesn't matter.", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:34Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:34Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:35Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:35Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:35Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385976.506687128]: Ran out of pool, index=100 3 60", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385976.506722836]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385976.506738070]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385976.506795183]: Ran out of pool, index=100 1 63", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385976.506808665]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385976.506822467]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385976.655129625]: Can't find the new base points at the opposite within the threshold. i=0, j=0", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385976.755269099]: Can't find the new base points at the opposite within the threshold. i=0, j=0", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385976.806749285]: Ran out of pool, index=100 21 62", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385976.806781427]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385976.806787717]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:36Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921510912]: Ran out of pool, index=89 -1 63", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921561734]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921574655]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921638899]: Ran out of pool, index=88 -1 63", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921649756]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921658451]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921726521]: Ran out of pool, index=86 -1 63", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921747455]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921762689]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921834385]: Ran out of pool, index=85 -1 62", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921845754]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921857503]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921922308]: Ran out of pool, index=94 -1 68", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921936831]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.921950293]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.922010561]: Ran out of pool, index=83 -1 61", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.922020397]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385977.922029702]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:37Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:38Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:38Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:38Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385978.934496622]: Can't find the new base points at the opposite within the threshold. i=0, j=0", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:38Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:39Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:39Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:39Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:40Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:40Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:40Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:41Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:41Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:41Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:42Z", "level": "info", "message": "stopping process", "details": {"label": "ros_probe", "pid": 74645, "signal": "SIGINT"}}
+{"ts_utc": "2026-04-28T14:19:42Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:42Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:42Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "stopping process", "details": {"label": "rviz", "pid": 74570, "signal": "SIGINT"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.663810632]: Ran out of pool, index=100 32 10", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.663836444]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.663847331]: a star error, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685443774]: Ran out of pool, index=100 39 65", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685479602]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685486053]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685517193]: Ran out of pool, index=100 39 65", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685523293]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685527029]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685549375]: Ran out of pool, index=100 39 65", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685554293]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685558010]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685593447]: Ran out of pool, index=100 39 65", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685605447]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685610795]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685645542]: Ran out of pool, index=100 39 65", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685651632]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685656439]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685689934]: Ran out of pool, index=100 39 65", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685696525]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685701963]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685733735]: Ran out of pool, index=100 39 65", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685739765]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685744523]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685777226]: Ran out of pool, index=100 39 65", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685783115]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685787983]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685819715]: Ran out of pool, index=100 39 65", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685825715]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685831494]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685862284]: Ran out of pool, index=100 39 65", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685868314]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685873913]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685904372]: Ran out of pool, index=100 39 65", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685910082]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685915971]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685947202]: Ran out of pool, index=100 39 65", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685953031]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685958580]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685989551]: Ran out of pool, index=100 39 65", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.685995370]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.686000909]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.705548714]: Ran out of pool, index=-1 33 54", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.705577861]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.705584472]: a star error", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385983.705912295]: Failed to generate direction. It doesn't matter.", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.738034692]: Ran out of pool, index=-1 18 59", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.738059101]: Unable to handle the initial or end point, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[ERROR] [1777385983.738065191]: a star error, force return!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385983.755126074]: Can't find the new base points at the opposite within the threshold. i=0, j=3", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:43Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:44Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385984.005854643]: Failed to generate direction. It doesn't matter.", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:44Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385984.005898985]: Failed to generate direction. It doesn't matter.", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:44Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385984.007556899]: Failed to generate direction. It doesn't matter.", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:44Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385984.007593068]: Failed to generate direction. It doesn't matter.", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:44Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385984.007613541]: Failed to generate direction. It doesn't matter.", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:19:44Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:44Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:44Z", "level": "info", "message": "stopping process", "details": {"label": "ego_swarm", "pid": 74468, "signal": "SIGINT"}}

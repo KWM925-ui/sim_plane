@@ -517,3 +517,142 @@
   - PX4 ULog semantic enhancement: map numeric PX4 nav/arming states to readable labels and improve warning classification;
   - dashboard/report consolidation for health, suite, fuzz, acceptance, and flight-log evidence;
   - PX4-native failure expansion one official surface at a time.
+
+## Structural Foundation Stabilization Frontier - 2026-07-18
+
+### Locked Facts
+
+- Scope is only `/home/coco/sim_plane`.
+- Existing backend names, adapter names, scenario behavior, metric definitions, and acceptance thresholds are frozen during this structural pass.
+- Heavy simulator expansion is paused until the repository foundation is portable and internally consistent.
+- The current source checkout is clean at `main` / `origin/main` commit `a680858` before this frontier starts.
+
+### Current Frontier
+
+- Make frozen acceptance references reproducible from the repository instead of depending on ignored local `runs/` data.
+- Introduce one resource/path contract instead of deriving repository roots independently and changing the process working directory globally.
+- Version and validate scenario contracts, then remove duplicated visual/headless scenario bodies through explicit inheritance.
+- Give artifacts an explicit running/complete lifecycle with atomic metadata writes and cross-process coordination.
+- Extract shared PX4, ROS-composition, and acceptance infrastructure without changing runtime or gate semantics.
+- Remove known dead/duplicated code and separate objective health reporting from hard-coded roadmap advice.
+
+### Forbidden Actions
+
+- Do not weaken acceptance thresholds or replace real PX4 failures with demo degradation.
+- Do not change topic contracts, launch behavior, mission goals, timing values, or backend success criteria during structural extraction.
+- Do not modify `/home/coco/sim_plane_ws` or any external project workspace.
+- Do not delete valid historical `runs/` artifacts.
+- Do not begin a ROS2/Gazebo migration or add another simulator backend.
+
+### Promotion Gates
+
+- Each phase must preserve backward compatibility for existing scenario and matrix files until their checked-in replacements are complete.
+- Version-controlled baseline bundles must include source artifact identity and content checksums.
+- Resource lookup must work from the repository, editable install, and explicit `SIM_PLANE_HOME`; unsupported installed layouts must fail clearly.
+- Scenario validation must reject unknown or invalid contract fields before a backend process starts.
+- Artifact readers must distinguish active runs from incomplete stale directories without relying on user timing discipline.
+- Shared runtime extraction must be incremental and covered by focused tests before removing old helpers.
+
+### Progress - 2026-07-18
+
+- Completed repository-tracked compact acceptance baselines with source identity and checksums.
+- Completed the unified workspace/path layer and removed process-wide working-directory mutation.
+- Completed scenario contract v1:
+  - strict top-level, backend-option, adapter-option, nested type, and range validation;
+  - relative recursive inheritance with cycle detection and deep object merge/list replacement;
+  - all 35 checked-in scenarios explicitly declare schema v1;
+  - 16 duplicate visual/headless scenario bodies now inherit without changing effective values;
+  - suite variants are validated after overrides and before backend startup;
+  - generator options now use the `headless` field consumed by JSBSim and Gazebo Classic.
+- Completed managed artifact lifecycle:
+  - atomic directory allocation, JSON replacement, and line-safe JSONL append;
+  - process-held artifact lock plus `.running` and `.complete` markers;
+  - active, complete, legacy-complete, and stale-incomplete states;
+  - hygiene and latest acceptance skip active artifacts while preserving crashed managed evidence.
+- Completed incremental runtime extraction without changing backend contracts:
+  - shared PX4 process, telemetry, shell-command, and log helpers live in `px4_common.py`;
+  - shared ROS environment and shutdown helpers live in `ros_runtime.py`;
+  - EGO, MARSIM, FAST_LIO, and planner-composition helpers live in dedicated runtime modules;
+  - concrete backends no longer borrow execution helpers from other concrete backends;
+  - PX4 SIH no longer stores private runtime handles in the scenario payload.
+- Completed acceptance/report infrastructure extraction:
+  - artifact selection, timestamp ordering, history, and retention live in `acceptance_common.py`;
+  - planner, platform, PX4 failure, and quadrotor-exam acceptance keep separate contracts while sharing infrastructure;
+  - report writers use atomic replacement and history writers use locked JSONL append.
+- Completed wrapper/path and documentation consistency cleanup:
+  - runtime wrappers locate the repository from their own path or `SIM_PLANE_HOME`;
+  - algorithm subprocesses receive `SIM_PLANE_HOME`;
+  - `platform-health` reports objective health and capability boundaries without a hard-coded roadmap;
+  - current README and Chinese maintenance docs describe tracked baselines, scenario v1, and artifact lifecycle.
+- Current validation evidence before the final closure run:
+  - Python AST syntax: `111` files passed;
+  - JSON syntax: `48` files passed;
+  - checked-in scenario contract: `35/35` passed;
+  - shell syntax and `git diff --check`: passed;
+  - focused runtime tests: `40/40` passed;
+  - repository reference acceptance passed for planner `4/4`, platform `21/21`, PX4 failure `1/1`, and quadrotor exam `8/8`, with reports under `/tmp/sim_plane_validation/`;
+  - the sandboxed full suite ran `271` tests: `252` completed normally and `19` ended only because the sandbox denied localhost `socket()` with `PermissionError`; there were no assertion failures.
+- Current frontier is final sequential closure validation in an environment that permits localhost sockets, followed by fresh lightweight runtime evidence, latest acceptance, hygiene/health, and cache/diff inspection.
+
+### Final Structural Audit Findings - 2026-07-18
+
+- Four independent read-only reviews were run after the first closure pass.
+- The extracted PX4/ROS runtime layer had no reproducible behavior or ordering defect.
+- Closure is reopened only for fresh structural defects, not for backend redesign:
+  - completed artifacts can still be mutated by late daemon log threads;
+  - atomic writes force mode `0644` and can expose previously private scenario/adapter data;
+  - artifact allocation and hygiene pruning have an empty-directory race;
+  - completed artifacts cannot be classified reliably from read-only storage because lock probing opens the lock file for append;
+  - tracked baseline metadata can be absent or incomplete without failing verification;
+  - baseline `source_commit` currently mislabels the freeze-time HEAD as the artifact-producing revision;
+  - acceptance multi-file report publication and retention are not protected by one transaction lock;
+  - the retained source quadrotor-exam report is not protected after the tracked-baseline migration;
+  - latest artifact selection does not filter backend and vehicle identity;
+  - waypoint aliases, adapter null/shell combinations, inherited schema versions, and safety/range bounds contain validation gaps;
+  - generated algorithm workdirs and `sync_upstreams.py` still depend on caller cwd;
+  - `list-adapters` is coupled to unrelated backend probes;
+  - planner matrix documentation and two local-only evidence links are stale or misleading.
+- No acceptance threshold, metric definition, scenario goal, backend command, topic, or timing change is authorized by these findings.
+- The socket-dependent full-suite/doctor rerun remains an environment validation item; it must not hide or delay fixes to the independent defects above.
+
+### Structural Closure Continuation - 2026-07-19
+
+- Closed the fresh artifact lifecycle, baseline provenance/report transaction, scenario contract, cwd portability, adapter-list coupling, console coverage, and documentation consistency findings without changing runtime or acceptance contracts.
+- Focused validation is green; final sequential closure now runs static/contract checks, all non-socket unit tests, fresh lightweight runtime surfaces, all latest acceptances, hygiene/health, and final residue/process/diff inspection.
+- Localhost-socket tests remain classified separately because the managed sandbox denies `socket()` before product logic executes; no product patch may suppress that boundary.
+- Commit and push remain explicitly deferred.
+
+### Closure Validation Result - 2026-07-19
+
+- Static, contract, non-socket unit, fresh lightweight, latest/reference acceptance, hygiene, process, and residue checks completed as recorded in the supervisor ledger.
+- Current platform code is not promoted to commit in this round. The only environment-dependent red status is localhost socket creation inside the managed sandbox; unsandboxed verification was requested and rejected by the approval service, so it remains an explicit blocker rather than a code change.
+- Preserve the current dirty worktree and valid `runs/` evidence for the next session; do not rerun the same saturation suite without a normal-socket environment or a newly bounded question.
+
+### Normal-Host Validation Closure - 2026-07-19
+
+- The exact full unit command completed on the normal host: `289` tests ran in `17.370s`, result `OK`.
+- The sandbox-only socket blocker is retired. Structural foundation stabilization is complete; do not reopen it without fresh contradictory evidence.
+- The accumulated batch remains intentionally uncommitted and unpushed pending the user's explicit next instruction.
+
+### Operator Evidence Reconciliation - 2026-07-19
+
+- User-provided normal-terminal evidence confirms the full suite: `289` tests, `17.370s`, `OK`.
+- This closes the socket-dependent validation item and supersedes stale parallel resume notes; no further structural rerun is required without a new question.
+
+### Release Closure - 2026-07-20
+
+- Review the complete accumulated structural diff without changing frozen runtime or acceptance semantics.
+- Include the compact `baselines/` bundles in version control so reference acceptance no longer depends on ignored local `runs/` artifacts.
+- Commit and push the reviewed structural batch.
+- Prove repository portability from a temporary clean checkout by running scenario-contract validation, the full unit suite, and all four reference acceptance surfaces.
+- Keep broad CLI/web/docs decomposition out of this batch; assess it separately only after the portable release revision is proven.
+- Pre-commit read-only review found bounded release blockers in acceptance fail-closed behavior/source binding, scenario validation, output-root containment, manual-probe lifecycle, suite log draining, process-group cleanup, managed PX4 discovery, wrapper propagation, upstream status-only behavior, and evidence wording.
+- Fix only those evidenced blockers with focused tests; historical unknown source revisions remain unknown, while future artifacts gain honest Git revision/dirty-state capture.
+- 2026-07-21 resume: session JSONL and worktree confirm that the first scenario/acceptance/path/manual-probe patch landed before interruption; validate it first, then continue the remaining locked items without reopening completed branches.
+- 2026-07-21 reconciliation: the next resume attempt died with HTTP `503` before execution. Continue from the unrerun ROS shutdown-timeout focused tests, then finish only the remaining release blockers; treat the active external PX4/Gazebo/ROS stack as out of scope and avoid shared integration runs until it exits.
+- 2026-07-21 implementation and pre-commit validation closure:
+  - all bounded release blockers are fixed without changing frozen thresholds, KPI definitions, scenario targets, topics, backend commands, or timing;
+  - focused tests passed at `42/42` and `64/64`, and the full suite passed `307/307`;
+  - static/contract checks, fresh lightweight demo/smoke/suite/fuzz/KPI-proxy runs, all four reference and latest acceptance surfaces, artifact/manual-probe hygiene, and platform health are green apart from the expected uncommitted-worktree warning;
+  - final evidence is recorded in `.supervisor/supervisor_ledger.md` under `Pre-Commit Release Validation Closure - 2026-07-21`;
+  - the only remaining work is cache cleanup, final payload review, commit/push, and clean-clone proof of scenarios, full units, four reference acceptances, and Git provenance on a fresh demo artifact.

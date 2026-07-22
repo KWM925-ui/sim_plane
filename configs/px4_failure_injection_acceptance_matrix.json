@@ -1,5 +1,6 @@
 {
   "matrix_name": "px4_failure_injection_acceptance",
+  "required_row_count": 1,
   "required_event_levels": [
     "info"
   ],
@@ -17,7 +18,7 @@
       "backend": "px4_sih",
       "surface": "PX4 SIH native MAV_CMD_INJECT_FAILURE through MAVSDK failure plugin",
       "scenario_name": "px4_sih_quadx_mavsdk_failure_motor",
-      "reference_artifact": "runs/px4_sih_quadx_mavsdk_failure_motor_20260528_105546_340839",
+      "reference_artifact": "baselines/artifacts/px4_sih_quadx_mavsdk_failure_motor_20260528_105546_340839",
       "required_metrics": {
         "algorithm_adapter_name": "mavsdk_failure_injection",
         "algorithm_adapter_connected": true,
@@ -45,7 +46,8 @@
       "notes_must_contain": [
         "PX4-native MAV_CMD_INJECT_FAILURE",
         "Demo backend disturbances are not treated as PX4-native failures."
-      ]
+      ],
+      "source_artifact": "runs/px4_sih_quadx_mavsdk_failure_motor_20260528_105546_340839"
     }
   ]
 }

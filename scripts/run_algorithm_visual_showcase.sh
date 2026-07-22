@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT=${SIM_PLANE_HOME:-"$(cd "$(dirname "$0")/.." && pwd)"}
 ARTIFACT_ROOT="$REPO_ROOT/runs"
-MANUAL_PROBE_ROOT="$ARTIFACT_ROOT/manual_probes"
+MANUAL_PROBE_ROOT=""
 OPEN_BROWSER=0
 DASHBOARD_PORT_BASE="${SIM_PLANE_SHOWCASE_DASHBOARD_PORT_BASE:-8765}"
 SHOWCASE_RETRIES="${SIM_PLANE_SHOWCASE_RETRIES:-1}"
 
 source "$REPO_ROOT/scripts/process_cleanup.sh"
+source "$REPO_ROOT/scripts/manual_probe_lifecycle.sh"
 
 usage() {
   cat <<'EOF'
@@ -55,10 +56,16 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ -z "$MANUAL_PROBE_ROOT" ]]; then
+  MANUAL_PROBE_ROOT="$ARTIFACT_ROOT/manual_probes"
+fi
+export SIM_PLANE_MANUAL_PROBE_ROOT="$MANUAL_PROBE_ROOT"
+
 mkdir -p "$ARTIFACT_ROOT" "$MANUAL_PROBE_ROOT"
 
 SHOWCASE_DIR="$MANUAL_PROBE_ROOT/visual_showcase_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$SHOWCASE_DIR"
+manual_probe_start "$SHOWCASE_DIR"
 
 RESULTS_TSV="$SHOWCASE_DIR/results.tsv"
 printf 'label\tattempts\texit_code\tstatus\tartifact_dir\tdashboard_url\tgui_opened\tcommand_log\tgui_markers_file\tlingering_processes_file\tcommand\n' >"$RESULTS_TSV"
@@ -260,7 +267,7 @@ run_entry() {
   return 0
 }
 
-COMMON_FLAGS=(--no-hold-open)
+COMMON_FLAGS=(--artifact-root "$ARTIFACT_ROOT" --no-hold-open)
 VISUALIZE_FLAGS=(--visualize)
 BROWSER_FLAGS=()
 if [[ "$OPEN_BROWSER" -eq 1 ]]; then
@@ -347,6 +354,7 @@ summary = {
     "gui_missing_labels": [row["label"] for row in rows if not row["gui_opened"]],
     "rows": rows,
 }
+summary["status"] = "passed" if not summary["failed_labels"] and not summary["gui_missing_labels"] else "failed"
 
 (showcase_dir / "summary.json").write_text(
     json.dumps(summary, indent=2, ensure_ascii=False) + "\n",
@@ -375,7 +383,30 @@ for row in rows:
     )
 
 (showcase_dir / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+(showcase_dir / "probe_meta.json").write_text(
+    json.dumps(
+        {
+            "probe_name": "visual_showcase",
+            "retention": "keep_latest_success",
+            "status": summary["status"],
+        },
+        indent=2,
+        ensure_ascii=False,
+    )
+    + "\n",
+    encoding="utf-8",
+)
 PY
+
+SHOWCASE_STATUS="$(python3 - "$SHOWCASE_DIR/summary.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+print(json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))["status"])
+PY
+)"
+manual_probe_complete "$SHOWCASE_DIR" "$SHOWCASE_STATUS"
 
 echo "showcase_dir: $SHOWCASE_DIR"
 echo "summary_json: $SHOWCASE_DIR/summary.json"

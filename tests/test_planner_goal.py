@@ -1,4 +1,3 @@
-import json
 import unittest
 from pathlib import Path
 
@@ -9,6 +8,7 @@ from sim_plane.backends.planner_goal import (
     update_goal_reach_diagnostics,
     update_goal_reach_state,
 )
+from sim_plane.scenario import load_scenario
 
 
 class PlannerGoalReachStateTest(unittest.TestCase):
@@ -166,7 +166,7 @@ class PlannerGoalReachStateTest(unittest.TestCase):
         scenario_root = Path(__file__).resolve().parents[1] / "scenarios"
         for filename in self.STRICT_PLANNER_SCENARIOS:
             with self.subTest(filename=filename):
-                scenario = json.loads((scenario_root / filename).read_text(encoding="utf-8"))
+                scenario = load_scenario(scenario_root / filename)
                 hold_s = scenario["backend_options"]["goal_settle_hold_s"]
                 self.assertGreater(hold_s, 0.0)
 

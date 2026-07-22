@@ -2,7 +2,11 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+from sim_plane.io_utils import atomic_write_json, atomic_write_text, append_jsonl, prune_directories, report_write_lock
+from sim_plane.paths import get_platform_paths, resolve_platform_path
+
 from sim_plane.artifact_hygiene import apply_artifact_hygiene
+from sim_plane.artifacts import is_complete_artifact_dir
 from sim_plane.doctor import collect_platform_doctor_report
 from sim_plane.flight_log_analysis import analyze_flight_log
 from sim_plane.live_smoke import run_live_smoke_suite
@@ -11,10 +15,9 @@ from sim_plane.px4_failure_acceptance import validate_matrix as validate_px4_fai
 from sim_plane.px4_failure_acceptance import write_report as write_px4_failure_report
 from sim_plane.run_suite import run_suite
 from sim_plane.scenario_fuzz import run_scenario_fuzz
-from sim_plane.web import is_complete_artifact_dir
 
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = get_platform_paths().home
 DEFAULT_REPORT_ROOT = REPO_ROOT / "runs" / "autotest"
 DEFAULT_KEEP_LAST = 10
 DEFAULT_PROFILE = "fast"
@@ -30,7 +33,8 @@ def run_autotest_pack(
     if profile != "fast":
         raise ValueError("unsupported autotest profile: {0}".format(profile))
     runtime_options = runtime_options or {}
-    artifact_root_path = Path(artifact_root)
+    artifact_root_path = resolve_platform_path(artifact_root)
+    artifact_root = str(artifact_root_path)
     steps = []
 
     steps.append(run_step("doctor", "python3 -m sim_plane doctor --json", run_doctor_step))
@@ -295,7 +299,14 @@ def find_latest_artifact(artifact_root, backend_prefix=None, preferred_scenario_
 
 
 def write_autotest_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST):
-    root = Path(report_root) if report_root is not None else DEFAULT_REPORT_ROOT
+    root = resolve_platform_path(report_root) if report_root is not None else DEFAULT_REPORT_ROOT
+    root.mkdir(parents=True, exist_ok=True)
+    with report_write_lock(root):
+        return _write_autotest_report_locked(report, root, keep_last)
+
+
+def _write_autotest_report_locked(report, root, keep_last):
+    root = root if hasattr(root, "joinpath") else resolve_platform_path(root)
     pack_name = report.get("pack_name", "sim_plane_autotest")
     stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
     report_dir = root / "{0}_{1}".format(pack_name, stamp)
@@ -307,24 +318,21 @@ def write_autotest_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST)
     history_jsonl = root / "history_{0}.jsonl".format(pack_name)
     serializable = dict(report)
     serializable.pop("saved_report", None)
-    report_json.write_text(json.dumps(serializable, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    report_txt.write_text(format_autotest_report(serializable) + "\n", encoding="utf-8")
-    latest_json.write_text(json.dumps(serializable, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    latest_txt.write_text(format_autotest_report(serializable) + "\n", encoding="utf-8")
-    with history_jsonl.open("a", encoding="utf-8") as handle:
-        handle.write(
-            json.dumps(
-                {
-                    "created_at_utc": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-                    "pack_name": pack_name,
-                    "profile": report.get("profile"),
-                    "status": report.get("status"),
-                    "report_json": str(report_json),
-                },
-                ensure_ascii=False,
-            )
-            + "\n"
-        )
+    text_report = format_autotest_report(serializable) + "\n"
+    atomic_write_json(report_json, serializable)
+    atomic_write_text(report_txt, text_report)
+    atomic_write_json(latest_json, serializable)
+    atomic_write_text(latest_txt, text_report)
+    append_jsonl(
+        history_jsonl,
+        {
+            "created_at_utc": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "pack_name": pack_name,
+            "profile": report.get("profile"),
+            "status": report.get("status"),
+            "report_json": str(report_json),
+        },
+    )
     if keep_last and keep_last > 0:
         prune_autotest_reports(root, pack_name, keep_last)
     return {
@@ -338,17 +346,7 @@ def write_autotest_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST)
 
 
 def prune_autotest_reports(report_root, pack_name, keep_last):
-    report_dirs = sorted(
-        [path for path in Path(report_root).glob("{0}_*".format(pack_name)) if path.is_dir()],
-        key=lambda path: path.name,
-    )
-    for path in report_dirs[:-keep_last]:
-        for child in sorted(path.rglob("*"), reverse=True):
-            if child.is_file() or child.is_symlink():
-                child.unlink()
-            elif child.is_dir():
-                child.rmdir()
-        path.rmdir()
+    return prune_directories(report_root, "{0}_*".format(pack_name), keep_last)
 
 
 def format_autotest_report(report):

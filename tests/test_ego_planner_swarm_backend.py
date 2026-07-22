@@ -60,11 +60,16 @@ class EgoPlannerSwarmBackendTest(unittest.TestCase):
         process = mock.Mock()
         process.pid = 4321
         process.poll.return_value = None
-        with mock.patch("sim_plane.backends.ego_planner_swarm.os.killpg") as killpg:
+        with mock.patch("sim_plane.backends.ego_planner_swarm.os.killpg") as killpg, mock.patch(
+            "sim_plane.backends.ros_runtime.process_group_exists", return_value=True
+        ), mock.patch(
+            "sim_plane.backends.ros_runtime.wait_for_process_group_exit", return_value=True
+        ):
             stopped = stop_roslaunch(process, sink, "ego_swarm", wait_timeout_s=3.0)
         self.assertTrue(stopped)
         killpg.assert_called_once()
-        process.wait.assert_called_once_with(timeout=3.0)
+        process.wait.assert_called_once()
+        self.assertLessEqual(process.wait.call_args.kwargs["timeout"], 3.0)
 
     def test_shutdown_ros_nodes_skips_excluded_nodes(self):
         sink = mock.Mock()

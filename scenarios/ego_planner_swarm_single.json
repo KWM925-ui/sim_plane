@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "ego_planner_swarm_single",
   "description": "Single-drone EGO-Planner-Swarm run inside the dedicated ROS1 workspace.",
   "backend": "ego_planner_swarm",

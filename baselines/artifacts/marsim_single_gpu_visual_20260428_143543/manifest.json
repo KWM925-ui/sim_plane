@@ -1,0 +1,15 @@
+{
+  "created_at_utc": "2026-04-28T14:35:43Z",
+  "backend": "marsim",
+  "scenario_name": "marsim_single_gpu_visual",
+  "vehicle": "quadrotor",
+  "artifact_dir": "runs/marsim_single_gpu_visual_20260428_143543",
+  "files": {
+    "scenario": "scenario.json",
+    "telemetry": "telemetry.jsonl",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "backend_stdout": "backend_stdout.log",
+    "backend_stderr": "backend_stderr.log"
+  }
+}

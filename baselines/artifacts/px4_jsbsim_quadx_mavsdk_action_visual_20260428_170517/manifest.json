@@ -1,0 +1,15 @@
+{
+  "created_at_utc": "2026-04-28T17:05:17Z",
+  "backend": "px4_jsbsim",
+  "scenario_name": "px4_jsbsim_quadx_mavsdk_action_visual",
+  "vehicle": "quadrotor",
+  "artifact_dir": "/home/coco/sim_plane/runs/px4_jsbsim_quadx_mavsdk_action_visual_20260428_170517",
+  "files": {
+    "scenario": "scenario.json",
+    "telemetry": "telemetry.jsonl",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "backend_stdout": "backend_stdout.log",
+    "backend_stderr": "backend_stderr.log"
+  }
+}

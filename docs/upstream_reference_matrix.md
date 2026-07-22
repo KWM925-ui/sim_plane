@@ -10,11 +10,11 @@ All external workspaces should stay under:
 
 The canonical clone map lives in:
 
-- [configs/upstreams.json](/home/coco/sim_plane/configs/upstreams.json)
+- [configs/upstreams.json](../configs/upstreams.json)
 
 The sync entrypoint lives in:
 
-- [scripts/sync_upstreams.py](/home/coco/sim_plane/scripts/sync_upstreams.py)
+- [scripts/sync_upstreams.py](../scripts/sync_upstreams.py)
 
 ## Selection Policy
 

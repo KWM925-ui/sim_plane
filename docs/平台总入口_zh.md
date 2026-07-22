@@ -32,13 +32,13 @@ CLI -> scenario -> backend/adapter -> artifact -> KPI -> suite/fuzz/acceptance -
 python3 -m sim_plane doctor
 ```
 
-从系统全局看当前平台是否健康、证据是否干净、下一阶段该优先补哪里：
+从系统全局看当前平台是否健康、证据是否干净、已知能力边界是什么：
 
 ```bash
 python3 -m sim_plane platform-health --artifact-root runs
 ```
 
-跑最快的本机健康检查：
+跑最快的内置 demo 链体检（只证明 runner、artifact、基础 KPI，不启动 PX4/ROS）：
 
 ```bash
 python3 -m sim_plane live-smoke --profile fast
@@ -50,7 +50,7 @@ python3 -m sim_plane live-smoke --profile fast
 python3 -m sim_plane autotest-pack --profile fast --artifact-root runs
 ```
 
-跑标准论文/项目式四旋翼实验闭环：
+跑内置 demo backend 的四旋翼轻量 KPI/proxy 闭环：
 
 ```bash
 python3 -m sim_plane quadrotor-exam --artifact-root runs
@@ -86,7 +86,7 @@ python3 -m sim_plane artifact-hygiene --artifact-root runs
 python3 -m sim_plane serve runs
 ```
 
-这条命令已经支持从任意目录启动。平台入口会自动切回 `/home/coco/sim_plane` 仓库根目录，所以 `runs`、`scenarios`、`configs` 这些相对路径仍然指向本仓库内的对应目录。安装后的简写命令也可用：
+在完整 checkout 中执行过 `python3 -m pip install -e .`，或显式设置 `SIM_PLANE_HOME` 指向完整 checkout 后，这条命令才支持从任意目录启动。平台不会修改当前进程的工作目录；`runs`、`scenarios`、`configs` 等平台相对路径会统一解析到该仓库根目录。普通 wheel 不包含这些仓库资源，不是自包含运行形态。安装后的简写命令可用：
 
 ```bash
 sim-plane serve runs
@@ -102,7 +102,7 @@ sim-plane serve runs
 - `4 回归验收`：读取已有 latest artifact/report，对照冻结 reference 判断是否退化。
 - `5 算法接入`：查看或运行标准算法入口，先验证接口再接复杂算法。
 
-这里最容易误用的是 `Fresh 运行证据` 和 `历史证据回归`。前者会重新跑场景，后者只读取已有 artifact/report。不要在一个长任务正在写 `runs/` 时同时运行 `platform-health`、`artifact-hygiene`、`platform-acceptance` 或 `autotest-pack`，否则报告可能读到中间状态。
+这里最容易误用的是 `Fresh 运行证据` 和 `历史证据回归`。前者会重新跑场景，后者只读取已有 artifact/report。平台会通过锁和 `.running`/`.complete` 跳过活动 artifact，不会把它当成已完成证据；但并发运行仍可能争用仿真端口和主机资源，而且 latest 检查可能仍指向上一条已完成证据。需要验收本轮结果时，应等 fresh 运行完成后再执行读取类检查。
 
 `python3 -m unittest ...` 是开发自检命令，只会输出测试结果，不会打开网页。要看到前端，运行上面的 `serve` 命令。
 
@@ -163,8 +163,8 @@ PX4/QGroundControl/JSBSim/Gazebo Classic 路径仍是可选视觉面，不是所
 - PX4-native `SYSTEM_MOTOR/OFF/OK` failure injection acceptance
 - artifact / `.ulg` flight-log replay
 - local `autotest-pack`
-- paper/project-style `quadrotor-exam`
-- latest-vs-reference `quadrotor-exam-acceptance`
+- demo-backend KPI/proxy `quadrotor-exam`
+- 对应的 latest-vs-reference `quadrotor-exam-acceptance`
 - baseline algorithm catalog
 
 注意：这里的“正式能力面”表示平台里有统一 scenario、backend/adapter、

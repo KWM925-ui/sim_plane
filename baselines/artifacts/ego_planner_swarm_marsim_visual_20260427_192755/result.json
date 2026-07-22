@@ -1,0 +1,41 @@
+{
+  "status": "passed",
+  "backend": "ego_planner_swarm_marsim",
+  "vehicle": "quadrotor",
+  "scenario_name": "ego_planner_swarm_marsim_visual",
+  "metrics": {
+    "telemetry_count": 23,
+    "max_altitude_m": 1.002,
+    "max_speed_mps": 1.947,
+    "max_pointcloud_width": 20267,
+    "pointcloud_seen": true,
+    "target_altitude_reached": true,
+    "position_cmd_seen": true,
+    "goal_reached": true,
+    "min_goal_distance_m": 0.005,
+    "duration_s": 3.545,
+    "launch_rviz": true,
+    "cloud_only": true,
+    "goal_publisher": {
+      "odom_seen": true,
+      "pointcloud_seen": true,
+      "pos_cmd_seen": true,
+      "goal_topic": "/move_base_simple/goal",
+      "command_topic": "/quad_0/planning/pos_cmd",
+      "goal": {
+        "x": 2.5,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "odom_altitude_m": 1.004,
+      "pointcloud_width": 20060
+    }
+  },
+  "notes": [
+    "The ego_planner_swarm_marsim backend composes the dedicated ROS1 workspaces under /home/coco/sim_plane_ws/workspaces/ros1_marsim and /home/coco/sim_plane_ws/workspaces/ros1_ego_swarm.",
+    "The repo-local wrapper keeps EGO-Planner-Swarm in manual-goal mode and does not launch the upstream swarm simulator stack or waypoint generator.",
+    "This composition is intentionally cloud-only: the wrapper remaps swarm GridMap onto MARSIM's odometry and pointcloud topics while disabling the depth filter to avoid the retired false-obstacle chain.",
+    "RViz was requested through the MARSIM scene viewer path."
+  ],
+  "written_at_utc": "2026-04-27T19:28:22Z"
+}

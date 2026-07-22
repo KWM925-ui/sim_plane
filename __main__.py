@@ -1,13 +1,10 @@
-"""Repo-level launcher for ``python3 -m sim_plane`` from the parent directory.
+"""Repo-level launcher for ``python3 -m sim_plane`` from a checkout parent.
 
-When the current directory is ``/home/coco``, Python sees ``/home/coco/sim_plane``
-as an outer namespace package before it sees the real package under
-``/home/coco/sim_plane/sim_plane``. This shim redirects imports to the inner
-package so the CLI works from both the repo root and its parent directory.
+When Python discovers the checkout directory as an outer namespace package,
+this shim redirects imports to the real package inside ``sim_plane/``.
 """
 
 from pathlib import Path
-import os
 import sys
 
 
@@ -22,8 +19,6 @@ if parent_package is not None and hasattr(parent_package, "__path__"):
 
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-
-os.chdir(REPO_ROOT)
 
 from sim_plane.cli import main
 

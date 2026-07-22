@@ -1,25 +1,9 @@
 {
+  "schema_version": 1,
+  "extends": "px4_sih_quadx.json",
   "name": "px4_sih_quadx_3d",
   "description": "Real PX4 SIH quadrotor run with dashboard, QGroundControl, and jMAVSim 3D display-only viewer.",
-  "backend": "px4_sih",
-  "vehicle": "quadrotor",
-  "duration_s": 20.0,
-  "update_hz": 5.0,
-  "target_altitude_m": 5.0,
   "backend_options": {
-    "model": "sihsim_quadx",
-    "mavlink_endpoint": "udpin:127.0.0.1:14540",
-    "launch_qgc": true,
-    "launch_jmavsim": true,
-    "speed_factor": 1.0,
-    "shell_command_delay_s": 5.0,
-    "shell_command_interval_s": 2.0,
-    "shell_commands": [
-      "param set MIS_TAKEOFF_ALT 5",
-      "commander takeoff",
-      "commander takeoff",
-      "commander takeoff"
-    ],
-    "success_criteria": "takeoff"
+    "launch_jmavsim": true
   }
 }

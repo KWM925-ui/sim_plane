@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "backend": "marsim",
+  "vehicle": "quadrotor",
+  "scenario_name": "marsim_single_visual",
+  "metrics": {
+    "telemetry_count": 89,
+    "pointcloud_seen": true,
+    "max_pointcloud_width": 20382,
+    "max_altitude_m": 1.011,
+    "max_speed_mps": 0.51,
+    "target_altitude_reached": true,
+    "duration_s": 18.0,
+    "launch_rviz": true
+  },
+  "notes": [
+    "The marsim backend launches the dedicated ROS1 catkin workspace under /home/coco/sim_plane_ws/workspaces/ros1_marsim.",
+    "Live telemetry is derived from /quad_0/lidar_slam/odom and the local sensing cloud on /quad0_pcl_render_node/cloud.",
+    "RViz was requested through MARSIM's built-in 3D launch path."
+  ],
+  "written_at_utc": "2026-04-28T13:09:09Z"
+}

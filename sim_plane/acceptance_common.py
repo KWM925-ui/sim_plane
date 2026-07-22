@@ -1,4 +1,138 @@
 import json
+from datetime import datetime, timezone
+from pathlib import Path
+
+from sim_plane.artifacts import is_complete_artifact_dir, safe_artifact_name
+from sim_plane.baseline_store import BASELINE_META_FILE, verify_artifact_baseline
+from sim_plane.io_utils import append_jsonl, prune_directories
+from sim_plane.paths import resolve_platform_path
+
+
+def resolve_artifact_root(matrix_path, artifact_root):
+    if artifact_root is not None:
+        return resolve_platform_path(artifact_root)
+    return Path(matrix_path).parent.parent / "runs"
+
+
+def resolve_artifact_dir(
+    mode_spec,
+    matrix_path,
+    artifact_root,
+    use_latest=False,
+    expected_backend=None,
+    expected_vehicle=None,
+):
+    if use_latest:
+        scenario_name = mode_spec["scenario_name"]
+        candidates = []
+        for path in Path(artifact_root).iterdir():
+            if not is_complete_artifact_dir(path):
+                continue
+            result_path = path / "result.json"
+            try:
+                result = json.loads(result_path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                continue
+            if result.get("scenario_name") != scenario_name:
+                continue
+            if expected_backend is not None and result.get("backend") != expected_backend:
+                continue
+            if expected_vehicle is not None and result.get("vehicle") != expected_vehicle:
+                continue
+            candidates.append(path)
+        if not candidates:
+            identity = ["scenario={0}".format(scenario_name)]
+            if expected_backend is not None:
+                identity.append("backend={0}".format(expected_backend))
+            if expected_vehicle is not None:
+                identity.append("vehicle={0}".format(expected_vehicle))
+            return None, "no artifact found for latest {0}".format(", ".join(identity))
+        return max(candidates, key=artifact_sort_key), None
+
+    artifact_dir = Path(mode_spec["reference_artifact"])
+    if not artifact_dir.is_absolute():
+        artifact_dir = (Path(matrix_path).parent.parent / artifact_dir).resolve()
+    return artifact_dir, None
+
+
+def artifact_sort_key(artifact_dir):
+    return (artifact_created_timestamp(artifact_dir), artifact_dir.name)
+
+
+def artifact_created_timestamp(artifact_dir):
+    artifact_dir = Path(artifact_dir)
+    manifest_path = artifact_dir / "manifest.json"
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            manifest = {}
+        timestamp = parse_artifact_timestamp(manifest.get("created_at_utc"))
+        if timestamp is not None:
+            return timestamp
+
+    mtimes = []
+    for child_name in ("result.json", "manifest.json", "events.jsonl"):
+        child = artifact_dir / child_name
+        if child.exists():
+            mtimes.append(child.stat().st_mtime)
+    try:
+        mtimes.append(artifact_dir.stat().st_mtime)
+    except OSError:
+        pass
+    return max(mtimes) if mtimes else 0.0
+
+
+def parse_artifact_timestamp(value):
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.timestamp()
+
+
+def resolve_reference_artifact_dir(mode_spec, matrix_path):
+    artifact_dir = Path(mode_spec["reference_artifact"])
+    if not artifact_dir.is_absolute():
+        artifact_dir = (Path(matrix_path).parent.parent / artifact_dir).resolve()
+    return artifact_dir
+
+
+def build_acceptance_report_dir(report_root, matrix_name, selection_mode):
+    safe_matrix_name = safe_artifact_name(matrix_name)
+    stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
+    return Path(report_root) / "{0}_{1}_{2}".format(
+        safe_matrix_name,
+        selection_mode,
+        stamp,
+    )
+
+
+def append_history_entry(path, entry):
+    append_jsonl(path, entry)
+
+
+def prune_acceptance_reports(report_root_path, matrix_name, selection_mode, keep_last):
+    safe_matrix_name = safe_artifact_name(matrix_name)
+    return prune_directories(
+        report_root_path,
+        "{0}_{1}_*".format(safe_matrix_name, selection_mode),
+        keep_last,
+    )
+
+
+def load_previous_acceptance_report(path):
+    report_path = Path(path)
+    if not report_path.exists():
+        return None
+    try:
+        return json.loads(report_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
 
 
 def merge_metric_regression_budgets(default_budgets, row_budgets):
@@ -10,19 +144,37 @@ def merge_metric_regression_budgets(default_budgets, row_budgets):
     return merged
 
 
-def load_reference_result(reference_artifact_dir, backend, scenario_name, expected_vehicle="quadrotor"):
+def load_reference_result(
+    reference_artifact_dir,
+    backend,
+    scenario_name,
+    expected_vehicle="quadrotor",
+    require_baseline_metadata=False,
+    expected_source_artifact=None,
+):
     issues = []
     if reference_artifact_dir is None:
         return None, ["reference artifact directory could not be resolved"]
 
+    metadata_path = Path(reference_artifact_dir) / BASELINE_META_FILE
+    if require_baseline_metadata or metadata_path.exists():
+        issues.extend(
+            verify_artifact_baseline(
+                reference_artifact_dir,
+                expected_source_artifact=expected_source_artifact,
+            )
+        )
+
     result_path = reference_artifact_dir / "result.json"
     if not result_path.exists():
-        return None, ["missing reference result.json"]
+        issues.append("missing reference result.json")
+        return None, issues
 
     try:
         reference_result = json.loads(result_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
-        return None, ["reference result.json is not valid JSON"]
+        issues.append("reference result.json is not valid JSON")
+        return None, issues
 
     if reference_result.get("backend") != backend:
         issues.append(
@@ -46,6 +198,28 @@ def load_reference_result(reference_artifact_dir, backend, scenario_name, expect
         issues.append("reference result status is not passed")
 
     return reference_result, issues
+
+
+def validate_matrix_rows(matrix, label):
+    rows = matrix.get("rows")
+    issues = []
+    if not isinstance(rows, list):
+        return [], ["{0}.rows must be a non-empty list".format(label)]
+    if not rows:
+        issues.append("{0}.rows must not be empty".format(label))
+    required_count = matrix.get("required_row_count")
+    if required_count is not None:
+        if isinstance(required_count, bool) or not isinstance(required_count, int) or required_count <= 0:
+            issues.append("{0}.required_row_count must be a positive integer".format(label))
+        elif len(rows) != required_count:
+            issues.append(
+                "{0} row count mismatch: expected {1}, got {2}".format(
+                    label,
+                    required_count,
+                    len(rows),
+                )
+            )
+    return rows, issues
 
 
 def evaluate_metric_regression_budgets(metrics, reference_metrics, metric_regression_budgets):

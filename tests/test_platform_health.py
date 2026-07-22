@@ -99,10 +99,10 @@ class PlatformHealthTest(unittest.TestCase):
             self.assertEqual(report["status"], "passed")
             self.assertEqual(report["summary"]["passed_component_count"], 8)
             self.assertEqual(report["issues"], [])
-            self.assertEqual(len(report["next_stage_plan"]), 4)
+            self.assertNotIn("next_stage_plan", report)
             rendered = format_platform_health_report(report)
             self.assertIn("platform health: passed", rendered)
-            self.assertIn("PX4 ULog KPI replay alignment", rendered)
+            self.assertNotIn("next stage plan", rendered)
 
     @mock.patch("sim_plane.platform_health.collect_git_report")
     @mock.patch("sim_plane.platform_health.collect_platform_doctor_report")
@@ -160,7 +160,6 @@ class PlatformHealthTest(unittest.TestCase):
                 "components": [],
                 "latest_evidence": {},
                 "objective_boundaries": [],
-                "next_stage_plan": [],
             }
 
             saved = write_platform_health_report(report, report_root=report_root, keep_last=1)
@@ -190,7 +189,6 @@ class PlatformHealthTest(unittest.TestCase):
             "components": [],
             "latest_evidence": {},
             "objective_boundaries": [],
-            "next_stage_plan": [],
         }
         write_health.return_value = {"report_json": "/tmp/report.json", "latest_json": "/tmp/latest.json"}
         output = StringIO()

@@ -3,6 +3,8 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
+from sim_plane.io_utils import atomic_write_json
+
 
 DEFAULT_LOG_DIR_NAME = "px4_ulog"
 
@@ -187,7 +189,7 @@ def write_px4_ulog_index(artifact_dir, report):
     index_dir = Path(artifact_dir) / DEFAULT_LOG_DIR_NAME
     index_dir.mkdir(parents=True, exist_ok=True)
     index_path = index_dir / "index.json"
-    index_path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    atomic_write_json(index_path, report)
     return index_path
 
 
@@ -233,7 +235,7 @@ def update_manifest_with_px4_ulog(artifact_dir, report):
         "count": report.get("count", 0),
         "index": "{0}/index.json".format(DEFAULT_LOG_DIR_NAME),
     }
-    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    atomic_write_json(manifest_path, manifest)
 
 
 def px4_ulog_metrics(report):

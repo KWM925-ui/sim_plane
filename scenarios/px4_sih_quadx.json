@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "px4_sih_quadx",
   "description": "Real PX4 SIH quadrotor run with local dashboard telemetry and optional QGroundControl.",
   "backend": "px4_sih",

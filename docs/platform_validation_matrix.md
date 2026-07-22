@@ -8,7 +8,7 @@ bullets and scattered run directories.
 
 The canonical machine-readable source now lives at:
 
-- [configs/platform_acceptance_matrix.json](/home/coco/sim_plane/configs/platform_acceptance_matrix.json)
+- [configs/platform_acceptance_matrix.json](../configs/platform_acceptance_matrix.json)
 
 Validate the frozen strict baseline with:
 
@@ -61,27 +61,27 @@ The strict platform gate currently requires all of the following:
 
 | Name | Backend | Surface | Reference artifact | Status |
 | --- | --- | --- | --- | --- |
-| `ego_planner_single` | `ego_planner` | legacy upstream single-run planner | `runs/ego_planner_single_20260428_142011` | passed |
-| `ego_planner_single_visual` | `ego_planner` | legacy upstream single-run planner with RViz | `runs/ego_planner_single_visual_20260428_142039` | passed |
-| `ego_planner_swarm_single` | `ego_planner_swarm` | swarm upstream single-run planner | `runs/ego_planner_swarm_single_20260428_141841` | passed |
-| `ego_planner_swarm_single_visual` | `ego_planner_swarm` | swarm upstream single-run planner with RViz | `runs/ego_planner_swarm_single_visual_20260428_141921` | passed |
-| `px4_sih_headless` | `px4_sih` | light closed-loop PX4 takeoff | `runs/px4_sih_quadx_headless_20260428_130601` | passed |
-| `px4_sih_3d` | `px4_sih` | SIH plus QGroundControl plus jMAVSim viewer | `runs/px4_sih_quadx_3d_20260428_130651` | passed |
-| `px4_sih_mavsdk_action` | `px4_sih` | SIH quadrotor driven by the repo-local MAVSDK action adapter | `runs/px4_sih_quadx_mavsdk_action_20260428_160345` | passed |
-| `px4_jsbsim_headless` | `px4_jsbsim` | JSBSim quadrotor dynamics | `runs/px4_jsbsim_quadx_headless_20260428_130736` | passed |
-| `px4_jsbsim_mavsdk_action` | `px4_jsbsim` | JSBSim quadrotor dynamics driven by the repo-local MAVSDK action adapter | `runs/px4_jsbsim_quadx_mavsdk_action_20260428_161256` | passed |
-| `px4_jsbsim_mavsdk_action_visual` | `px4_jsbsim` | JSBSim quadrotor dynamics with FlightGear viewer driven by the repo-local MAVSDK action adapter | `runs/px4_jsbsim_quadx_mavsdk_action_visual_20260428_170517` | passed |
-| `px4_jsbsim_visual` | `px4_jsbsim` | JSBSim quadrotor dynamics with FlightGear viewer | `runs/px4_jsbsim_quadx_visual_20260428_145759` | passed |
-| `px4_gazebo_classic_headless` | `px4_gazebo_classic` | Gazebo Classic scene-backed PX4 takeoff headless | `runs/px4_gazebo_classic_iris_headless_20260428_152015` | passed |
-| `px4_gazebo_classic_visual` | `px4_gazebo_classic` | Gazebo Classic scene-backed PX4 takeoff with native GUI | `runs/px4_gazebo_classic_iris_visual_20260428_152300` | passed |
-| `px4_gazebo_classic_mavsdk_action` | `px4_gazebo_classic` | Gazebo Classic scene-backed PX4 takeoff driven by the repo-local MAVSDK action adapter | `runs/px4_gazebo_classic_iris_mavsdk_action_20260428_172653` | passed |
-| `px4_gazebo_classic_mavsdk_action_visual` | `px4_gazebo_classic` | Gazebo Classic scene-backed PX4 takeoff with native GUI driven by the repo-local MAVSDK action adapter | `runs/px4_gazebo_classic_iris_mavsdk_action_visual_20260428_172755` | passed |
-| `marsim_headless` | `marsim` | scene-backed sensor stack headless | `runs/marsim_single_20260428_130820` | passed |
-| `marsim_visual` | `marsim` | scene-backed sensor stack with RViz | `runs/marsim_single_visual_20260428_130846` | passed |
-| `marsim_gpu_headless` | `marsim` | scene-backed GPU sensor stack headless | `runs/marsim_single_gpu_20260428_143322` | passed |
-| `marsim_gpu_visual` | `marsim` | scene-backed GPU sensor stack with RViz | `runs/marsim_single_gpu_visual_20260428_143543` | passed |
-| `fast_lio_marsim_headless` | `fast_lio_marsim` | estimation stack headless | `runs/fast_lio_marsim_20260428_130913` | passed |
-| `fast_lio_marsim_visual` | `fast_lio_marsim` | estimation stack with FAST_LIO RViz | `runs/fast_lio_marsim_visual_20260428_131215` | passed |
+| `ego_planner_single` | `ego_planner` | legacy upstream single-run planner | `baselines/artifacts/ego_planner_single_20260428_142011` | passed |
+| `ego_planner_single_visual` | `ego_planner` | legacy upstream single-run planner with RViz | `baselines/artifacts/ego_planner_single_visual_20260428_142039` | passed |
+| `ego_planner_swarm_single` | `ego_planner_swarm` | swarm upstream single-run planner | `baselines/artifacts/ego_planner_swarm_single_20260428_141841` | passed |
+| `ego_planner_swarm_single_visual` | `ego_planner_swarm` | swarm upstream single-run planner with RViz | `baselines/artifacts/ego_planner_swarm_single_visual_20260428_141921` | passed |
+| `px4_sih_headless` | `px4_sih` | light closed-loop PX4 takeoff | `baselines/artifacts/px4_sih_quadx_headless_20260428_130601` | passed |
+| `px4_sih_3d` | `px4_sih` | SIH plus QGroundControl plus jMAVSim viewer | `baselines/artifacts/px4_sih_quadx_3d_20260428_130651` | passed |
+| `px4_sih_mavsdk_action` | `px4_sih` | SIH quadrotor driven by the repo-local MAVSDK action adapter | `baselines/artifacts/px4_sih_quadx_mavsdk_action_20260428_160345` | passed |
+| `px4_jsbsim_headless` | `px4_jsbsim` | JSBSim quadrotor dynamics | `baselines/artifacts/px4_jsbsim_quadx_headless_20260428_130736` | passed |
+| `px4_jsbsim_mavsdk_action` | `px4_jsbsim` | JSBSim quadrotor dynamics driven by the repo-local MAVSDK action adapter | `baselines/artifacts/px4_jsbsim_quadx_mavsdk_action_20260428_161256` | passed |
+| `px4_jsbsim_mavsdk_action_visual` | `px4_jsbsim` | JSBSim quadrotor dynamics with FlightGear viewer driven by the repo-local MAVSDK action adapter | `baselines/artifacts/px4_jsbsim_quadx_mavsdk_action_visual_20260428_170517` | passed |
+| `px4_jsbsim_visual` | `px4_jsbsim` | JSBSim quadrotor dynamics with FlightGear viewer | `baselines/artifacts/px4_jsbsim_quadx_visual_20260428_145759` | passed |
+| `px4_gazebo_classic_headless` | `px4_gazebo_classic` | Gazebo Classic scene-backed PX4 takeoff headless | `baselines/artifacts/px4_gazebo_classic_iris_headless_20260428_152015` | passed |
+| `px4_gazebo_classic_visual` | `px4_gazebo_classic` | Gazebo Classic scene-backed PX4 takeoff with native GUI | `baselines/artifacts/px4_gazebo_classic_iris_visual_20260428_152300` | passed |
+| `px4_gazebo_classic_mavsdk_action` | `px4_gazebo_classic` | Gazebo Classic scene-backed PX4 takeoff driven by the repo-local MAVSDK action adapter | `baselines/artifacts/px4_gazebo_classic_iris_mavsdk_action_20260428_172653` | passed |
+| `px4_gazebo_classic_mavsdk_action_visual` | `px4_gazebo_classic` | Gazebo Classic scene-backed PX4 takeoff with native GUI driven by the repo-local MAVSDK action adapter | `baselines/artifacts/px4_gazebo_classic_iris_mavsdk_action_visual_20260428_172755` | passed |
+| `marsim_headless` | `marsim` | scene-backed sensor stack headless | `baselines/artifacts/marsim_single_20260428_130820` | passed |
+| `marsim_visual` | `marsim` | scene-backed sensor stack with RViz | `baselines/artifacts/marsim_single_visual_20260428_130846` | passed |
+| `marsim_gpu_headless` | `marsim` | scene-backed GPU sensor stack headless | `baselines/artifacts/marsim_single_gpu_20260428_143322` | passed |
+| `marsim_gpu_visual` | `marsim` | scene-backed GPU sensor stack with RViz | `baselines/artifacts/marsim_single_gpu_visual_20260428_143543` | passed |
+| `fast_lio_marsim_headless` | `fast_lio_marsim` | estimation stack headless | `baselines/artifacts/fast_lio_marsim_20260428_130913` | passed |
+| `fast_lio_marsim_visual` | `fast_lio_marsim` | estimation stack with FAST_LIO RViz | `baselines/artifacts/fast_lio_marsim_visual_20260428_131215` | passed |
 
 ## Shared Constraints
 
@@ -120,8 +120,9 @@ The earlier exclusion of the upstream single-run `ego_planner_single` and
 
 Why it was safe to promote them:
 
-- retained `2026-04-28` runs now keep both headless and visual single-run
-  artifacts on an `info`-only shared event surface
+- tracked compact baselines preserve both headless and visual single-run
+  evidence on an `info`-only shared event surface; the original `runs/`
+  directories remain local historical sources and are not required by a clone
 - the prior `ego_planner_swarm_single` warning flood was bounded to internal
   retry chatter such as `a star error` and `Ran out of pool`, not to
   `EMERGENCY_STOP` or a failed run verdict
@@ -136,7 +137,7 @@ Why it was safe to promote them:
   contract instead of a separate manual check.
 - The platform gate no longer only enforces absolute pass/fail thresholds; it
   also rejects tracked metric regressions versus the frozen reference artifacts.
-- The retained `2026-04-28` core and upstream-demo reference artifacts all expose
+- The tracked compact core and upstream-demo reference artifacts all expose
   an `info`-only shared event surface, including the newly landed GPU local
   sensing `MARSIM` rows, the newly landed `PX4 + JSBSim + FlightGear`
   visual row, the newly landed `PX4 + JSBSim + FlightGear + MAVSDK` visual

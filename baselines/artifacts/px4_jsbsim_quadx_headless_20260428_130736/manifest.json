@@ -1,0 +1,15 @@
+{
+  "created_at_utc": "2026-04-28T13:07:36Z",
+  "backend": "px4_jsbsim",
+  "scenario_name": "px4_jsbsim_quadx_headless",
+  "vehicle": "quadrotor",
+  "artifact_dir": "runs/px4_jsbsim_quadx_headless_20260428_130736",
+  "files": {
+    "scenario": "scenario.json",
+    "telemetry": "telemetry.jsonl",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "backend_stdout": "backend_stdout.log",
+    "backend_stderr": "backend_stderr.log"
+  }
+}

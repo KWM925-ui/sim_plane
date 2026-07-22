@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_artifact",
+  "source_artifact": "runs/ego_planner_fast_lio_marsim_visual_20260427_194947",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": "2026-04-27T19:50:15Z",
+  "files": {
+    "manifest.json": "1cbe70c176448aa13c0ebb204007f6ac77a43ed951bd4364ea9334fd13908ee9",
+    "result.json": "b4900ffd6e5a2ac21cfef86ec10deb77418f44c2898540859c17a3c755f1fae8",
+    "events.jsonl": "15a0f7339274a626b98086657c971b163e87fa9382a4b42ae5d269c08add426b"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "backend": "px4_sih",
+  "vehicle": "quadrotor",
+  "scenario_name": "px4_sih_quadx_headless",
+  "metrics": {
+    "telemetry_count": 99,
+    "mavlink_message_count": 8532,
+    "max_altitude_m": 5.976,
+    "max_speed_mps": 0.39,
+    "target_altitude_reached": true,
+    "ever_armed": true,
+    "mode_changes": 3,
+    "duration_s": 20.0
+  },
+  "notes": [
+    "The px4_sih backend uses pymavlink to feed the local dashboard from live MAVLink telemetry."
+  ],
+  "written_at_utc": "2026-04-28T13:06:47Z"
+}

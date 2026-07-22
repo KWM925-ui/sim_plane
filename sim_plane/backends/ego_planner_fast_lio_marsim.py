@@ -4,39 +4,33 @@ import shlex
 import subprocess
 import time
 from pathlib import Path
-from queue import Empty, Queue
+from queue import Queue
 
 from sim_plane.backends.base import Backend, BackendError
-from sim_plane.backends.ego_planner import (
-    DEFAULT_ROS_SETUP,
+from sim_plane.backends.ego_runtime import (
+    DEFAULT_EGO_WORKSPACE_CANDIDATES,
     evaluate_run_status,
     launch_telemetry_probe,
     parse_ros_log_event as parse_ego_log_event,
     run_goal_publisher,
 )
-from sim_plane.backends.ego_planner_marsim import (
-    DEFAULT_EGO_WORKSPACE_CANDIDATES,
+from sim_plane.backends.marsim_runtime import (
     DEFAULT_MARSIM_WORKSPACE_CANDIDATES,
-    compute_goal_distance_m,
     launch_marsim,
     preflight_ros_cleanup,
-    repo_root,
-    resolve_workspace_dir,
 )
-from sim_plane.backends.planner_goal import (
-    finalize_goal_reach_diagnostics,
-    make_goal_reach_diagnostics,
-    sample_time_seconds,
-    update_goal_reach_diagnostics,
-    update_goal_reach_state,
-)
-from sim_plane.backends.fast_lio_marsim import (
+from sim_plane.backends.planner_composition_runtime import stream_estimator_telemetry
+from sim_plane.backends.fast_lio_runtime import (
     DEFAULT_FAST_LIO_WORKSPACE_CANDIDATES,
+    launch_aligned_odom_adapter,
     launch_fast_lio,
 )
-from sim_plane.backends.marsim import (
+from sim_plane.backends.ros_runtime import (
+    DEFAULT_ROS_SETUP,
     load_sourced_environment,
     prepare_ros_runtime_env,
+    repo_root,
+    resolve_workspace_dir,
     shutdown_specific_ros_nodes,
     shutdown_ros_nodes,
     stop_roslaunch,
@@ -161,7 +155,14 @@ class EgoPlannerFastLIOMARSIMBackend(Backend):
             probe_process = launch_telemetry_probe(config, sink, ego_env, telemetry_queue)
             goal_result = run_goal_publisher(config, sink, ego_env)
             sink.emit_event("info", "manual goal trigger finished", goal_result)
-            summary = stream_telemetry(config, sink, telemetry_queue, marsim_process, fast_lio_process, planner_process)
+            summary = stream_estimator_telemetry(
+                config,
+                sink,
+                telemetry_queue,
+                marsim_process,
+                fast_lio_process,
+                planner_process,
+            )
             summary["goal_publisher"] = goal_result
             return {
                 "status": evaluate_run_status(config["success_criteria"], summary),
@@ -294,170 +295,6 @@ def launch_planner(config, sink, env):
     return process
 
 
-def launch_aligned_odom_adapter(config, sink, env):
-    command = [
-        "python3",
-        str(config["aligned_odom_script"]),
-        "--source-odom-topic",
-        config["source_odom_topic"],
-        "--reference-odom-topic",
-        config["reference_odom_topic"],
-        "--output-topic",
-        config["odom_topic"],
-        "--frame-id",
-        "world",
-        "--child-frame-id",
-        "body",
-        "--master-timeout-s",
-        str(config["startup_timeout_s"]),
-    ]
-    sink.emit_event(
-        "info",
-        "launching aligned odometry adapter",
-        {"command": " ".join(shlex.quote(part) for part in command)},
-    )
-    process = subprocess.Popen(
-        command,
-        cwd=str(config["ego_workspace_dir"]),
-        env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        bufsize=1,
-        preexec_fn=os.setsid,
-    )
-    start_log_threads(process, sink, "aligned_odom", event_parser=parse_aligned_odom_log_event)
-    time.sleep(0.5)
-    if process.poll() is not None:
-        raise BackendError("The aligned odometry adapter exited before the planner-on-estimator stack finished startup.")
-    return process
-
-
-def stream_telemetry(config, sink, telemetry_queue, marsim_process, fast_lio_process, planner_process):
-    start_wall = time.time()
-    deadline = start_wall + config["duration_s"]
-    telemetry_count = 0
-    max_altitude_m = 0.0
-    max_speed_mps = 0.0
-    max_pointcloud_width = 0
-    reached_target_altitude = False
-    position_cmd_seen = False
-    pointcloud_seen = False
-    goal_reached = False
-    min_goal_distance_m = None
-    goal_settled_since = None
-    goal_diagnostics = make_goal_reach_diagnostics(
-        tolerance_m=config["goal_reach_tolerance_m"],
-        settle_speed_mps=config["goal_settle_speed_mps"],
-        settle_hold_s=config["goal_settle_hold_s"],
-    )
-    first_sample_seen = False
-    first_sample_deadline = start_wall + config["startup_timeout_s"]
-
-    while time.time() <= deadline:
-        if marsim_process.poll() is not None:
-            raise BackendError("MARSIM roslaunch exited before the configured planner-on-estimator run duration elapsed.")
-        if fast_lio_process.poll() is not None:
-            raise BackendError("FAST_LIO roslaunch exited before the configured planner-on-estimator run duration elapsed.")
-        if planner_process.poll() is not None:
-            raise BackendError("The planner roslaunch exited before the configured planner-on-estimator run duration elapsed.")
-
-        timeout_s = 0.25 if first_sample_seen else max(0.0, min(0.25, first_sample_deadline - time.time()))
-        if not first_sample_seen and timeout_s == 0.0:
-            raise BackendError("Timed out waiting for FAST_LIO odometry telemetry.")
-        try:
-            sample = telemetry_queue.get(timeout=max(timeout_s, 0.05))
-        except Empty:
-            continue
-
-        if not first_sample_seen:
-            first_sample_seen = True
-            sink.emit_event(
-                "info",
-                "planner-on-estimator odometry received",
-                {
-                    "odom_topic": config["odom_topic"],
-                    "position": sample["position"],
-                    "altitude_m": sample["altitude_m"],
-                },
-            )
-        if sample.get("position_cmd_count", 0) > 0 and not position_cmd_seen:
-            position_cmd_seen = True
-            sink.emit_event(
-                "info",
-                "planner command stream detected",
-                {"command_topic": config["command_topic"], "count": sample["position_cmd_count"]},
-            )
-        if sample.get("pointcloud_count", 0) > 0 and not pointcloud_seen:
-            pointcloud_seen = True
-            sink.emit_event(
-                "info",
-                "planner obstacle cloud detected",
-                {
-                    "pointcloud_topic": config["pointcloud_topic"],
-                    "width": sample.get("pointcloud_width", 0),
-                },
-            )
-
-        sink.emit_telemetry(sample)
-        telemetry_count += 1
-        max_altitude_m = max(max_altitude_m, float(sample.get("altitude_m", 0.0)))
-        max_speed_mps = max(max_speed_mps, float(sample.get("speed_mps", 0.0)))
-        max_pointcloud_width = max(max_pointcloud_width, int(sample.get("pointcloud_width", 0) or 0))
-        goal_distance_m = compute_goal_distance_m(config["goal"], sample)
-        min_goal_distance_m = goal_distance_m if min_goal_distance_m is None else min(min_goal_distance_m, goal_distance_m)
-        sample_now = sample_time_seconds(sample, fallback=time.time() - start_wall)
-        if float(sample.get("altitude_m", 0.0)) >= config["target_altitude_m"] * 0.95:
-            reached_target_altitude = True
-        sample_goal_reached, goal_settled_since = update_goal_reach_state(
-            goal_distance_m=goal_distance_m,
-            speed_mps=float(sample.get("speed_mps", 0.0)),
-            tolerance_m=config["goal_reach_tolerance_m"],
-            settle_speed_mps=config["goal_settle_speed_mps"],
-            settle_hold_s=config["goal_settle_hold_s"],
-            settled_since=goal_settled_since,
-            now=sample_now,
-        )
-        update_goal_reach_diagnostics(
-            goal_diagnostics,
-            goal_distance_m=goal_distance_m,
-            speed_mps=float(sample.get("speed_mps", 0.0)),
-            settled_since=goal_settled_since,
-            now=sample_now,
-        )
-        if sample_goal_reached:
-            goal_reached = True
-            sink.emit_event(
-                "info",
-                "goal reached",
-                {
-                    "goal": config["goal"],
-                    "goal_distance_m": round(goal_distance_m, 3),
-                    "speed_mps": sample.get("speed_mps", 0.0),
-                },
-            )
-            break
-
-    summary = {
-        "telemetry_count": telemetry_count,
-        "max_altitude_m": round(max_altitude_m, 3),
-        "max_speed_mps": round(max_speed_mps, 3),
-        "max_pointcloud_width": max_pointcloud_width,
-        "pointcloud_seen": pointcloud_seen,
-        "target_altitude_reached": reached_target_altitude,
-        "position_cmd_seen": position_cmd_seen,
-        "goal_reached": goal_reached,
-        "min_goal_distance_m": round(min_goal_distance_m, 3) if min_goal_distance_m is not None else None,
-        "duration_s": round(time.time() - start_wall, 3),
-        "launch_rviz": config["launch_rviz"],
-        "marsim_launch_rviz": config["marsim_launch_rviz"],
-        "fast_lio_launch_rviz": config["fast_lio_launch_rviz"],
-        "cloud_only": True,
-    }
-    summary.update(finalize_goal_reach_diagnostics(goal_diagnostics, goal_reached=goal_reached))
-    return summary
-
-
 def build_notes(config):
     notes = [
         "The ego_planner_fast_lio_marsim backend composes the dedicated ROS1 workspaces under /home/coco/sim_plane_ws/workspaces/ros1_marsim, /home/coco/sim_plane_ws/workspaces/ros1_fast_lio, and /home/coco/sim_plane_ws/workspaces/ros1_ego_planner.",
@@ -474,11 +311,3 @@ def build_notes(config):
     if config["fast_lio_launch_rviz"]:
         notes.append("FAST_LIO's estimator RViz path was enabled.")
     return notes
-
-
-def parse_aligned_odom_log_event(label, stream_name, line):
-    if "locked initial transform" in line or "publishing aligned odometry" in line:
-        return {"level": "info", "message": "{0} log".format(label), "details": {"line": line, "stream": stream_name}}
-    if "ERROR" in line or "Traceback" in line:
-        return {"level": "warning", "message": "{0} log".format(label), "details": {"line": line, "stream": stream_name}}
-    return None

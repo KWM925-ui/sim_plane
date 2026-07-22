@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT_DIR=${SIM_PLANE_HOME:-"$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"}
 DEFAULT_PX4_DIR="/home/coco/sim_plane_ws/src/core/PX4-Autopilot"
 PX4_DIR="${PX4_AUTOPILOT_DIR:-$DEFAULT_PX4_DIR}"
 

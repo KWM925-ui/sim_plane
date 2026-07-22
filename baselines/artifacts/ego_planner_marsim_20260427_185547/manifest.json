@@ -1,0 +1,15 @@
+{
+  "created_at_utc": "2026-04-27T18:55:47Z",
+  "backend": "ego_planner_marsim",
+  "scenario_name": "ego_planner_marsim",
+  "vehicle": "quadrotor",
+  "artifact_dir": "/home/coco/sim_plane/runs/ego_planner_marsim_20260427_185547",
+  "files": {
+    "scenario": "scenario.json",
+    "telemetry": "telemetry.jsonl",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "backend_stdout": "backend_stdout.log",
+    "backend_stderr": "backend_stderr.log"
+  }
+}

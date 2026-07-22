@@ -1,0 +1,44 @@
+{
+  "status": "passed",
+  "backend": "ego_planner_swarm_fast_lio_marsim",
+  "vehicle": "quadrotor",
+  "scenario_name": "ego_planner_swarm_fast_lio_marsim_visual",
+  "metrics": {
+    "telemetry_count": 16,
+    "max_altitude_m": 1.019,
+    "max_speed_mps": 0.0,
+    "max_pointcloud_width": 20228,
+    "pointcloud_seen": true,
+    "target_altitude_reached": true,
+    "position_cmd_seen": true,
+    "goal_reached": true,
+    "min_goal_distance_m": 0.027,
+    "duration_s": 2.064,
+    "launch_rviz": true,
+    "marsim_launch_rviz": true,
+    "fast_lio_launch_rviz": false,
+    "cloud_only": true,
+    "goal_publisher": {
+      "odom_seen": true,
+      "pointcloud_seen": true,
+      "pos_cmd_seen": true,
+      "goal_topic": "/move_base_simple/goal",
+      "command_topic": "/quad_0/planning/pos_cmd",
+      "goal": {
+        "x": 2.5,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "odom_altitude_m": 0.994,
+      "pointcloud_width": 19941
+    }
+  },
+  "notes": [
+    "The ego_planner_swarm_fast_lio_marsim backend composes the dedicated ROS1 workspaces under /home/coco/sim_plane_ws/workspaces/ros1_marsim, /home/coco/sim_plane_ws/workspaces/ros1_fast_lio, and /home/coco/sim_plane_ws/workspaces/ros1_ego_swarm.",
+    "The repo-local wrapper keeps EGO-Planner-Swarm in manual-goal mode and reuses the aligned FAST_LIO world-odom adapter instead of feeding raw /Odometry directly into the swarm planner.",
+    "This composition stays cloud-only on purpose so the retired dual-input depth-plus-cloud false-obstacle chain does not reopen.",
+    "A viewer was requested for this swarm planner-on-estimator probe.",
+    "MARSIM's scene RViz path was enabled."
+  ],
+  "written_at_utc": "2026-04-27T20:00:48Z"
+}

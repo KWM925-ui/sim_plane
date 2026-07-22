@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_artifact",
+  "source_artifact": "runs/ego_planner_swarm_single_20260428_141841",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": "2026-04-28T14:19:02Z",
+  "files": {
+    "manifest.json": "275985e5714a3e757d677ae5a279c15178290f06167f7f79946237986f4d80d5",
+    "result.json": "6329afa06d8322a034bb2f584ef1281441cf42dc27b38e062ae2a03cacde9ecd",
+    "events.jsonl": "51e329906f379f1b7e777ae07ad3e70e6d61490ac3e57011e5b623420fd6016a"
+  }
+}

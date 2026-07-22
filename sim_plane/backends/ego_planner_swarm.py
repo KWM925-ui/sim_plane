@@ -9,15 +9,20 @@ from queue import Empty, Queue
 from threading import Thread
 
 from sim_plane.backends.base import Backend, BackendError
-from sim_plane.processes import start_log_threads, terminate_process
-from sim_plane.ros_master import ensure_ros_master_uri
-from sim_plane.ros_nodes import cleanup_live_ros_nodes
+from sim_plane.backends.ego_runtime import DEFAULT_EGO_SWARM_WORKSPACE_CANDIDATES
+from sim_plane.backends.ros_runtime import (
+    DEFAULT_ROS_SETUP,
+    load_sourced_environment,
+    prepare_ros_runtime_env,
+    repo_root,
+    resolve_workspace_dir as resolve_ros_workspace_dir,
+    shutdown_ros_nodes,
+    stop_roslaunch,
+)
+from sim_plane.processes import register_background_threads, start_log_threads, terminate_process
 
 
-DEFAULT_ROS_SETUP = Path("/opt/ros/noetic/setup.bash")
-DEFAULT_WORKSPACE_CANDIDATES = [
-    Path("/home/coco/sim_plane_ws/workspaces/ros1_ego_swarm"),
-]
+DEFAULT_WORKSPACE_CANDIDATES = DEFAULT_EGO_SWARM_WORKSPACE_CANDIDATES
 DEFAULT_SHUTDOWN_NODES = [
     "/random_forest",
     "/drone_0_ego_planner_node",
@@ -130,53 +135,12 @@ def build_runtime_config(scenario):
     }
 
 
-def repo_root():
-    return Path(__file__).resolve().parents[2]
-
-
 def resolve_workspace_dir(explicit_path=None):
-    candidates = []
-    if explicit_path:
-        candidates.append(Path(explicit_path).expanduser())
-    env_path = os.environ.get("SIM_PLANE_EGO_SWARM_WS")
-    if env_path:
-        candidates.append(Path(env_path).expanduser())
-    candidates.extend(DEFAULT_WORKSPACE_CANDIDATES)
-
-    for candidate in candidates:
-        if (candidate / "src").is_dir():
-            return candidate.resolve()
-    return None
-
-
-def load_sourced_environment(setup_paths):
-    command_parts = []
-    for path in setup_paths:
-        command_parts.append("source {0}".format(shlex.quote(str(path))))
-    command_parts.append("env -0")
-    raw = subprocess.check_output(["bash", "-lc", " && ".join(command_parts)])
-    env = {}
-    for item in raw.split(b"\0"):
-        if not item:
-            continue
-        key, _, value = item.partition(b"=")
-        env[key.decode("utf-8")] = value.decode("utf-8")
-    return env
-
-
-def prepare_ros_runtime_env(base_env, artifact_dir):
-    env = dict(base_env)
-    artifact_root = Path(artifact_dir).resolve()
-    ros_home = artifact_root / "ros_home"
-    ros_log_dir = artifact_root / "ros_logs"
-    ros_home.mkdir(parents=True, exist_ok=True)
-    ros_log_dir.mkdir(parents=True, exist_ok=True)
-    env["ROS_HOME"] = str(ros_home)
-    env["ROS_LOG_DIR"] = str(ros_log_dir)
-    env["ROS_HOSTNAME"] = "127.0.0.1"
-    env["ROS_IP"] = "127.0.0.1"
-    ensure_ros_master_uri(env)
-    return env
+    return resolve_ros_workspace_dir(
+        explicit_path,
+        env_var="SIM_PLANE_EGO_SWARM_WS",
+        candidates=DEFAULT_WORKSPACE_CANDIDATES,
+    )
 
 
 def launch_roslaunch(config, sink, env, package, launch_file, label):
@@ -232,8 +196,9 @@ def launch_telemetry_probe(config, sink, env, telemetry_queue):
         preexec_fn=os.setsid,
     )
     thread = Thread(target=read_probe_stdout, args=(process.stdout, telemetry_queue), daemon=True)
-    thread.start()
     stderr_thread = Thread(target=stream_probe_stderr, args=(process.stderr, sink), daemon=True)
+    register_background_threads(sink, thread, stderr_thread)
+    thread.start()
     stderr_thread.start()
     return process
 
@@ -320,41 +285,6 @@ def stream_telemetry(config, sink, telemetry_queue, roslaunch_process):
         "duration_s": config["duration_s"],
         "launch_rviz": config["launch_rviz"],
     }
-
-
-def stop_roslaunch(process, sink, label, wait_timeout_s):
-    if process is None or process.poll() is not None:
-        return True
-    sink.emit_event(
-        "info",
-        "stopping process",
-        {"label": label, "pid": process.pid, "signal": "SIGINT"},
-    )
-    try:
-        os.killpg(process.pid, signal.SIGINT)
-        process.wait(timeout=wait_timeout_s)
-        return True
-    except subprocess.TimeoutExpired:
-        sink.emit_event(
-            "warning",
-            "roslaunch did not exit after SIGINT",
-            {"label": label, "pid": process.pid, "timeout_s": wait_timeout_s},
-        )
-        return False
-    except ProcessLookupError:
-        return True
-
-
-def shutdown_ros_nodes(config, sink, env, skip_nodes=None):
-    if not config["shutdown_nodes"]:
-        return
-    skip_nodes = set(skip_nodes or ())
-    cleanup_live_ros_nodes(
-        [node for node in config["shutdown_nodes"] if node not in skip_nodes],
-        sink,
-        env,
-        request_message="requesting ros node shutdown",
-    )
 
 
 def evaluate_run_status(success_criteria, telemetry_summary):

@@ -7,23 +7,25 @@ from pathlib import Path
 from queue import Queue
 
 from sim_plane.backends.base import Backend, BackendError
-from sim_plane.backends.ego_planner import (
-    DEFAULT_ROS_SETUP,
+from sim_plane.backends.ego_runtime import (
+    DEFAULT_EGO_SWARM_WORKSPACE_CANDIDATES,
     evaluate_run_status,
     launch_telemetry_probe,
     parse_ros_log_event as parse_ego_log_event,
     run_goal_publisher,
 )
-from sim_plane.backends.ego_planner_marsim import (
+from sim_plane.backends.planner_composition_runtime import stream_scene_telemetry
+from sim_plane.backends.marsim_runtime import (
+    DEFAULT_MARSIM_WORKSPACE_CANDIDATES,
     launch_marsim,
     preflight_ros_cleanup,
-    repo_root,
-    resolve_workspace_dir,
-    stream_telemetry,
 )
-from sim_plane.backends.marsim import (
+from sim_plane.backends.ros_runtime import (
+    DEFAULT_ROS_SETUP,
     load_sourced_environment,
     prepare_ros_runtime_env,
+    repo_root,
+    resolve_workspace_dir,
     shutdown_specific_ros_nodes,
     shutdown_ros_nodes,
     stop_roslaunch,
@@ -32,12 +34,6 @@ from sim_plane.processes import start_log_threads, terminate_process
 from sim_plane.ros_master import share_ros_master_uri
 
 
-DEFAULT_MARSIM_WORKSPACE_CANDIDATES = [
-    Path("/home/coco/sim_plane_ws/workspaces/ros1_marsim"),
-]
-DEFAULT_EGO_SWARM_WORKSPACE_CANDIDATES = [
-    Path("/home/coco/sim_plane_ws/workspaces/ros1_ego_swarm"),
-]
 DEFAULT_SHUTDOWN_NODES = [
     "/quad0_pcl_render_node",
     "/quad0_odom_visualization",
@@ -131,7 +127,13 @@ class EgoPlannerSwarmMARSIMBackend(Backend):
             probe_process = launch_telemetry_probe(config, sink, swarm_env, telemetry_queue)
             goal_result = run_goal_publisher(config, sink, swarm_env)
             sink.emit_event("info", "manual goal trigger finished", goal_result)
-            summary = stream_telemetry(config, sink, telemetry_queue, marsim_process, planner_process)
+            summary = stream_scene_telemetry(
+                config,
+                sink,
+                telemetry_queue,
+                marsim_process,
+                planner_process,
+            )
             summary["goal_publisher"] = goal_result
             return {
                 "status": evaluate_run_status(config["success_criteria"], summary),

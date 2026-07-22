@@ -1,0 +1,20 @@
+{"ts_utc": "2026-04-28T13:06:01Z", "level": "info", "message": "run started", "details": {"backend": "px4_sih", "scenario": "px4_sih_quadx_headless"}}
+{"ts_utc": "2026-04-28T13:06:01Z", "level": "info", "message": "px4_sih launch plan", "details": {"px4_dir": "/home/coco/sim_plane_ws/src/core/PX4-Autopilot", "model": "sihsim_quadx", "mavlink_endpoint": "udpin:127.0.0.1:14540", "launch_qgc": false, "launch_jmavsim": false}}
+{"ts_utc": "2026-04-28T13:06:01Z", "level": "info", "message": "launching px4_sih", "details": {"command": "make px4_sitl_sih sihsim_quadx", "cwd": "/home/coco/sim_plane_ws/src/core/PX4-Autopilot"}}
+{"ts_utc": "2026-04-28T13:06:13Z", "level": "info", "message": "px4_stdout log", "details": {"line": "INFO  [mavlink] MAVLink only on localhost (set param MAV_{i}_BROADCAST = 1 to enable network)", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:06:13Z", "level": "info", "message": "px4_stdout log", "details": {"line": "INFO  [mavlink] MAVLink only on localhost (set param MAV_{i}_BROADCAST = 1 to enable network)", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:06:13Z", "level": "info", "message": "px4_stdout log", "details": {"line": "INFO  [mavlink] MAVLink only on localhost (set param MAV_{i}_BROADCAST = 1 to enable network)", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:06:13Z", "level": "info", "message": "px4_stdout log", "details": {"line": "INFO  [px4] Startup script returned successfully", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:06:14Z", "level": "info", "message": "px4 heartbeat received", "details": {"system_id": 1, "component_id": 1}}
+{"ts_utc": "2026-04-28T13:06:15Z", "level": "info", "message": "px4_stdout log", "details": {"line": "pxh> WARN  [health_and_arming_checks] Preflight Fail: heading estimate invalid", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:06:17Z", "level": "info", "message": "px4_stdout log", "details": {"line": "INFO  [commander] \u001b[32mReady for takeoff!\u001b[0m", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:06:19Z", "level": "info", "message": "sending px4 shell command", "details": {"command": "param set MIS_TAKEOFF_ALT 5"}}
+{"ts_utc": "2026-04-28T13:06:21Z", "level": "info", "message": "sending px4 shell command", "details": {"command": "commander takeoff"}}
+{"ts_utc": "2026-04-28T13:06:23Z", "level": "info", "message": "sending px4 shell command", "details": {"command": "commander takeoff"}}
+{"ts_utc": "2026-04-28T13:06:25Z", "level": "info", "message": "sending px4 shell command", "details": {"command": "commander takeoff"}}
+{"ts_utc": "2026-04-28T13:06:27Z", "level": "info", "message": "px4 mode change", "details": {"mode": "BOOT", "t": 0.0}}
+{"ts_utc": "2026-04-28T13:06:27Z", "level": "info", "message": "px4 arm state change", "details": {"armed": false, "t": 0.0}}
+{"ts_utc": "2026-04-28T13:06:27Z", "level": "info", "message": "px4 mode change", "details": {"mode": "TAKEOFF", "t": 0.19}}
+{"ts_utc": "2026-04-28T13:06:27Z", "level": "info", "message": "px4 arm state change", "details": {"armed": true, "t": 0.19}}
+{"ts_utc": "2026-04-28T13:06:29Z", "level": "info", "message": "px4 mode change", "details": {"mode": "LOITER", "t": 2.22}}
+{"ts_utc": "2026-04-28T13:06:47Z", "level": "info", "message": "stopping process", "details": {"label": "px4", "pid": 40479, "signal": "SIGTERM"}}

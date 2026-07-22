@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "backend": "ego_planner_swarm",
+  "vehicle": "quadrotor",
+  "scenario_name": "ego_planner_swarm_single_visual",
+  "metrics": {
+    "telemetry_count": 89,
+    "max_altitude_m": 1.764,
+    "max_speed_mps": 2.509,
+    "target_altitude_reached": true,
+    "position_cmd_seen": true,
+    "duration_s": 18.0,
+    "launch_rviz": true
+  },
+  "notes": [
+    "The ego_planner_swarm backend launches the dedicated ROS1 catkin workspace under /home/coco/sim_plane_ws/workspaces/ros1_ego_swarm.",
+    "Live telemetry is derived from /drone_0_visual_slam/odom and planner command activity on /drone_0_planning/pos_cmd.",
+    "RViz was requested as the auxiliary viewer for the ROS lab stack."
+  ],
+  "written_at_utc": "2026-04-28T14:19:45Z"
+}

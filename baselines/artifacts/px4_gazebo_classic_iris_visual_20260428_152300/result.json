@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "backend": "px4_gazebo_classic",
+  "vehicle": "quadrotor",
+  "scenario_name": "px4_gazebo_classic_iris_visual",
+  "metrics": {
+    "telemetry_count": 100,
+    "mavlink_message_count": 8753,
+    "max_altitude_m": 5.006,
+    "max_speed_mps": 0.846,
+    "target_altitude_reached": true,
+    "ever_armed": true,
+    "mode_changes": 3,
+    "duration_s": 20.0,
+    "headless": false,
+    "launch_qgc": false,
+    "gazebo_gui": true,
+    "world": "warehouse",
+    "model": "iris"
+  },
+  "notes": [
+    "The px4_gazebo_classic backend runs PX4 SITL against Gazebo Classic through PX4's upstream sitl_run.sh wrapper.",
+    "The selected Gazebo Classic world was warehouse.",
+    "Gazebo Classic GUI was requested as the native 3D viewer for this PX4 run."
+  ],
+  "written_at_utc": "2026-04-28T15:23:48Z"
+}

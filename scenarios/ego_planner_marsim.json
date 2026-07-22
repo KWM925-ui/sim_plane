@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "ego_planner_marsim",
   "description": "Legacy EGO-Planner on the stable MARSIM single-drone scene path without RViz.",
   "backend": "ego_planner_marsim",

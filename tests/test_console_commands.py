@@ -63,6 +63,7 @@ class ConsoleCommandsTest(unittest.TestCase):
         rows = {row["cli_command"]: row for row in report["rows"]}
 
         self.assertIn("subcommand-level", report["summary"]["scope"])
+        self.assertNotIn("covered_count", report["summary"])
         self.assertGreater(report["summary"]["fixed_preset_count"], 0)
         self.assertEqual(rows["run-baseline"]["frontend_status"], "fixed_preset")
         self.assertIn("固定前端入口", rows["run-baseline"]["reason"])
@@ -73,6 +74,12 @@ class ConsoleCommandsTest(unittest.TestCase):
         for cli_command, reason in HIDDEN_CLI_COMMANDS.items():
             if rows[cli_command]["frontend_status"] == "hidden":
                 self.assertEqual(rows[cli_command]["reason"], reason)
+
+        preset_commands = {
+            sim_plane_subcommand(command["command"])
+            for command in CONSOLE_COMMANDS
+        }
+        self.assertFalse(preset_commands.intersection(HIDDEN_CLI_COMMANDS))
 
     def test_console_command_outputs_are_precise_for_user_facing_catalog(self):
         commands = {command["id"]: command for command in CONSOLE_COMMANDS}
@@ -187,7 +194,7 @@ class ConsoleCommandsTest(unittest.TestCase):
             self.assertEqual(record["workflow"], "2 Fresh 运行")
             self.assertEqual(record["evidence_type"], "Fresh 运行证据")
             self.assertIn("会重新跑场景", record["freshness"])
-            self.assertIn("不要同时点 hygiene", record["concurrency_policy"])
+            self.assertIn("避免仿真端口和主机资源竞争", record["concurrency_policy"])
 
     def test_runner_only_reports_outputs_created_or_updated_by_this_run(self):
         with tempfile.TemporaryDirectory() as tmpdir:

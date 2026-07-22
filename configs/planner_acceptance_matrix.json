@@ -1,5 +1,6 @@
 {
   "matrix_name": "planner_acceptance_baseline",
+  "required_row_count": 4,
   "goal_distance_threshold_m": 0.1,
   "max_goal_distance_regression_m": 0.01,
   "required_event_levels": [
@@ -14,15 +15,17 @@
       "requires_cloud_only": true,
       "headless": {
         "scenario_name": "ego_planner_marsim",
-        "reference_artifact": "runs/ego_planner_marsim_20260427_185547",
+        "reference_artifact": "baselines/artifacts/ego_planner_marsim_20260427_185547",
         "expected_launch_rviz": false,
-        "baseline_min_goal_distance_m": 0.064
+        "baseline_min_goal_distance_m": 0.064,
+        "source_artifact": "runs/ego_planner_marsim_20260427_185547"
       },
       "visual": {
         "scenario_name": "ego_planner_marsim_visual",
-        "reference_artifact": "runs/ego_planner_marsim_visual_20260427_185758",
+        "reference_artifact": "baselines/artifacts/ego_planner_marsim_visual_20260427_185758",
         "expected_launch_rviz": true,
-        "baseline_min_goal_distance_m": 0.066
+        "baseline_min_goal_distance_m": 0.066,
+        "source_artifact": "runs/ego_planner_marsim_visual_20260427_185758"
       }
     },
     {
@@ -33,15 +36,17 @@
       "requires_cloud_only": true,
       "headless": {
         "scenario_name": "ego_planner_swarm_marsim",
-        "reference_artifact": "runs/ego_planner_swarm_marsim_20260427_191923",
+        "reference_artifact": "baselines/artifacts/ego_planner_swarm_marsim_20260427_191923",
         "expected_launch_rviz": false,
-        "baseline_min_goal_distance_m": 0.011
+        "baseline_min_goal_distance_m": 0.011,
+        "source_artifact": "runs/ego_planner_swarm_marsim_20260427_191923"
       },
       "visual": {
         "scenario_name": "ego_planner_swarm_marsim_visual",
-        "reference_artifact": "runs/ego_planner_swarm_marsim_visual_20260427_192755",
+        "reference_artifact": "baselines/artifacts/ego_planner_swarm_marsim_visual_20260427_192755",
         "expected_launch_rviz": true,
-        "baseline_min_goal_distance_m": 0.005
+        "baseline_min_goal_distance_m": 0.005,
+        "source_artifact": "runs/ego_planner_swarm_marsim_visual_20260427_192755"
       }
     },
     {
@@ -50,17 +55,19 @@
       "odom_source": "/sim_plane/fast_lio_world_odom",
       "obstacle_source": "/quad0_pcl_render_node/cloud",
       "requires_cloud_only": true,
-    "headless": {
-      "scenario_name": "ego_planner_fast_lio_marsim",
-      "reference_artifact": "runs/ego_planner_fast_lio_marsim_20260607_221938_879736",
-      "expected_launch_rviz": false,
-      "baseline_min_goal_distance_m": 0.051
+      "headless": {
+        "scenario_name": "ego_planner_fast_lio_marsim",
+        "reference_artifact": "baselines/artifacts/ego_planner_fast_lio_marsim_20260607_221938_879736",
+        "expected_launch_rviz": false,
+        "baseline_min_goal_distance_m": 0.051,
+        "source_artifact": "runs/ego_planner_fast_lio_marsim_20260607_221938_879736"
       },
       "visual": {
         "scenario_name": "ego_planner_fast_lio_marsim_visual",
-        "reference_artifact": "runs/ego_planner_fast_lio_marsim_visual_20260427_194947",
+        "reference_artifact": "baselines/artifacts/ego_planner_fast_lio_marsim_visual_20260427_194947",
         "expected_launch_rviz": true,
-        "baseline_min_goal_distance_m": 0.052
+        "baseline_min_goal_distance_m": 0.052,
+        "source_artifact": "runs/ego_planner_fast_lio_marsim_visual_20260427_194947"
       }
     },
     {
@@ -69,17 +76,19 @@
       "odom_source": "/sim_plane/fast_lio_world_odom",
       "obstacle_source": "/quad0_pcl_render_node/cloud",
       "requires_cloud_only": true,
-    "headless": {
-      "scenario_name": "ego_planner_swarm_fast_lio_marsim",
-      "reference_artifact": "runs/ego_planner_swarm_fast_lio_marsim_20260607_222057_101517",
-      "expected_launch_rviz": false,
-      "baseline_min_goal_distance_m": 0.019
+      "headless": {
+        "scenario_name": "ego_planner_swarm_fast_lio_marsim",
+        "reference_artifact": "baselines/artifacts/ego_planner_swarm_fast_lio_marsim_20260607_222057_101517",
+        "expected_launch_rviz": false,
+        "baseline_min_goal_distance_m": 0.019,
+        "source_artifact": "runs/ego_planner_swarm_fast_lio_marsim_20260607_222057_101517"
       },
       "visual": {
         "scenario_name": "ego_planner_swarm_fast_lio_marsim_visual",
-        "reference_artifact": "runs/ego_planner_swarm_fast_lio_marsim_visual_20260427_200020",
+        "reference_artifact": "baselines/artifacts/ego_planner_swarm_fast_lio_marsim_visual_20260427_200020",
         "expected_launch_rviz": true,
-        "baseline_min_goal_distance_m": 0.027
+        "baseline_min_goal_distance_m": 0.027,
+        "source_artifact": "runs/ego_planner_swarm_fast_lio_marsim_visual_20260427_200020"
       }
     }
   ]

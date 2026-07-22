@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT=${SIM_PLANE_HOME:-"$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"}
 WORKSPACE_DIR="/home/coco/sim_plane_ws/workspaces/ros1_visplanner"
 RVIZ_CONFIG="/home/coco/sim_plane_ws/src/labs/ZJU_FAST_Lab/visPlanner/src/planner/plan_manage/launch/default.rviz"
 

@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_artifact",
+  "source_artifact": "runs/fast_lio_marsim_20260428_130913",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": "2026-04-28T13:09:38Z",
+  "files": {
+    "manifest.json": "2d4d459b695725ec210158a67b1266d0507350e3ad9b068e4475a42f56d4599a",
+    "result.json": "b6eeefca56421d5b545607d18ed49ce6cd351470e3dc8bb9df7f222c96323e4e",
+    "events.jsonl": "89eb15e8af73181d5b7634e81d8e453939dd14b00486bd10308c668f4ad5afa3"
+  }
+}

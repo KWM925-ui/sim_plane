@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "px4_sih_quadx_mavsdk_action",
   "description": "Real PX4 SIH quadrotor run driven by the repo-local MAVSDK action adapter, with MAVSDK on PX4's offboard API port and telemetry on the GCS port.",
   "backend": "px4_sih",

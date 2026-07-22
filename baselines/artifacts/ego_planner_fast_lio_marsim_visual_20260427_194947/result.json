@@ -1,0 +1,45 @@
+{
+  "status": "passed",
+  "backend": "ego_planner_fast_lio_marsim",
+  "vehicle": "quadrotor",
+  "scenario_name": "ego_planner_fast_lio_marsim_visual",
+  "metrics": {
+    "telemetry_count": 15,
+    "max_altitude_m": 1.017,
+    "max_speed_mps": 0.0,
+    "max_pointcloud_width": 20329,
+    "pointcloud_seen": true,
+    "target_altitude_reached": true,
+    "position_cmd_seen": true,
+    "goal_reached": true,
+    "min_goal_distance_m": 0.052,
+    "duration_s": 1.977,
+    "launch_rviz": true,
+    "marsim_launch_rviz": true,
+    "fast_lio_launch_rviz": false,
+    "cloud_only": true,
+    "goal_publisher": {
+      "odom_seen": true,
+      "pointcloud_seen": true,
+      "pos_cmd_seen": true,
+      "goal_topic": "/move_base_simple/goal",
+      "command_topic": "/quad_0/planning/pos_cmd",
+      "goal": {
+        "x": 2.5,
+        "y": 0.0,
+        "z": 1.0
+      },
+      "odom_altitude_m": 0.992,
+      "pointcloud_width": 20077
+    }
+  },
+  "notes": [
+    "The ego_planner_fast_lio_marsim backend composes the dedicated ROS1 workspaces under /home/coco/sim_plane_ws/workspaces/ros1_marsim, /home/coco/sim_plane_ws/workspaces/ros1_fast_lio, and /home/coco/sim_plane_ws/workspaces/ros1_ego_planner.",
+    "The adapter publishes a world-aligned planner odometry topic by anchoring FAST_LIO's /Odometry to the first MARSIM /quad_0/lidar_slam/odom sample.",
+    "The planner still keeps obstacle input on MARSIM's /quad0_pcl_render_node/cloud so only the odometry contract changed.",
+    "This composition stays cloud-only on purpose so the retired dual-input depth-plus-cloud false-obstacle chain does not reopen.",
+    "A viewer was requested for this planner-on-estimator probe.",
+    "MARSIM's scene RViz path was enabled."
+  ],
+  "written_at_utc": "2026-04-27T19:50:15Z"
+}

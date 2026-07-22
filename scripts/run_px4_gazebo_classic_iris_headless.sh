@@ -3,6 +3,7 @@
 set -euo pipefail
 
 PX4_DIR=${PX4_DIR:-/home/coco/sim_plane_ws/src/core/PX4-Autopilot}
+REPO_ROOT=${SIM_PLANE_HOME:-"$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"}
 
-cd /home/coco/sim_plane
-python3 -m sim_plane run scenarios/px4_gazebo_classic_iris_headless.json --artifact-root /home/coco/sim_plane/runs --px4-dir "$PX4_DIR" "$@"
+cd "$REPO_ROOT"
+python3 -m sim_plane run scenarios/px4_gazebo_classic_iris_headless.json --artifact-root "$REPO_ROOT/runs" --px4-dir "$PX4_DIR" "$@"

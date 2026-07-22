@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "ego_planner_swarm_fast_lio_marsim",
   "description": "Single-drone EGO-Planner-Swarm on aligned FAST_LIO odometry plus the stable MARSIM scene cloud without RViz.",
   "backend": "ego_planner_swarm_fast_lio_marsim",

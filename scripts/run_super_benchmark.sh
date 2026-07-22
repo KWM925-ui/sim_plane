@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT=${SIM_PLANE_HOME:-"$(cd "$(dirname "$0")/.." && pwd)"}
 ARTIFACT_ROOT="${SIM_PLANE_MANUAL_PROBE_ROOT:-$REPO_ROOT/runs/manual_probes}"
 REQUESTED_ROS_MASTER_PORT="${SIM_PLANE_ROS_MASTER_PORT:-}"
 WORKSPACE_DIR="/home/coco/sim_plane_ws/workspaces/ros1_super"
 SUPER_PROFILE="${SIM_PLANE_SUPER_PROFILE:-dense}"
 
 source "$REPO_ROOT/scripts/process_cleanup.sh"
+source "$REPO_ROOT/scripts/manual_probe_lifecycle.sh"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -51,6 +52,7 @@ fi
 ARTIFACT_DIR="$ARTIFACT_ROOT/super_benchmark_${SUPER_PROFILE}_$(date +%Y%m%d_%H%M%S)"
 
 mkdir -p "$ARTIFACT_DIR"
+manual_probe_start "$ARTIFACT_DIR"
 
 "$REPO_ROOT/scripts/build_super_ws.sh" >/dev/null
 
@@ -65,11 +67,15 @@ MISSION_PID=""
 DRONE_PID=""
 FSM_PID=""
 TELEMETRY_PID=""
+PROBE_RESULT_STATUS=""
 
 cleanup() {
   set +e
   stop_pid_list_gracefully "$TELEMETRY_PID" "$FSM_PID" "$DRONE_PID" "$MISSION_PID"
   stop_pid_gracefully "$ROSCORE_PID"
+  if [[ -n "$PROBE_RESULT_STATUS" ]]; then
+    manual_probe_complete "$ARTIFACT_DIR" "$PROBE_RESULT_STATUS"
+  fi
 }
 trap cleanup EXIT
 
@@ -112,6 +118,7 @@ sleep 5
 rosnode list >"$ARTIFACT_DIR/rosnode_list.txt" 2>&1 || true
 rostopic list >"$ARTIFACT_DIR/rostopic_list.txt" 2>&1 || true
 
+set +e
 python3 - <<'PY' "$ARTIFACT_DIR" "$ROS_MASTER_PORT" "$SUPER_PROFILE"
 import json
 import re
@@ -173,3 +180,11 @@ probe_meta = {
 print(json.dumps({"artifact_dir": str(artifact_dir), "summary": summary}, ensure_ascii=False, indent=2))
 raise SystemExit(0 if summary["click_goal_seen"] and summary["pos_cmd_seen"] else 2)
 PY
+PROBE_EXIT_CODE=$?
+set -e
+if [[ "$PROBE_EXIT_CODE" -eq 0 ]]; then
+  PROBE_RESULT_STATUS="passed"
+else
+  PROBE_RESULT_STATUS="failed"
+fi
+exit "$PROBE_EXIT_CODE"

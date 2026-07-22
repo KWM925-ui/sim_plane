@@ -12,7 +12,7 @@
 - 现在应该怎么复现；
 - 哪个 profile 是默认稳定复现面；
 - 剩余噪声是什么性质；
-- 哪些 artifact 才是现在应该保留的 canonical 证据。
+- 哪些 artifact 才是当前机器应该保留的标准证据。
 
 ## 2. `SUPER`
 
@@ -35,9 +35,12 @@
 - 如果显式指定 `SIM_PLANE_ROS_MASTER_PORT` 且端口已占用，脚本会直接失败
 - 产物写到 `runs/manual_probes/super_benchmark_dense_<timestamp>/`
 
-当前 canonical 证据：
+当前本机保留证据：
 
-- [super_benchmark_dense_20260429_153853](/home/coco/sim_plane/runs/manual_probes/super_benchmark_dense_20260429_153853/summary.json)
+- `runs/manual_probes/super_benchmark_dense_20260429_153853/summary.json`
+
+`runs/` 被 `.gitignore` 排除，因此这条路径只描述当前机器上的 retained
+evidence，不是随仓库分发的可移植 baseline。新克隆需要重新运行上面的入口生成证据。
 
 关键结果：
 
@@ -97,9 +100,12 @@
 - 如果显式指定 `SIM_PLANE_ROS_MASTER_PORT` 且端口已占用，脚本会直接失败
 - 产物写到 `runs/manual_probes/visplanner_tracking_<timestamp>/`
 
-当前 canonical 证据：
+当前本机保留证据：
 
-- [visplanner_tracking_20260429_153921](/home/coco/sim_plane/runs/manual_probes/visplanner_tracking_20260429_153921/summary.json)
+- `runs/manual_probes/visplanner_tracking_20260429_153921/summary.json`
+
+这条证据同样位于被忽略的 `runs/` 中，只对保留该 artifact 的本机成立；
+新克隆需要重新运行探针，不能把本页路径当成仓库自带的通过证据。
 
 关键结果：
 

@@ -1,0 +1,25 @@
+{"ts_utc": "2026-04-28T13:06:51Z", "level": "info", "message": "run started", "details": {"backend": "px4_sih", "scenario": "px4_sih_quadx_3d"}}
+{"ts_utc": "2026-04-28T13:06:51Z", "level": "info", "message": "px4_sih launch plan", "details": {"px4_dir": "/home/coco/sim_plane_ws/src/core/PX4-Autopilot", "model": "sihsim_quadx", "mavlink_endpoint": "udpin:127.0.0.1:14540", "launch_qgc": true, "launch_jmavsim": true}}
+{"ts_utc": "2026-04-28T13:06:51Z", "level": "info", "message": "launching px4_sih", "details": {"command": "make px4_sitl_sih sihsim_quadx", "cwd": "/home/coco/sim_plane_ws/src/core/PX4-Autopilot"}}
+{"ts_utc": "2026-04-28T13:06:53Z", "level": "info", "message": "launching qgroundcontrol", "details": {"path": "/home/coco/桌面/QGroundControl.AppImage"}}
+{"ts_utc": "2026-04-28T13:06:53Z", "level": "info", "message": "launching jmavsim", "details": {"command": "/home/coco/sim_plane_ws/src/core/PX4-Autopilot/Tools/simulation/jmavsim/jmavsim_run.sh -p 19410 -u -q -o", "cwd": "/home/coco/sim_plane_ws/src/core/PX4-Autopilot"}}
+{"ts_utc": "2026-04-28T13:06:54Z", "level": "info", "message": "qgc_stderr log", "details": {"line": "MAVLinkLogManagerLog: MAVLink logs directory: \"/home/coco/文档/QGroundControl/Logs\"", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T13:06:55Z", "level": "info", "message": "px4_stdout log", "details": {"line": "INFO  [mavlink] MAVLink only on localhost (set param MAV_{i}_BROADCAST = 1 to enable network)", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:06:55Z", "level": "info", "message": "px4_stdout log", "details": {"line": "INFO  [mavlink] MAVLink only on localhost (set param MAV_{i}_BROADCAST = 1 to enable network)", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:06:55Z", "level": "info", "message": "px4_stdout log", "details": {"line": "INFO  [mavlink] MAVLink only on localhost (set param MAV_{i}_BROADCAST = 1 to enable network)", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:06:55Z", "level": "info", "message": "px4_stdout log", "details": {"line": "INFO  [px4] Startup script returned successfully", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:06:56Z", "level": "info", "message": "px4 heartbeat received", "details": {"system_id": 1, "component_id": 1}}
+{"ts_utc": "2026-04-28T13:06:57Z", "level": "info", "message": "px4_stdout log", "details": {"line": "WARN  [health_and_arming_checks] Preflight Fail: heading estimate invalid", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:06:58Z", "level": "info", "message": "px4_stdout log", "details": {"line": "INFO  [commander] \u001b[32mReady for takeoff!\u001b[0m", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T13:07:01Z", "level": "info", "message": "sending px4 shell command", "details": {"command": "param set MIS_TAKEOFF_ALT 5"}}
+{"ts_utc": "2026-04-28T13:07:03Z", "level": "info", "message": "sending px4 shell command", "details": {"command": "commander takeoff"}}
+{"ts_utc": "2026-04-28T13:07:05Z", "level": "info", "message": "sending px4 shell command", "details": {"command": "commander takeoff"}}
+{"ts_utc": "2026-04-28T13:07:07Z", "level": "info", "message": "sending px4 shell command", "details": {"command": "commander takeoff"}}
+{"ts_utc": "2026-04-28T13:07:09Z", "level": "info", "message": "px4 mode change", "details": {"mode": "BOOT", "t": 0.0}}
+{"ts_utc": "2026-04-28T13:07:09Z", "level": "info", "message": "px4 arm state change", "details": {"armed": false, "t": 0.0}}
+{"ts_utc": "2026-04-28T13:07:09Z", "level": "info", "message": "px4 mode change", "details": {"mode": "TAKEOFF", "t": 0.2}}
+{"ts_utc": "2026-04-28T13:07:09Z", "level": "info", "message": "px4 arm state change", "details": {"armed": true, "t": 0.2}}
+{"ts_utc": "2026-04-28T13:07:11Z", "level": "info", "message": "px4 mode change", "details": {"mode": "LOITER", "t": 2.23}}
+{"ts_utc": "2026-04-28T13:07:29Z", "level": "info", "message": "stopping process", "details": {"label": "viewer", "pid": 43839, "signal": "SIGTERM"}}
+{"ts_utc": "2026-04-28T13:07:29Z", "level": "info", "message": "stopping process", "details": {"label": "viewer", "pid": 43835, "signal": "SIGTERM"}}
+{"ts_utc": "2026-04-28T13:07:29Z", "level": "info", "message": "stopping process", "details": {"label": "px4", "pid": 43781, "signal": "SIGTERM"}}

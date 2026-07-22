@@ -2,9 +2,13 @@
 
 ## Scope
 
-This note records retained `2026-04-29` managed bring-up evidence for additional
+This note records the current machine's retained `2026-04-29` managed bring-up evidence for additional
 open-source frontier algorithms that are not yet part of the strict
 twenty-one-row platform acceptance gate.
+
+The paths under `runs/manual_probes/` are ignored local evidence, not files
+distributed with the repository. A fresh checkout must rerun the probe scripts
+before it can produce equivalent evidence.
 
 These probes follow the repo-wide rules:
 
@@ -25,7 +29,7 @@ These probes follow the repo-wide rules:
   `./scripts/run_super_benchmark.sh`
 - optional stress probe:
   `./scripts/run_super_benchmark.sh --profile high_speed`
-- retained canonical artifact:
+- retained local artifact:
   latest successful `runs/manual_probes/super_benchmark_dense_*`
 
 Build contract:
@@ -91,7 +95,7 @@ Retained runtime result:
   `./scripts/build_visplanner_ws.sh`
 - standard probe script:
   `./scripts/run_visplanner_tracking.sh`
-- retained canonical artifact:
+- retained local artifact:
   latest successful `runs/manual_probes/visplanner_tracking_*`
 
 Build contract:

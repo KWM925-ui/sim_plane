@@ -1,9 +1,6 @@
 import argparse
 import json
-import os
-from pathlib import Path
 
-from sim_plane.adapters import available_adapters
 from sim_plane.artifact_hygiene import (
     DEFAULT_ARTIFACT_ROOT,
     apply_artifact_hygiene,
@@ -11,7 +8,6 @@ from sim_plane.artifact_hygiene import (
     format_artifact_hygiene_report,
     format_manual_probe_hygiene_report,
 )
-from sim_plane.backends import available_backends
 from sim_plane.planner_acceptance import (
     DEFAULT_ACCEPTANCE_REPORT_ROOT,
     format_acceptance_report,
@@ -36,7 +32,7 @@ from sim_plane.live_smoke import (
     format_live_smoke_report,
     run_live_smoke_suite,
 )
-from sim_plane.doctor import collect_platform_doctor_report, format_platform_doctor_report
+from sim_plane.doctor import collect_adapter_rows, collect_platform_doctor_report, format_platform_doctor_report
 from sim_plane.runner import ensure_artifact_root, run_scenario, serve_artifact
 from sim_plane.scenario import load_scenario
 from sim_plane.scenario_generator import (
@@ -91,9 +87,10 @@ from sim_plane.platform_health import (
     format_platform_health_report,
     write_platform_health_report,
 )
+from sim_plane.paths import get_platform_paths, resolve_platform_path
 
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = get_platform_paths().home
 
 
 def build_parser():
@@ -182,7 +179,7 @@ def build_parser():
 
     platform_health_parser = subparsers.add_parser(
         "platform-health",
-        help="Aggregate current platform readiness, hygiene, acceptance, and next-stage boundaries",
+        help="Aggregate current platform readiness, hygiene, acceptance, and objective boundaries",
     )
     platform_health_parser.add_argument(
         "--artifact-root",
@@ -487,7 +484,7 @@ def build_parser():
 
     exam_parser = subparsers.add_parser(
         "quadrotor-exam",
-        help="Run the standard paper/project-style quadrotor validation exam",
+        help="Run the lightweight demo-backend quadrotor KPI/proxy exam",
     )
     exam_parser.add_argument(
         "--scenario",
@@ -852,11 +849,13 @@ def build_parser():
 
 
 def main(argv=None):
-    os.chdir(REPO_ROOT)
     parser = build_parser()
     args = parser.parse_args(argv)
+    normalize_cli_paths(args)
 
     if args.command == "list-backends":
+        from sim_plane.backends import available_backends
+
         for name, backend_cls in available_backends().items():
             backend = backend_cls()
             issues = backend.validate_environment()
@@ -867,8 +866,7 @@ def main(argv=None):
         return 0
 
     if args.command == "list-adapters":
-        report = collect_platform_doctor_report()
-        for row in report["adapters"]:
+        for row in collect_adapter_rows():
             suffix = ""
             if row.get("notes"):
                 suffix = " | note: {0}".format("; ".join(row["notes"]))
@@ -1300,3 +1298,21 @@ def main(argv=None):
         return 0
 
     parser.error("unknown command")
+
+
+def normalize_cli_paths(args):
+    for name in (
+        "artifact_root",
+        "report_root",
+        "matrix",
+        "suite",
+        "scenario",
+        "artifact_dir",
+        "output",
+        "source",
+        "px4_dir",
+        "ros_workspace",
+    ):
+        value = getattr(args, name, None)
+        if value:
+            setattr(args, name, str(resolve_platform_path(value)))

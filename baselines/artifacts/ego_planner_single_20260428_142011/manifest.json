@@ -1,0 +1,15 @@
+{
+  "created_at_utc": "2026-04-28T14:20:11Z",
+  "backend": "ego_planner",
+  "scenario_name": "ego_planner_single",
+  "vehicle": "quadrotor",
+  "artifact_dir": "runs/ego_planner_single_20260428_142011",
+  "files": {
+    "scenario": "scenario.json",
+    "telemetry": "telemetry.jsonl",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "backend_stdout": "backend_stdout.log",
+    "backend_stderr": "backend_stderr.log"
+  }
+}

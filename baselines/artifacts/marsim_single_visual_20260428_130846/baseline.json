@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_artifact",
+  "source_artifact": "runs/marsim_single_visual_20260428_130846",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": "2026-04-28T13:09:09Z",
+  "files": {
+    "manifest.json": "fd08a6f5503a0b594c98c3a12b187e382e07087d1061a9c6552de1933c9d0be8",
+    "result.json": "649159e90f1f0f7f489ee7d116294cef68177e8e34bb70df2c1317791ded2a8c",
+    "events.jsonl": "fd929cc6fbf84cc9bfb31c06c547681697ec88bec4104db1d67d7748e3b089fc"
+  }
+}

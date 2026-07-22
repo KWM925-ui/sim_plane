@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "px4_jsbsim_quadx_headless",
   "description": "Real PX4 plus JSBSim quadrotor run with headless dynamics and local dashboard telemetry.",
   "backend": "px4_jsbsim",

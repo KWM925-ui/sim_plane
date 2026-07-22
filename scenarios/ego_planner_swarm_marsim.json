@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "ego_planner_swarm_marsim",
   "description": "Single-drone EGO-Planner-Swarm on the stable MARSIM scene path without RViz.",
   "backend": "ego_planner_swarm_marsim",

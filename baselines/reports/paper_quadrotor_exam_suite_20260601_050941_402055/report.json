@@ -1,0 +1,5247 @@
+{
+  "suite_name": "paper_quadrotor_exam_suite",
+  "base_scenario": "scenarios/basic_takeoff.json",
+  "artifact_root": "runs",
+  "status": "passed",
+  "issues": [],
+  "rows": [
+    {
+      "name": "hover",
+      "status": "passed",
+      "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+      "metrics": {
+        "telemetry_count": 71,
+        "max_altitude_m": 10.0,
+        "max_speed_mps": 6.0,
+        "max_horizontal_error_m": 0.0,
+        "max_altitude_error_m": 0.0,
+        "target_altitude_reached": true,
+        "duration_s": 14.0,
+        "disturbance_enabled": false,
+        "degradation_enabled": false,
+        "sensor_dropout_count": 0,
+        "target_loss_count": 0,
+        "sensor_latency_s": 0.0,
+        "sensor_noise_enabled": false,
+        "communication_interruption_count": 0,
+        "control_saturation_count": 0,
+        "sensor_stream_fault_enabled": false,
+        "gps_dropout_count": 0,
+        "vio_scale_drift_count": 0,
+        "vio_scale_drift_max_scale_error": 0.0,
+        "imu_noise_burst_count": 0,
+        "kpi_sample_count": 71,
+        "kpi_duration_s": 14.0,
+        "kpi_distance_m": 20.0,
+        "kpi_max_speed_mps": 6.0,
+        "kpi_mean_speed_mps": 3.247,
+        "kpi_speed_roughness_mps": 0.137,
+        "kpi_sensor_visible_count": 71,
+        "kpi_sensor_dropout_count": 0,
+        "kpi_sensor_dropout_ratio": 0.0,
+        "kpi_target_lost_count": 0,
+        "kpi_target_reacquire_count": 0,
+        "kpi_target_altitude_m": 10.0,
+        "kpi_altitude_mae_m": 4.366,
+        "kpi_altitude_rmse_m": 6.054,
+        "kpi_altitude_max_error_m": 10.0,
+        "kpi_altitude_overshoot_m": 0.0,
+        "kpi_target_reach_time_s": 5.0,
+        "kpi_mission_sample_count": 26,
+        "kpi_mission_altitude_mae_m": 0.0,
+        "kpi_mission_altitude_max_error_m": 0.0,
+        "kpi_path_error_mae_m": 0.0,
+        "kpi_path_error_max_m": 0.0,
+        "kpi_mission_path_error_mae_m": 0.0,
+        "kpi_mission_path_error_max_m": 0.0,
+        "kpi_final_goal_distance_m": 0.0,
+        "kpi_measurement_horizontal_error_mae_m": 0.0,
+        "kpi_measurement_horizontal_error_max_m": 0.0,
+        "kpi_measurement_vertical_error_mae_m": 0.0,
+        "kpi_measurement_vertical_error_max_m": 0.0,
+        "kpi_max_acceleration_mps2": 20.0,
+        "kpi_mean_abs_acceleration_mps2": 0.686,
+        "kpi_acceleration_roughness_mps2": 1.391,
+        "kpi_speed_limit_mps": 6.0,
+        "kpi_speed_limit_violation_count": 0,
+        "kpi_speed_limit_max_excess_mps": 0.0,
+        "kpi_min_altitude_violation_count": 0,
+        "kpi_max_altitude_violation_count": 0,
+        "kpi_geofence_violation_count": 0,
+        "kpi_safety_violation_count": 0,
+        "kpi_altitude_recovery_time_s": 5.0,
+        "kpi_plugin_count": 9,
+        "kpi_plugin_names": [
+          "core",
+          "sensor",
+          "altitude",
+          "mission",
+          "path",
+          "truth",
+          "dynamics",
+          "safety",
+          "recovery"
+        ]
+      },
+      "factors": [],
+      "issues": []
+    },
+    {
+      "name": "waypoint",
+      "status": "passed",
+      "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+      "metrics": {
+        "telemetry_count": 71,
+        "max_altitude_m": 10.0,
+        "max_speed_mps": 6.0,
+        "max_horizontal_error_m": 0.0,
+        "max_altitude_error_m": 0.0,
+        "target_altitude_reached": true,
+        "duration_s": 14.0,
+        "disturbance_enabled": false,
+        "degradation_enabled": false,
+        "sensor_dropout_count": 0,
+        "target_loss_count": 0,
+        "sensor_latency_s": 0.0,
+        "sensor_noise_enabled": false,
+        "communication_interruption_count": 0,
+        "control_saturation_count": 0,
+        "sensor_stream_fault_enabled": false,
+        "gps_dropout_count": 0,
+        "vio_scale_drift_count": 0,
+        "vio_scale_drift_max_scale_error": 0.0,
+        "imu_noise_burst_count": 0,
+        "kpi_sample_count": 71,
+        "kpi_duration_s": 14.0,
+        "kpi_distance_m": 58.902,
+        "kpi_max_speed_mps": 6.0,
+        "kpi_mean_speed_mps": 3.247,
+        "kpi_speed_roughness_mps": 0.137,
+        "kpi_sensor_visible_count": 71,
+        "kpi_sensor_dropout_count": 0,
+        "kpi_sensor_dropout_ratio": 0.0,
+        "kpi_target_lost_count": 0,
+        "kpi_target_reacquire_count": 0,
+        "kpi_target_altitude_m": 10.0,
+        "kpi_altitude_mae_m": 4.366,
+        "kpi_altitude_rmse_m": 6.054,
+        "kpi_altitude_max_error_m": 10.0,
+        "kpi_altitude_overshoot_m": 0.0,
+        "kpi_target_reach_time_s": 5.0,
+        "kpi_mission_sample_count": 26,
+        "kpi_mission_altitude_mae_m": 0.0,
+        "kpi_mission_altitude_max_error_m": 0.0,
+        "kpi_path_error_mae_m": 0.0,
+        "kpi_path_error_max_m": 0.0,
+        "kpi_mission_path_error_mae_m": 0.0,
+        "kpi_mission_path_error_max_m": 0.0,
+        "kpi_final_goal_distance_m": 0.0,
+        "kpi_measurement_horizontal_error_mae_m": 0.0,
+        "kpi_measurement_horizontal_error_max_m": 0.0,
+        "kpi_measurement_vertical_error_mae_m": 0.0,
+        "kpi_measurement_vertical_error_max_m": 0.0,
+        "kpi_max_acceleration_mps2": 20.0,
+        "kpi_mean_abs_acceleration_mps2": 0.686,
+        "kpi_acceleration_roughness_mps2": 1.391,
+        "kpi_speed_limit_mps": 6.0,
+        "kpi_speed_limit_violation_count": 0,
+        "kpi_speed_limit_max_excess_mps": 0.0,
+        "kpi_min_altitude_violation_count": 0,
+        "kpi_max_altitude_violation_count": 0,
+        "kpi_geofence_violation_count": 0,
+        "kpi_safety_violation_count": 0,
+        "kpi_altitude_recovery_time_s": 5.0,
+        "kpi_plugin_count": 9,
+        "kpi_plugin_names": [
+          "core",
+          "sensor",
+          "altitude",
+          "mission",
+          "path",
+          "truth",
+          "dynamics",
+          "safety",
+          "recovery"
+        ]
+      },
+      "factors": [],
+      "issues": []
+    },
+    {
+      "name": "obstacle_avoidance_proxy",
+      "status": "passed",
+      "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+      "metrics": {
+        "telemetry_count": 71,
+        "max_altitude_m": 10.0,
+        "max_speed_mps": 6.0,
+        "max_horizontal_error_m": 0.0,
+        "max_altitude_error_m": 0.0,
+        "target_altitude_reached": true,
+        "duration_s": 14.0,
+        "disturbance_enabled": false,
+        "degradation_enabled": false,
+        "sensor_dropout_count": 0,
+        "target_loss_count": 0,
+        "sensor_latency_s": 0.0,
+        "sensor_noise_enabled": false,
+        "communication_interruption_count": 0,
+        "control_saturation_count": 0,
+        "sensor_stream_fault_enabled": false,
+        "gps_dropout_count": 0,
+        "vio_scale_drift_count": 0,
+        "vio_scale_drift_max_scale_error": 0.0,
+        "imu_noise_burst_count": 0,
+        "kpi_sample_count": 71,
+        "kpi_duration_s": 14.0,
+        "kpi_distance_m": 45.593,
+        "kpi_max_speed_mps": 6.0,
+        "kpi_mean_speed_mps": 3.247,
+        "kpi_speed_roughness_mps": 0.137,
+        "kpi_sensor_visible_count": 71,
+        "kpi_sensor_dropout_count": 0,
+        "kpi_sensor_dropout_ratio": 0.0,
+        "kpi_target_lost_count": 0,
+        "kpi_target_reacquire_count": 0,
+        "kpi_target_altitude_m": 10.0,
+        "kpi_altitude_mae_m": 4.366,
+        "kpi_altitude_rmse_m": 6.054,
+        "kpi_altitude_max_error_m": 10.0,
+        "kpi_altitude_overshoot_m": 0.0,
+        "kpi_target_reach_time_s": 5.0,
+        "kpi_mission_sample_count": 26,
+        "kpi_mission_altitude_mae_m": 0.0,
+        "kpi_mission_altitude_max_error_m": 0.0,
+        "kpi_path_error_mae_m": 0.0,
+        "kpi_path_error_max_m": 0.0,
+        "kpi_mission_path_error_mae_m": 0.0,
+        "kpi_mission_path_error_max_m": 0.0,
+        "kpi_final_goal_distance_m": 12.0,
+        "kpi_measurement_horizontal_error_mae_m": 0.0,
+        "kpi_measurement_horizontal_error_max_m": 0.0,
+        "kpi_measurement_vertical_error_mae_m": 0.0,
+        "kpi_measurement_vertical_error_max_m": 0.0,
+        "kpi_max_acceleration_mps2": 20.0,
+        "kpi_mean_abs_acceleration_mps2": 0.686,
+        "kpi_acceleration_roughness_mps2": 1.391,
+        "kpi_speed_limit_mps": 6.0,
+        "kpi_speed_limit_violation_count": 0,
+        "kpi_speed_limit_max_excess_mps": 0.0,
+        "kpi_min_altitude_violation_count": 0,
+        "kpi_max_altitude_violation_count": 0,
+        "kpi_geofence_violation_count": 0,
+        "kpi_safety_violation_count": 0,
+        "kpi_altitude_recovery_time_s": 5.0,
+        "kpi_plugin_count": 9,
+        "kpi_plugin_names": [
+          "core",
+          "sensor",
+          "altitude",
+          "mission",
+          "path",
+          "truth",
+          "dynamics",
+          "safety",
+          "recovery"
+        ]
+      },
+      "factors": [],
+      "issues": []
+    },
+    {
+      "name": "corridor",
+      "status": "passed",
+      "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+      "metrics": {
+        "telemetry_count": 71,
+        "max_altitude_m": 10.0,
+        "max_speed_mps": 6.0,
+        "max_horizontal_error_m": 0.0,
+        "max_altitude_error_m": 0.0,
+        "target_altitude_reached": true,
+        "duration_s": 14.0,
+        "disturbance_enabled": false,
+        "degradation_enabled": false,
+        "sensor_dropout_count": 0,
+        "target_loss_count": 0,
+        "sensor_latency_s": 0.0,
+        "sensor_noise_enabled": false,
+        "communication_interruption_count": 0,
+        "control_saturation_count": 0,
+        "sensor_stream_fault_enabled": false,
+        "gps_dropout_count": 0,
+        "vio_scale_drift_count": 0,
+        "vio_scale_drift_max_scale_error": 0.0,
+        "imu_noise_burst_count": 0,
+        "kpi_sample_count": 71,
+        "kpi_duration_s": 14.0,
+        "kpi_distance_m": 51.508,
+        "kpi_max_speed_mps": 6.0,
+        "kpi_mean_speed_mps": 3.247,
+        "kpi_speed_roughness_mps": 0.137,
+        "kpi_sensor_visible_count": 71,
+        "kpi_sensor_dropout_count": 0,
+        "kpi_sensor_dropout_ratio": 0.0,
+        "kpi_target_lost_count": 0,
+        "kpi_target_reacquire_count": 0,
+        "kpi_target_altitude_m": 10.0,
+        "kpi_altitude_mae_m": 4.366,
+        "kpi_altitude_rmse_m": 6.054,
+        "kpi_altitude_max_error_m": 10.0,
+        "kpi_altitude_overshoot_m": 0.0,
+        "kpi_target_reach_time_s": 5.0,
+        "kpi_mission_sample_count": 26,
+        "kpi_mission_altitude_mae_m": 0.0,
+        "kpi_mission_altitude_max_error_m": 0.0,
+        "kpi_path_error_mae_m": 0.0,
+        "kpi_path_error_max_m": 0.0,
+        "kpi_mission_path_error_mae_m": 0.0,
+        "kpi_mission_path_error_max_m": 0.0,
+        "kpi_final_goal_distance_m": 16.0,
+        "kpi_measurement_horizontal_error_mae_m": 0.0,
+        "kpi_measurement_horizontal_error_max_m": 0.0,
+        "kpi_measurement_vertical_error_mae_m": 0.0,
+        "kpi_measurement_vertical_error_max_m": 0.0,
+        "kpi_max_acceleration_mps2": 20.0,
+        "kpi_mean_abs_acceleration_mps2": 0.686,
+        "kpi_acceleration_roughness_mps2": 1.391,
+        "kpi_speed_limit_mps": 6.0,
+        "kpi_speed_limit_violation_count": 0,
+        "kpi_speed_limit_max_excess_mps": 0.0,
+        "kpi_min_altitude_violation_count": 0,
+        "kpi_max_altitude_violation_count": 0,
+        "kpi_geofence_violation_count": 0,
+        "kpi_safety_violation_count": 0,
+        "kpi_altitude_recovery_time_s": 5.0,
+        "kpi_plugin_count": 9,
+        "kpi_plugin_names": [
+          "core",
+          "sensor",
+          "altitude",
+          "mission",
+          "path",
+          "truth",
+          "dynamics",
+          "safety",
+          "recovery"
+        ]
+      },
+      "factors": [],
+      "issues": []
+    },
+    {
+      "name": "sensor_dropout",
+      "status": "passed",
+      "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+      "metrics": {
+        "telemetry_count": 71,
+        "max_altitude_m": 10.0,
+        "max_speed_mps": 6.0,
+        "max_horizontal_error_m": 0.0,
+        "max_altitude_error_m": 0.0,
+        "target_altitude_reached": true,
+        "duration_s": 14.0,
+        "disturbance_enabled": false,
+        "degradation_enabled": true,
+        "sensor_dropout_count": 5,
+        "target_loss_count": 0,
+        "sensor_latency_s": 0.0,
+        "sensor_noise_enabled": false,
+        "communication_interruption_count": 0,
+        "control_saturation_count": 0,
+        "sensor_stream_fault_enabled": false,
+        "gps_dropout_count": 0,
+        "vio_scale_drift_count": 0,
+        "vio_scale_drift_max_scale_error": 0.0,
+        "imu_noise_burst_count": 0,
+        "kpi_sample_count": 71,
+        "kpi_duration_s": 14.0,
+        "kpi_distance_m": 93.187,
+        "kpi_max_speed_mps": 6.0,
+        "kpi_mean_speed_mps": 3.247,
+        "kpi_speed_roughness_mps": 0.137,
+        "kpi_sensor_visible_count": 66,
+        "kpi_sensor_dropout_count": 5,
+        "kpi_sensor_dropout_ratio": 0.070423,
+        "kpi_target_lost_count": 1,
+        "kpi_target_reacquire_count": 1,
+        "kpi_target_altitude_m": 10.0,
+        "kpi_altitude_mae_m": 4.366,
+        "kpi_altitude_rmse_m": 6.054,
+        "kpi_altitude_max_error_m": 10.0,
+        "kpi_altitude_overshoot_m": 0.0,
+        "kpi_target_reach_time_s": 5.0,
+        "kpi_mission_sample_count": 26,
+        "kpi_mission_altitude_mae_m": 0.0,
+        "kpi_mission_altitude_max_error_m": 0.0,
+        "kpi_path_error_mae_m": 0.0,
+        "kpi_path_error_max_m": 0.0,
+        "kpi_mission_path_error_mae_m": 0.0,
+        "kpi_mission_path_error_max_m": 0.0,
+        "kpi_final_goal_distance_m": 0.0,
+        "kpi_measurement_horizontal_error_mae_m": 0.0,
+        "kpi_measurement_horizontal_error_max_m": 0.0,
+        "kpi_measurement_vertical_error_mae_m": 0.0,
+        "kpi_measurement_vertical_error_max_m": 0.0,
+        "kpi_max_acceleration_mps2": 20.0,
+        "kpi_mean_abs_acceleration_mps2": 0.686,
+        "kpi_acceleration_roughness_mps2": 1.391,
+        "kpi_speed_limit_mps": 6.0,
+        "kpi_speed_limit_violation_count": 0,
+        "kpi_speed_limit_max_excess_mps": 0.0,
+        "kpi_min_altitude_violation_count": 0,
+        "kpi_max_altitude_violation_count": 0,
+        "kpi_geofence_violation_count": 0,
+        "kpi_safety_violation_count": 0,
+        "kpi_sensor_recovery_time_s": 1.0,
+        "kpi_altitude_recovery_time_s": 5.0,
+        "kpi_plugin_count": 9,
+        "kpi_plugin_names": [
+          "core",
+          "sensor",
+          "altitude",
+          "mission",
+          "path",
+          "truth",
+          "dynamics",
+          "safety",
+          "recovery"
+        ]
+      },
+      "factors": [],
+      "issues": []
+    },
+    {
+      "name": "dynamic_target",
+      "status": "passed",
+      "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+      "metrics": {
+        "telemetry_count": 71,
+        "max_altitude_m": 10.0,
+        "max_speed_mps": 6.0,
+        "max_horizontal_error_m": 0.216,
+        "max_altitude_error_m": 0.087,
+        "target_altitude_reached": true,
+        "duration_s": 14.0,
+        "disturbance_enabled": false,
+        "degradation_enabled": true,
+        "sensor_dropout_count": 0,
+        "target_loss_count": 0,
+        "sensor_latency_s": 0.0,
+        "sensor_noise_enabled": true,
+        "communication_interruption_count": 0,
+        "control_saturation_count": 0,
+        "sensor_stream_fault_enabled": false,
+        "gps_dropout_count": 0,
+        "vio_scale_drift_count": 0,
+        "vio_scale_drift_max_scale_error": 0.0,
+        "imu_noise_burst_count": 0,
+        "kpi_sample_count": 71,
+        "kpi_duration_s": 14.0,
+        "kpi_distance_m": 67.571,
+        "kpi_max_speed_mps": 6.0,
+        "kpi_mean_speed_mps": 3.247,
+        "kpi_speed_roughness_mps": 0.137,
+        "kpi_sensor_visible_count": 71,
+        "kpi_sensor_dropout_count": 0,
+        "kpi_sensor_dropout_ratio": 0.0,
+        "kpi_target_lost_count": 0,
+        "kpi_target_reacquire_count": 0,
+        "kpi_target_altitude_m": 10.0,
+        "kpi_altitude_mae_m": 4.366,
+        "kpi_altitude_rmse_m": 6.054,
+        "kpi_altitude_max_error_m": 10.0,
+        "kpi_altitude_overshoot_m": 0.0,
+        "kpi_target_reach_time_s": 5.0,
+        "kpi_mission_sample_count": 26,
+        "kpi_mission_altitude_mae_m": 0.0,
+        "kpi_mission_altitude_max_error_m": 0.0,
+        "kpi_path_error_mae_m": 0.055,
+        "kpi_path_error_max_m": 0.168,
+        "kpi_mission_path_error_mae_m": 0.045,
+        "kpi_mission_path_error_max_m": 0.158,
+        "kpi_final_goal_distance_m": 20.122,
+        "kpi_measurement_horizontal_error_mae_m": 0.075,
+        "kpi_measurement_horizontal_error_max_m": 0.216,
+        "kpi_measurement_vertical_error_mae_m": 0.026,
+        "kpi_measurement_vertical_error_max_m": 0.087,
+        "kpi_max_acceleration_mps2": 20.0,
+        "kpi_mean_abs_acceleration_mps2": 0.686,
+        "kpi_acceleration_roughness_mps2": 1.391,
+        "kpi_speed_limit_mps": 6.0,
+        "kpi_speed_limit_violation_count": 0,
+        "kpi_speed_limit_max_excess_mps": 0.0,
+        "kpi_min_altitude_violation_count": 0,
+        "kpi_max_altitude_violation_count": 0,
+        "kpi_geofence_violation_count": 0,
+        "kpi_safety_violation_count": 0,
+        "kpi_altitude_recovery_time_s": 5.0,
+        "kpi_plugin_count": 9,
+        "kpi_plugin_names": [
+          "core",
+          "sensor",
+          "altitude",
+          "mission",
+          "path",
+          "truth",
+          "dynamics",
+          "safety",
+          "recovery"
+        ]
+      },
+      "factors": [],
+      "issues": []
+    },
+    {
+      "name": "failure_motor_proxy",
+      "status": "passed",
+      "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+      "metrics": {
+        "telemetry_count": 71,
+        "max_altitude_m": 10.0,
+        "max_speed_mps": 3.0,
+        "max_horizontal_error_m": 0.0,
+        "max_altitude_error_m": 0.0,
+        "target_altitude_reached": true,
+        "duration_s": 14.0,
+        "disturbance_enabled": false,
+        "degradation_enabled": true,
+        "sensor_dropout_count": 0,
+        "target_loss_count": 0,
+        "sensor_latency_s": 0.0,
+        "sensor_noise_enabled": false,
+        "communication_interruption_count": 3,
+        "control_saturation_count": 23,
+        "sensor_stream_fault_enabled": false,
+        "gps_dropout_count": 0,
+        "vio_scale_drift_count": 0,
+        "vio_scale_drift_max_scale_error": 0.0,
+        "imu_noise_burst_count": 0,
+        "kpi_sample_count": 71,
+        "kpi_duration_s": 14.0,
+        "kpi_distance_m": 94.714,
+        "kpi_max_speed_mps": 3.0,
+        "kpi_mean_speed_mps": 2.022,
+        "kpi_speed_roughness_mps": 0.137,
+        "kpi_sensor_visible_count": 71,
+        "kpi_sensor_dropout_count": 0,
+        "kpi_sensor_dropout_ratio": 0.0,
+        "kpi_target_lost_count": 0,
+        "kpi_target_reacquire_count": 0,
+        "kpi_target_altitude_m": 10.0,
+        "kpi_altitude_mae_m": 4.366,
+        "kpi_altitude_rmse_m": 6.054,
+        "kpi_altitude_max_error_m": 10.0,
+        "kpi_altitude_overshoot_m": 0.0,
+        "kpi_target_reach_time_s": 5.0,
+        "kpi_mission_sample_count": 26,
+        "kpi_mission_altitude_mae_m": 0.0,
+        "kpi_mission_altitude_max_error_m": 0.0,
+        "kpi_path_error_mae_m": 0.0,
+        "kpi_path_error_max_m": 0.0,
+        "kpi_mission_path_error_mae_m": 0.0,
+        "kpi_mission_path_error_max_m": 0.0,
+        "kpi_final_goal_distance_m": 0.0,
+        "kpi_measurement_horizontal_error_mae_m": 0.0,
+        "kpi_measurement_horizontal_error_max_m": 0.0,
+        "kpi_measurement_vertical_error_mae_m": 0.0,
+        "kpi_measurement_vertical_error_max_m": 0.0,
+        "kpi_max_acceleration_mps2": 15.0,
+        "kpi_mean_abs_acceleration_mps2": 0.686,
+        "kpi_acceleration_roughness_mps2": 1.391,
+        "kpi_speed_limit_mps": 3.0,
+        "kpi_speed_limit_violation_count": 0,
+        "kpi_speed_limit_max_excess_mps": 0.0,
+        "kpi_min_altitude_violation_count": 0,
+        "kpi_max_altitude_violation_count": 0,
+        "kpi_geofence_violation_count": 0,
+        "kpi_safety_violation_count": 0,
+        "kpi_altitude_recovery_time_s": 5.0,
+        "kpi_plugin_count": 9,
+        "kpi_plugin_names": [
+          "core",
+          "sensor",
+          "altitude",
+          "mission",
+          "path",
+          "truth",
+          "dynamics",
+          "safety",
+          "recovery"
+        ]
+      },
+      "factors": [],
+      "issues": []
+    },
+    {
+      "name": "planner_compare",
+      "status": "passed",
+      "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+      "metrics": {
+        "telemetry_count": 71,
+        "max_altitude_m": 10.0,
+        "max_speed_mps": 6.0,
+        "max_horizontal_error_m": 0.0,
+        "max_altitude_error_m": 0.0,
+        "target_altitude_reached": true,
+        "duration_s": 14.0,
+        "disturbance_enabled": false,
+        "degradation_enabled": false,
+        "sensor_dropout_count": 0,
+        "target_loss_count": 0,
+        "sensor_latency_s": 0.0,
+        "sensor_noise_enabled": false,
+        "communication_interruption_count": 0,
+        "control_saturation_count": 0,
+        "sensor_stream_fault_enabled": false,
+        "gps_dropout_count": 0,
+        "vio_scale_drift_count": 0,
+        "vio_scale_drift_max_scale_error": 0.0,
+        "imu_noise_burst_count": 0,
+        "kpi_sample_count": 71,
+        "kpi_duration_s": 14.0,
+        "kpi_distance_m": 51.628,
+        "kpi_max_speed_mps": 6.0,
+        "kpi_mean_speed_mps": 3.247,
+        "kpi_speed_roughness_mps": 0.137,
+        "kpi_sensor_visible_count": 71,
+        "kpi_sensor_dropout_count": 0,
+        "kpi_sensor_dropout_ratio": 0.0,
+        "kpi_target_lost_count": 0,
+        "kpi_target_reacquire_count": 0,
+        "kpi_target_altitude_m": 10.0,
+        "kpi_altitude_mae_m": 4.366,
+        "kpi_altitude_rmse_m": 6.054,
+        "kpi_altitude_max_error_m": 10.0,
+        "kpi_altitude_overshoot_m": 0.0,
+        "kpi_target_reach_time_s": 5.0,
+        "kpi_mission_sample_count": 26,
+        "kpi_mission_altitude_mae_m": 0.0,
+        "kpi_mission_altitude_max_error_m": 0.0,
+        "kpi_path_error_mae_m": 0.0,
+        "kpi_path_error_max_m": 0.0,
+        "kpi_mission_path_error_mae_m": 0.0,
+        "kpi_mission_path_error_max_m": 0.0,
+        "kpi_final_goal_distance_m": 0.0,
+        "kpi_measurement_horizontal_error_mae_m": 0.0,
+        "kpi_measurement_horizontal_error_max_m": 0.0,
+        "kpi_measurement_vertical_error_mae_m": 0.0,
+        "kpi_measurement_vertical_error_max_m": 0.0,
+        "kpi_max_acceleration_mps2": 20.0,
+        "kpi_mean_abs_acceleration_mps2": 0.686,
+        "kpi_acceleration_roughness_mps2": 1.391,
+        "kpi_speed_limit_mps": 6.0,
+        "kpi_speed_limit_violation_count": 0,
+        "kpi_speed_limit_max_excess_mps": 0.0,
+        "kpi_min_altitude_violation_count": 0,
+        "kpi_max_altitude_violation_count": 0,
+        "kpi_geofence_violation_count": 0,
+        "kpi_safety_violation_count": 0,
+        "kpi_altitude_recovery_time_s": 5.0,
+        "kpi_plugin_count": 9,
+        "kpi_plugin_names": [
+          "core",
+          "sensor",
+          "altitude",
+          "mission",
+          "path",
+          "truth",
+          "dynamics",
+          "safety",
+          "recovery"
+        ]
+      },
+      "factors": [],
+      "issues": []
+    }
+  ],
+  "metric_summary": {
+    "communication_interruption_count": {
+      "min": 0,
+      "max": 3,
+      "spread": 3
+    },
+    "control_saturation_count": {
+      "min": 0,
+      "max": 23,
+      "spread": 23
+    },
+    "duration_s": {
+      "min": 14.0,
+      "max": 14.0,
+      "spread": 0.0
+    },
+    "gps_dropout_count": {
+      "min": 0,
+      "max": 0,
+      "spread": 0
+    },
+    "imu_noise_burst_count": {
+      "min": 0,
+      "max": 0,
+      "spread": 0
+    },
+    "kpi_acceleration_roughness_mps2": {
+      "min": 1.391,
+      "max": 1.391,
+      "spread": 0.0
+    },
+    "kpi_altitude_mae_m": {
+      "min": 4.366,
+      "max": 4.366,
+      "spread": 0.0
+    },
+    "kpi_altitude_max_error_m": {
+      "min": 10.0,
+      "max": 10.0,
+      "spread": 0.0
+    },
+    "kpi_altitude_overshoot_m": {
+      "min": 0.0,
+      "max": 0.0,
+      "spread": 0.0
+    },
+    "kpi_altitude_recovery_time_s": {
+      "min": 5.0,
+      "max": 5.0,
+      "spread": 0.0
+    },
+    "kpi_altitude_rmse_m": {
+      "min": 6.054,
+      "max": 6.054,
+      "spread": 0.0
+    },
+    "kpi_distance_m": {
+      "min": 20.0,
+      "max": 94.714,
+      "spread": 74.714
+    },
+    "kpi_duration_s": {
+      "min": 14.0,
+      "max": 14.0,
+      "spread": 0.0
+    },
+    "kpi_final_goal_distance_m": {
+      "min": 0.0,
+      "max": 20.122,
+      "spread": 20.122
+    },
+    "kpi_geofence_violation_count": {
+      "min": 0,
+      "max": 0,
+      "spread": 0
+    },
+    "kpi_max_acceleration_mps2": {
+      "min": 15.0,
+      "max": 20.0,
+      "spread": 5.0
+    },
+    "kpi_max_altitude_violation_count": {
+      "min": 0,
+      "max": 0,
+      "spread": 0
+    },
+    "kpi_max_speed_mps": {
+      "min": 3.0,
+      "max": 6.0,
+      "spread": 3.0
+    },
+    "kpi_mean_abs_acceleration_mps2": {
+      "min": 0.686,
+      "max": 0.686,
+      "spread": 0.0
+    },
+    "kpi_mean_speed_mps": {
+      "min": 2.022,
+      "max": 3.247,
+      "spread": 1.225
+    },
+    "kpi_measurement_horizontal_error_mae_m": {
+      "min": 0.0,
+      "max": 0.075,
+      "spread": 0.075
+    },
+    "kpi_measurement_horizontal_error_max_m": {
+      "min": 0.0,
+      "max": 0.216,
+      "spread": 0.216
+    },
+    "kpi_measurement_vertical_error_mae_m": {
+      "min": 0.0,
+      "max": 0.026,
+      "spread": 0.026
+    },
+    "kpi_measurement_vertical_error_max_m": {
+      "min": 0.0,
+      "max": 0.087,
+      "spread": 0.087
+    },
+    "kpi_min_altitude_violation_count": {
+      "min": 0,
+      "max": 0,
+      "spread": 0
+    },
+    "kpi_mission_altitude_mae_m": {
+      "min": 0.0,
+      "max": 0.0,
+      "spread": 0.0
+    },
+    "kpi_mission_altitude_max_error_m": {
+      "min": 0.0,
+      "max": 0.0,
+      "spread": 0.0
+    },
+    "kpi_mission_path_error_mae_m": {
+      "min": 0.0,
+      "max": 0.045,
+      "spread": 0.045
+    },
+    "kpi_mission_path_error_max_m": {
+      "min": 0.0,
+      "max": 0.158,
+      "spread": 0.158
+    },
+    "kpi_mission_sample_count": {
+      "min": 26,
+      "max": 26,
+      "spread": 0
+    },
+    "kpi_path_error_mae_m": {
+      "min": 0.0,
+      "max": 0.055,
+      "spread": 0.055
+    },
+    "kpi_path_error_max_m": {
+      "min": 0.0,
+      "max": 0.168,
+      "spread": 0.168
+    },
+    "kpi_plugin_count": {
+      "min": 9,
+      "max": 9,
+      "spread": 0
+    },
+    "kpi_safety_violation_count": {
+      "min": 0,
+      "max": 0,
+      "spread": 0
+    },
+    "kpi_sample_count": {
+      "min": 71,
+      "max": 71,
+      "spread": 0
+    },
+    "kpi_sensor_dropout_count": {
+      "min": 0,
+      "max": 5,
+      "spread": 5
+    },
+    "kpi_sensor_dropout_ratio": {
+      "min": 0.0,
+      "max": 0.070423,
+      "spread": 0.070423
+    },
+    "kpi_sensor_recovery_time_s": {
+      "min": 1.0,
+      "max": 1.0,
+      "spread": 0.0
+    },
+    "kpi_sensor_visible_count": {
+      "min": 66,
+      "max": 71,
+      "spread": 5
+    },
+    "kpi_speed_limit_max_excess_mps": {
+      "min": 0.0,
+      "max": 0.0,
+      "spread": 0.0
+    },
+    "kpi_speed_limit_mps": {
+      "min": 3.0,
+      "max": 6.0,
+      "spread": 3.0
+    },
+    "kpi_speed_limit_violation_count": {
+      "min": 0,
+      "max": 0,
+      "spread": 0
+    },
+    "kpi_speed_roughness_mps": {
+      "min": 0.137,
+      "max": 0.137,
+      "spread": 0.0
+    },
+    "kpi_target_altitude_m": {
+      "min": 10.0,
+      "max": 10.0,
+      "spread": 0.0
+    },
+    "kpi_target_lost_count": {
+      "min": 0,
+      "max": 1,
+      "spread": 1
+    },
+    "kpi_target_reach_time_s": {
+      "min": 5.0,
+      "max": 5.0,
+      "spread": 0.0
+    },
+    "kpi_target_reacquire_count": {
+      "min": 0,
+      "max": 1,
+      "spread": 1
+    },
+    "max_altitude_error_m": {
+      "min": 0.0,
+      "max": 0.087,
+      "spread": 0.087
+    },
+    "max_altitude_m": {
+      "min": 10.0,
+      "max": 10.0,
+      "spread": 0.0
+    },
+    "max_horizontal_error_m": {
+      "min": 0.0,
+      "max": 0.216,
+      "spread": 0.216
+    },
+    "max_speed_mps": {
+      "min": 3.0,
+      "max": 6.0,
+      "spread": 3.0
+    },
+    "sensor_dropout_count": {
+      "min": 0,
+      "max": 5,
+      "spread": 5
+    },
+    "sensor_latency_s": {
+      "min": 0.0,
+      "max": 0.0,
+      "spread": 0.0
+    },
+    "target_loss_count": {
+      "min": 0,
+      "max": 0,
+      "spread": 0
+    },
+    "telemetry_count": {
+      "min": 71,
+      "max": 71,
+      "spread": 0
+    },
+    "vio_scale_drift_count": {
+      "min": 0,
+      "max": 0,
+      "spread": 0
+    },
+    "vio_scale_drift_max_scale_error": {
+      "min": 0.0,
+      "max": 0.0,
+      "spread": 0.0
+    }
+  },
+  "factor_analysis": {},
+  "top_metric_effects": [],
+  "kpi_rankings": {
+    "kpi_acceleration_roughness_mps2": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 1.391
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 1.391
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 1.391
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 1.391
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 1.391
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 1.391
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 1.391
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 1.391
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 1.391
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 1.391
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 1.391
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 1.391
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 1.391
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 1.391
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 1.391
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 1.391
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_altitude_mae_m": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 4.366
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 4.366
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 4.366
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 4.366
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 4.366
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 4.366
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 4.366
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 4.366
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 4.366
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 4.366
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 4.366
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 4.366
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 4.366
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 4.366
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 4.366
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 4.366
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_altitude_max_error_m": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 10.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 10.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 10.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 10.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 10.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 10.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 10.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 10.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 10.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 10.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 10.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 10.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 10.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 10.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 10.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 10.0
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_altitude_overshoot_m": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_altitude_recovery_time_s": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 5.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 5.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 5.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 5.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 5.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 5.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 5.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 5.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 5.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 5.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 5.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 5.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 5.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 5.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 5.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 5.0
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_altitude_rmse_m": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 6.054
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 6.054
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 6.054
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 6.054
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 6.054
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 6.054
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 6.054
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 6.054
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 6.054
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 6.054
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 6.054
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 6.054
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 6.054
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 6.054
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 6.054
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 6.054
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_distance_m": {
+      "worst_high": [
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 94.714
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 93.187
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 67.571
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 58.902
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 51.628
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 51.508
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 45.593
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 20.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 20.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 45.593
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 51.508
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 51.628
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 58.902
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 67.571
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 93.187
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 94.714
+        }
+      ],
+      "spread": 74.714
+    },
+    "kpi_duration_s": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 14.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 14.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 14.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 14.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 14.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 14.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 14.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 14.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 14.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 14.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 14.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 14.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 14.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 14.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 14.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 14.0
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_final_goal_distance_m": {
+      "worst_high": [
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 20.122
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 16.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 12.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 12.0
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 16.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 20.122
+        }
+      ],
+      "spread": 20.122
+    },
+    "kpi_geofence_violation_count": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        }
+      ],
+      "spread": 0
+    },
+    "kpi_max_acceleration_mps2": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 20.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 20.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 20.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 20.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 20.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 20.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 20.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 15.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 15.0
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 20.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 20.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 20.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 20.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 20.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 20.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 20.0
+        }
+      ],
+      "spread": 5.0
+    },
+    "kpi_max_altitude_violation_count": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        }
+      ],
+      "spread": 0
+    },
+    "kpi_max_speed_mps": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 6.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 6.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 6.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 6.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 6.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 6.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 6.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 3.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 3.0
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 6.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 6.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 6.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 6.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 6.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 6.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 6.0
+        }
+      ],
+      "spread": 3.0
+    },
+    "kpi_mean_abs_acceleration_mps2": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.686
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.686
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.686
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.686
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.686
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.686
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.686
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.686
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.686
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.686
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.686
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.686
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.686
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.686
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.686
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.686
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_mean_speed_mps": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 3.247
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 3.247
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 3.247
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 3.247
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 3.247
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 3.247
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 3.247
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 2.022
+        }
+      ],
+      "best_low": [
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 2.022
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 3.247
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 3.247
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 3.247
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 3.247
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 3.247
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 3.247
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 3.247
+        }
+      ],
+      "spread": 1.225
+    },
+    "kpi_measurement_horizontal_error_mae_m": {
+      "worst_high": [
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.075
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.075
+        }
+      ],
+      "spread": 0.075
+    },
+    "kpi_measurement_horizontal_error_max_m": {
+      "worst_high": [
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.216
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.216
+        }
+      ],
+      "spread": 0.216
+    },
+    "kpi_measurement_vertical_error_mae_m": {
+      "worst_high": [
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.026
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.026
+        }
+      ],
+      "spread": 0.026
+    },
+    "kpi_measurement_vertical_error_max_m": {
+      "worst_high": [
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.087
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.087
+        }
+      ],
+      "spread": 0.087
+    },
+    "kpi_min_altitude_violation_count": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        }
+      ],
+      "spread": 0
+    },
+    "kpi_mission_altitude_mae_m": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_mission_altitude_max_error_m": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_mission_path_error_mae_m": {
+      "worst_high": [
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.045
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.045
+        }
+      ],
+      "spread": 0.045
+    },
+    "kpi_mission_path_error_max_m": {
+      "worst_high": [
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.158
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.158
+        }
+      ],
+      "spread": 0.158
+    },
+    "kpi_mission_sample_count": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 26
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 26
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 26
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 26
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 26
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 26
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 26
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 26
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 26
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 26
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 26
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 26
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 26
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 26
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 26
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 26
+        }
+      ],
+      "spread": 0
+    },
+    "kpi_path_error_mae_m": {
+      "worst_high": [
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.055
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.055
+        }
+      ],
+      "spread": 0.055
+    },
+    "kpi_path_error_max_m": {
+      "worst_high": [
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.168
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.168
+        }
+      ],
+      "spread": 0.168
+    },
+    "kpi_plugin_count": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 9
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 9
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 9
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 9
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 9
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 9
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 9
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 9
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 9
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 9
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 9
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 9
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 9
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 9
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 9
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 9
+        }
+      ],
+      "spread": 0
+    },
+    "kpi_safety_violation_count": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        }
+      ],
+      "spread": 0
+    },
+    "kpi_sample_count": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 71
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 71
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 71
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 71
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 71
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 71
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 71
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 71
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 71
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 71
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 71
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 71
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 71
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 71
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 71
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 71
+        }
+      ],
+      "spread": 0
+    },
+    "kpi_sensor_dropout_count": {
+      "worst_high": [
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 5
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 5
+        }
+      ],
+      "spread": 5
+    },
+    "kpi_sensor_dropout_ratio": {
+      "worst_high": [
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.070423
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.070423
+        }
+      ],
+      "spread": 0.070423
+    },
+    "kpi_sensor_recovery_time_s": {
+      "worst_high": [
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 1.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 1.0
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_sensor_visible_count": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 71
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 71
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 71
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 71
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 71
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 71
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 71
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 66
+        }
+      ],
+      "best_low": [
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 66
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 71
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 71
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 71
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 71
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 71
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 71
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 71
+        }
+      ],
+      "spread": 5
+    },
+    "kpi_speed_limit_max_excess_mps": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.0
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_speed_limit_mps": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 6.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 6.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 6.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 6.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 6.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 6.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 6.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 3.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 3.0
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 6.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 6.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 6.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 6.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 6.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 6.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 6.0
+        }
+      ],
+      "spread": 3.0
+    },
+    "kpi_speed_limit_violation_count": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        }
+      ],
+      "spread": 0
+    },
+    "kpi_speed_roughness_mps": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.137
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.137
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.137
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.137
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.137
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.137
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.137
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.137
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0.137
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0.137
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0.137
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0.137
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0.137
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0.137
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 0.137
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0.137
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_target_altitude_m": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 10.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 10.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 10.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 10.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 10.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 10.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 10.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 10.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 10.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 10.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 10.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 10.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 10.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 10.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 10.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 10.0
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_target_lost_count": {
+      "worst_high": [
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 1
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 1
+        }
+      ],
+      "spread": 1
+    },
+    "kpi_target_reach_time_s": {
+      "worst_high": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 5.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 5.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 5.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 5.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 5.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 5.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 5.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 5.0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 5.0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 5.0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 5.0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 5.0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 5.0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 5.0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 5.0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 5.0
+        }
+      ],
+      "spread": 0.0
+    },
+    "kpi_target_reacquire_count": {
+      "worst_high": [
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 1
+        },
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        }
+      ],
+      "best_low": [
+        {
+          "name": "corridor",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_corridor_20260601_050941_383674",
+          "value": 0
+        },
+        {
+          "name": "dynamic_target",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_dynamic_target_20260601_050941_391414",
+          "value": 0
+        },
+        {
+          "name": "failure_motor_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_failure_motor_proxy_20260601_050941_394901",
+          "value": 0
+        },
+        {
+          "name": "hover",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_hover_20260601_050941_371302",
+          "value": 0
+        },
+        {
+          "name": "obstacle_avoidance_proxy",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_obstacle_avoidance_proxy_20260601_050941_378966",
+          "value": 0
+        },
+        {
+          "name": "planner_compare",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_planner_compare_20260601_050941_398317",
+          "value": 0
+        },
+        {
+          "name": "waypoint",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_waypoint_20260601_050941_374920",
+          "value": 0
+        },
+        {
+          "name": "sensor_dropout",
+          "status": "passed",
+          "artifact_dir": "runs/basic_takeoff_sensor_dropout_20260601_050941_388215",
+          "value": 1
+        }
+      ],
+      "spread": 1
+    }
+  },
+  "exam": {
+    "scene_count": 8,
+    "passed_scene_count": 8,
+    "success_rate": 1.0,
+    "metrics": {
+      "kpi_target_reach_time_s": {
+        "mean": 5.0,
+        "max": 5.0,
+        "min": 5.0
+      },
+      "kpi_distance_m": {
+        "mean": 60.387875,
+        "max": 94.714,
+        "min": 20.0
+      },
+      "kpi_max_speed_mps": {
+        "mean": 5.625,
+        "max": 6.0,
+        "min": 3.0
+      },
+      "kpi_max_acceleration_mps2": {
+        "mean": 19.375,
+        "max": 20.0,
+        "min": 15.0
+      },
+      "kpi_speed_roughness_mps": {
+        "mean": 0.137,
+        "max": 0.137,
+        "min": 0.137
+      },
+      "kpi_safety_violation_count": {
+        "mean": 0.0,
+        "max": 0,
+        "min": 0
+      },
+      "kpi_final_goal_distance_m": {
+        "mean": 6.01525,
+        "max": 20.122,
+        "min": 0.0
+      },
+      "kpi_sensor_recovery_time_s": {
+        "mean": 1.0,
+        "max": 1.0,
+        "min": 1.0
+      },
+      "kpi_measurement_horizontal_error_max_m": {
+        "mean": 0.027,
+        "max": 0.216,
+        "min": 0.0
+      }
+    },
+    "notes": [
+      "This is a standard algorithm-validation exam surface, not a high-fidelity visual simulator.",
+      "Use it for paper/project repeatability: fixed scenes, fixed KPI names, and retained artifacts."
+    ]
+  }
+}

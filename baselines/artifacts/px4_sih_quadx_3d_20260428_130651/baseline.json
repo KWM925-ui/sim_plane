@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_artifact",
+  "source_artifact": "runs/px4_sih_quadx_3d_20260428_130651",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": "2026-04-28T13:07:29Z",
+  "files": {
+    "manifest.json": "704950964e97e2bdb983e5026990c50c90a38a2878791cb9f3db78267f505f6b",
+    "result.json": "69f48ea1257505241f009c4b4079a6a2578e9a2eda5d67f56ce2c2191713724e",
+    "events.jsonl": "a64a453e5c6c35b6bf7866f72b56632afd63c113fc5af9808c447e2eed367c05"
+  }
+}

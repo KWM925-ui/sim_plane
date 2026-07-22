@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "marsim_single",
   "description": "Single-drone MARSIM run in the dedicated ROS1 workspace without RViz for a lighter sensor-stack probe.",
   "backend": "marsim",

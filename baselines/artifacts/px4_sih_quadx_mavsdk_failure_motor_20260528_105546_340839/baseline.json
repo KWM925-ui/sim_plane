@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_artifact",
+  "source_artifact": "runs/px4_sih_quadx_mavsdk_failure_motor_20260528_105546_340839",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": "2026-05-28T10:55:58Z",
+  "files": {
+    "manifest.json": "b930103756ec2366cc4536c76da389f3272e74004ab53dcdf7254a0a06865229",
+    "result.json": "6f8874e1f614f9253180f6983ec0be68f03eca635cc21dc828c26a3c56314839",
+    "events.jsonl": "0ced1a3e24d925e2fe69f4261fc86d38d91c8824428809a406114d0b72cfba52"
+  }
+}

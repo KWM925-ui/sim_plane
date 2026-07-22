@@ -1,0 +1,15 @@
+{
+  "created_at_utc": "2026-04-28T13:06:51Z",
+  "backend": "px4_sih",
+  "scenario_name": "px4_sih_quadx_3d",
+  "vehicle": "quadrotor",
+  "artifact_dir": "runs/px4_sih_quadx_3d_20260428_130651",
+  "files": {
+    "scenario": "scenario.json",
+    "telemetry": "telemetry.jsonl",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "backend_stdout": "backend_stdout.log",
+    "backend_stderr": "backend_stderr.log"
+  }
+}

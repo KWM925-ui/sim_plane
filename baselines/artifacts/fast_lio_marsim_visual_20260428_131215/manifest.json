@@ -1,0 +1,15 @@
+{
+  "created_at_utc": "2026-04-28T13:12:15Z",
+  "backend": "fast_lio_marsim",
+  "scenario_name": "fast_lio_marsim_visual",
+  "vehicle": "quadrotor",
+  "artifact_dir": "runs/fast_lio_marsim_visual_20260428_131215",
+  "files": {
+    "scenario": "scenario.json",
+    "telemetry": "telemetry.jsonl",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "backend_stdout": "backend_stdout.log",
+    "backend_stderr": "backend_stderr.log"
+  }
+}

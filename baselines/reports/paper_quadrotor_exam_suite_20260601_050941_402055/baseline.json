@@ -1,0 +1,12 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_report",
+  "source_report": "runs/suites/paper_quadrotor_exam_suite_20260601_050941_402055/report.json",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": null,
+  "files": {
+    "report.json": "1180029c6fe128a5ccf48aecd2c159642a74ab8eafc759137495ae108301e056"
+  }
+}

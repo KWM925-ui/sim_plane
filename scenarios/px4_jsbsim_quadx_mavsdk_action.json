@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "px4_jsbsim_quadx_mavsdk_action",
   "description": "Real PX4 plus JSBSim quadrotor run driven by the repo-local MAVSDK action adapter, with MAVSDK on PX4's onboard listener and telemetry on a separate dashboard port.",
   "backend": "px4_jsbsim",

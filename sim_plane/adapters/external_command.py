@@ -7,6 +7,7 @@ import time
 from pathlib import Path
 
 from sim_plane.adapters.base import AdapterError, AlgorithmAdapter
+from sim_plane.paths import get_platform_paths
 from sim_plane.processes import start_log_threads, terminate_process
 
 
@@ -199,7 +200,7 @@ def resolve_path(path, base_dir=None):
         return candidate.resolve()
     if base_dir is not None:
         return (Path(base_dir) / candidate).resolve()
-    return candidate.resolve()
+    return (get_platform_paths().home / candidate).resolve()
 
 
 def build_context_env(context, artifact_dir):
@@ -207,6 +208,7 @@ def build_context_env(context, artifact_dir):
         "SIM_PLANE_BACKEND": context.get("backend"),
         "SIM_PLANE_VEHICLE": context.get("vehicle"),
         "SIM_PLANE_SCENARIO_NAME": context.get("scenario_name"),
+        "SIM_PLANE_HOME": str(get_platform_paths().home),
         "SIM_PLANE_TELEMETRY_ENDPOINT": context.get("telemetry_endpoint"),
         "SIM_PLANE_PREFERRED_TELEMETRY_PORT": context.get("preferred_telemetry_port"),
         "SIM_PLANE_SYSTEM_ADDRESS": context.get("system_address"),

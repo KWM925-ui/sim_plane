@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_artifact",
+  "source_artifact": "runs/marsim_single_gpu_20260428_143322",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": "2026-04-28T14:33:43Z",
+  "files": {
+    "manifest.json": "2feff411bd23abd2cb69b0264fee6a6b88dfb007f3931516b093ef21a8b2e073",
+    "result.json": "c52a2bacb37afb57c6976904923b06c4da0ba1b6f15cc846f4d95f26324910ef",
+    "events.jsonl": "e3a9b31bbc2621ba5d48d203bf9c3a90ae0061f3f27dcf6e9f9a033835bb3a92"
+  }
+}

@@ -1,9 +1,12 @@
-import json
 import shlex
-from pathlib import Path
+
+from sim_plane.io_utils import atomic_write_json
+from sim_plane.paths import get_platform_paths, resolve_platform_path
+from sim_plane.scenario import normalize_scenario
+from sim_plane.scenario_contract import SCENARIO_SCHEMA_VERSION
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = get_platform_paths().home
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "scenarios"
 
 
@@ -30,7 +33,7 @@ EXTERNAL_BACKEND_DEFAULTS = {
         "adapter_join_timeout_s": 6.0,
         "backend_options": {
             "model": "quadrotor_x",
-            "launch_flightgear": False,
+            "headless": True,
             "success_criteria": "adapter_takeoff",
         },
     },
@@ -43,7 +46,7 @@ EXTERNAL_BACKEND_DEFAULTS = {
         "backend_options": {
             "model": "iris",
             "world": "empty",
-            "gazebo_gui": False,
+            "headless": True,
             "success_criteria": "adapter_takeoff",
         },
     },
@@ -141,6 +144,7 @@ def build_custom_algorithm_scenario(
     else:
         raise ValueError("unsupported adapter for generator: {0}".format(adapter))
 
+    scenario = normalize_scenario(scenario)
     output_path = resolve_output_path(output, scenario["name"])
     return scenario, output_path
 
@@ -161,10 +165,11 @@ def build_external_command_scenario(command, name, backend, workdir, shell, dura
         "join_timeout_s": float(defaults["adapter_join_timeout_s"]),
     }
     if workdir:
-        adapter["workdir"] = str(workdir)
+        adapter["workdir"] = str(resolve_platform_path(workdir))
     if shell:
         adapter["shell"] = True
     return {
+        "schema_version": SCENARIO_SCHEMA_VERSION,
         "name": scenario_name,
         "description": "Generated custom control/decision algorithm scenario using external_command.",
         "backend": backend,
@@ -213,7 +218,7 @@ def build_ros_command_scenario(
         "join_timeout_s": float(defaults["join_timeout_s"]),
     }
     if workdir:
-        adapter["workdir"] = str(workdir)
+        adapter["workdir"] = str(resolve_platform_path(workdir))
     if shell:
         adapter["shell"] = True
     backend_options = dict(defaults["backend_options"])
@@ -224,6 +229,7 @@ def build_ros_command_scenario(
     if use_gpu is not None:
         backend_options["use_gpu"] = bool(use_gpu)
     return {
+        "schema_version": SCENARIO_SCHEMA_VERSION,
         "name": scenario_name,
         "description": "Generated custom ROS planner/perception algorithm scenario using ros_command.",
         "backend": backend,
@@ -261,16 +267,17 @@ def normalize_list(value, default):
 
 def resolve_output_path(output, scenario_name):
     if output:
-        return Path(output).expanduser()
+        return resolve_platform_path(output)
     return DEFAULT_OUTPUT_DIR / "{0}.json".format(scenario_name)
 
 
 def write_scenario_file(scenario, output_path, force=False):
-    path = Path(output_path).expanduser()
+    path = resolve_platform_path(output_path)
     if path.exists() and not force:
         raise FileExistsError("scenario already exists, pass --force to overwrite: {0}".format(path))
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(scenario, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    normalized = normalize_scenario(scenario)
+    atomic_write_json(path, normalized)
     return path
 
 

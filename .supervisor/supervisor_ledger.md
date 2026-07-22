@@ -653,3 +653,427 @@
   - make health, suite, fuzz, acceptance, and flight-log evidence easier to browse without turning the frontend into an arbitrary shell.
 - PX4-native failure expansion:
   - only add official/freshly proven failure surfaces one at a time; do not treat demo degradation as PX4 physical failure.
+
+## Structural Foundation Stabilization - 2026-07-18
+
+### Locked Facts
+
+- The user explicitly paused feature expansion and requested foundation-first structural correction.
+- Current scope is the generic `/home/coco/sim_plane` platform only.
+- `main` and `origin/main` start aligned at `a680858`; the worktree was clean before this frontier.
+- Existing behavioral and acceptance semantics are frozen unless fresh contradictory evidence and explicit user approval open a separate contract review.
+
+### Current Question
+
+- Can the current platform become repository-portable, contract-driven, concurrency-safe, and easier to maintain without changing its proven runtime behavior?
+
+### Evidence-Backed Structural Defects
+
+- Acceptance matrices reference ignored `runs/` artifacts, so a fresh clone does not carry its frozen reference evidence.
+- CLI and modules derive roots from `__file__`, globally `chdir`, and depend on repository-external resources that are not packaged.
+- Scenario normalization has no schema version, unknown-field rejection, or backend/adapter option validation.
+- Composite backends import helpers from other concrete backends and PX4 SIH stores private runtime handles inside the scenario dictionary.
+- Artifact completion is inferred from file presence; no explicit active/completed marker or cross-process lock protects inspectors from in-progress runs.
+- Acceptance implementations duplicate shared reference, regression, delta, and retention logic.
+- `px4_sih.py` defines `build_notes()` twice; the first definition is dead.
+- Objective platform health output includes a hard-coded product roadmap that can become stale independently of health facts.
+
+### Current Frontier
+
+1. Version-controlled compact acceptance baselines.
+2. Unified platform resource paths.
+3. Versioned scenario contract and inheritance.
+4. Atomic artifact lifecycle and coordination.
+5. Incremental shared runtime/acceptance extraction.
+6. CLI, health, wrapper-script, and documentation source-of-truth cleanup.
+
+### Forbidden Actions
+
+- No external workspace changes.
+- No heavy backend migration or new backend.
+- No acceptance weakening.
+- No deletion of valid `runs/` evidence.
+- No broad behavior refactor before portable baseline and scenario contracts are established.
+
+### Promotion Gate
+
+- Preserve current names, commands, metrics, topics, goals, and thresholds.
+- Add focused static/unit evidence after each structural phase.
+- Run heavy simulator acceptance only after structural phases are complete and only where needed to prove no runtime drift.
+
+### Newly Locked This Round
+
+- Acceptance baselines are now repository-tracked compact bundles and all four reference acceptance surfaces pass.
+- Workspace/resource discovery is centralized and CLI operation no longer depends on a global `chdir`.
+- Scenario contract v1 is enforced before backend startup; all checked-in scenarios load and all inherited scenarios preserve their pre-refactor effective payloads.
+- `scenario_generator.py` previously emitted `launch_flightgear` and `gazebo_gui`, but those backends consume `headless`; the generator now emits the actual contract field.
+- Managed artifacts now have atomic allocation/writes, a process lock, explicit `.running`/`.complete` markers, and backward-compatible legacy completion detection.
+- Active artifacts are clean and unprunable during hygiene scans and are excluded from latest acceptance selection; crashed managed artifacts remain visible and unprunable for review.
+
+### Newly Demoted This Round
+
+- Scenario inheritance no longer carries a behavior-drift risk: all 16 converted child scenarios match their previous effective payloads after removing only the new schema/source metadata.
+- The previously observed concurrent hygiene noise is no longer attributable to user timing discipline; active ownership is now machine-detectable.
+
+### Only Question Next Round
+
+- Does the completed structural extraction pass the full `271`-test suite in a normal localhost-socket environment and preserve fresh lightweight runtime, latest acceptance, hygiene, and health behavior?
+
+### Forbidden Next Round
+
+- Do not redesign backend behavior during closure validation.
+- Do not change thresholds, topics, goals, timing, or scenario behavior to obtain a pass.
+- Do not run artifact inspectors concurrently with commands writing under `runs/`.
+- Do not patch around sandbox `socket()` denial; rerun socket-dependent tests in a normal local environment.
+
+### Structural Extraction Closure Evidence
+
+- Shared runtime extraction is complete and focused runtime tests pass `40/40`:
+  - `sim_plane/backends/px4_common.py` owns shared PX4 process and telemetry mechanics;
+  - `sim_plane/backends/ros_runtime.py` owns shared ROS environment and shutdown mechanics;
+  - `ego_runtime.py`, `marsim_runtime.py`, `fast_lio_runtime.py`, and `planner_composition_runtime.py` own their respective composition mechanics;
+  - concrete backend modules no longer import execution helpers from other concrete backend modules;
+  - backend-specific command order, environment, readiness, timeout, topic, and verdict logic remain in their owning backend.
+- Shared acceptance/report extraction is complete:
+  - common artifact selection, ordering, history, and retention moved to `acceptance_common.py`;
+  - each acceptance surface retains its own scenario rows, metrics, and thresholds;
+  - JSON reports use atomic replacement and JSONL history uses a file lock.
+- Source and contract checks are green:
+  - Python AST syntax `111/111`;
+  - JSON syntax `48/48`;
+  - scenario contract `35/35`;
+  - shell syntax and `git diff --check` passed;
+  - no duplicate top-level definitions remain.
+- Repository-tracked reference evidence is green:
+  - planner acceptance `4/4`;
+  - platform acceptance `21/21`;
+  - PX4 failure acceptance `1/1`;
+  - quadrotor exam acceptance `8/8`;
+  - reports are retained under `/tmp/sim_plane_validation/` so this proof does not modify historical `runs/` evidence.
+- The sandboxed full unit run executed `271` tests. `252` completed normally; the remaining `19` raised `PermissionError` exactly at localhost socket creation across dashboard, doctor/Gazebo probe, ROS runtime/backend, and ROS master tests. No code assertion failed.
+
+### Newly Locked This Round
+
+- Runtime extraction is no longer the implementation frontier; it is complete under focused and static evidence.
+- Acceptance reference portability is proven from tracked baselines, independent of ignored source artifacts under `runs/`.
+- The only unresolved validation fact is whether the `19` socket-dependent tests pass outside the network-isolated sandbox.
+
+### Newly Demoted This Round
+
+- The `19` full-suite errors are not evidence of a product defect: all stop at sandbox-denied `socket()` creation, and no assertion or backend behavior failure appears after that boundary.
+- No further preventive refactor is justified before the normal-socket rerun produces contradictory evidence.
+
+### Current Frontier
+
+1. Rerun the complete unit suite with localhost sockets available.
+2. Sequentially run a fresh demo, fast live smoke, and the smallest representative suite/fuzz checks.
+3. Run latest acceptance only after runtime writers finish.
+4. Run artifact hygiene and platform health last.
+5. Remove repository-local cache/build residue outside `runs/`, then inspect the complete diff and worktree.
+
+### Promotion Gate
+
+- Full unit suite passes without socket-related skips or code changes, or any failure is classified to its earliest concrete source.
+- Fresh lightweight runtime and latest acceptance remain green without changing contract semantics.
+- Artifact hygiene reports no active/stale managed residue caused by this round.
+- Final static checks and documentation/source consistency pass, and no external workspace was modified.
+
+### Closure Audit Reopened By Fresh Evidence
+
+#### Newly Locked This Round
+
+- The extracted backend runtime modules have no reproducible command-order, environment, topic, timeout, shutdown, or verdict drift under the dedicated read-only review.
+- The following are current-repo defects with direct reproductions and are independent of localhost socket denial:
+  - an `ArtifactWriter` can append after `.complete`, while process log readers are daemon threads that are not joined;
+  - atomic replacement forces `0644`, widening an existing private file and exposing new `scenario.json` adapter environment data on multi-user hosts;
+  - allocation creates an empty artifact directory before the writer lock, while hygiene considers an empty directory prunable;
+  - lifecycle inspection opens `.artifact.lock` with append access even when a completed artifact can be classified without any lock probe;
+  - baseline verification treats missing metadata as success and does not require the complete artifact/report checksum set;
+  - baseline metadata calls freeze-time `HEAD` the artifact `source_commit`, which is false for artifacts that predate that commit;
+  - acceptance report publication is a multi-file read/write/prune sequence with no transaction lock;
+  - quadrotor-exam source evidence is no longer protected from suite retention after moving the live reference to `baselines/`;
+  - latest selection filters only `scenario_name`, so a newer wrong backend/vehicle artifact can hide a valid candidate;
+  - waypoint aliases can pass validation but diverge between demo execution and KPI evaluation;
+  - process-adapter explicit null values and `shell=true` plus list commands can pass validation and fail or misexecute later;
+  - an inherited parent schema version can be overwritten by a child before validation;
+  - range/safety cross-field bounds are incomplete;
+  - scenario generator workdirs and upstream manifest defaults still depend on caller cwd;
+  - `list-adapters` invokes unrelated backend validation and can fail before listing adapters;
+  - planner evidence documentation and local-only evidence links are not aligned with repository-portable source facts.
+
+#### Newly Demoted This Round
+
+- The first closure PASS set is valid evidence for the paths it exercised, but it is not proof against the newly reproduced concurrency, permission, provenance, and negative-contract cases.
+- Localhost socket denial is not the cause of any defect listed above and cannot be used to defer them.
+- Runtime extraction itself is no longer a suspect branch unless a new targeted regression contradicts the dedicated audit.
+
+#### Current Frontier
+
+1. Make artifact completion immutable, join registered output threads, preserve file privacy, and close the allocation/hygiene and read-only inspection races.
+2. Make tracked baseline metadata strict and truthful, lock acceptance report transactions, protect source evidence, and filter latest candidates by full identity.
+3. Close scenario validation gaps without changing any checked-in effective scenario.
+4. Finish cwd-independent generator/sync paths, decouple adapter listing, and correct source-of-truth documentation/console metadata.
+5. Rerun focused concurrency/negative tests, all non-socket tests, fresh lightweight runtime and acceptance, then normal-socket validation when approval infrastructure permits it.
+
+#### Forbidden Next Round
+
+- Do not alter acceptance thresholds, regression budgets, KPI definitions, scenario targets, backend commands, topics, or timing.
+- Do not turn late artifact writes into silent evidence loss without first waiting for registered producers.
+- Do not claim an artifact-producing git revision when it was not recorded by the artifact.
+- Do not delete or refresh source artifacts merely to make provenance fields look complete.
+- Do not change external workspaces or valid historical simulation artifacts.
+
+#### Promotion Gate
+
+- New tests reproduce each defect before or alongside its fix.
+- Checked-in scenario effective payload equivalence remains `16/16` for inherited scenarios and all `35/35` scenarios validate.
+- All four tracked reference and latest acceptance surfaces remain green with unchanged gates.
+- Completed artifacts are immutable, readable from read-only storage, and protected from concurrent hygiene during allocation.
+- Concurrent acceptance writers cannot regress latest pointers or prune a report being published.
+- Baseline provenance explicitly distinguishes unknown source revision from the commit at which the bundle was frozen.
+
+### Structural Closure Continuation - 2026-07-19
+
+#### Newly Locked This Round
+
+- Artifact lifecycle, baseline/report publication, and scenario-contract defects listed above are fixed and their focused test groups pass.
+- `list-adapters` now calls `collect_adapter_rows()` directly; backend registration is lazy, so an adapter-only listing no longer loads concrete backend modules or runs backend validation.
+- CLI coverage has exactly two truthful states: `fixed_preset` and `hidden`; the unreachable `covered_count` field and stale hidden metadata for existing presets are removed.
+- `docs/planner_validation_matrix.md` now matches every tracked planner baseline path and metric in `configs/planner_acceptance_matrix.json`.
+- README and the English/Chinese probe guides now identify `runs/manual_probes/` evidence as local ignored evidence rather than repository-portable proof.
+- Focused evidence after these edits: backend tests `22/22`, console/adapter-list tests `13/13`, adapter-only import isolation PASS, and `git diff --check` PASS.
+
+#### Current Question
+
+- Does the complete accumulated structural batch preserve all static, non-socket unit, fresh lightweight runtime, latest acceptance, hygiene, and health surfaces without changing frozen behavior or acceptance semantics?
+
+#### Run Order
+
+1. Static syntax, JSON, scenario-contract, shell, and source-consistency checks.
+2. All unit tests that do not require localhost socket creation; socket-dependent tests remain an environment validation item.
+3. Fresh `basic_takeoff`, fast/default live smoke, representative suite, and seeded fuzz, sequentially.
+4. Four latest acceptance surfaces with retention disabled for this audit.
+5. Artifact/manual-probe hygiene and platform health only after all writers stop.
+6. Remove generated cache/build residue, inspect process state and final diff; do not commit or push.
+
+#### Forbidden This Round
+
+- No threshold, KPI, topic, goal, timing, backend command, or scenario-behavior changes.
+- No concurrent artifact inspector while a runtime command writes under `runs/`.
+- No external workspace edits, historical artifact deletion, commit, or push.
+
+### Closure Validation Result - 2026-07-19
+
+#### Fresh Evidence
+
+- Static: Python AST `112/112`, JSON `140/140`, scenario contract `35/35`, shell syntax `42/42`, duplicate top-level definitions `62/62`, tracked baseline checksums `31/31`, CLI parser `23` subcommands, documentation consistency, and `git diff --check` all passed.
+- Unit: full discovery found `289` tests; `271/271` non-socket tests passed. The remaining `18` exact cases all fail at sandbox-denied localhost `socket()` creation; the required unsandboxed rerun was rejected by the approval service with HTTP `503`, so no code workaround was applied.
+- Fresh runtime: `basic_takeoff` passed; `live-smoke --profile fast` passed; `demo_degradation_suite` `6/6` passed; seeded fuzz `demo_seeded_fuzz_20260528` `7/7` passed.
+- Cross-directory startup: from `/tmp`, `python3 -m sim_plane list-adapters` passed and resolved the platform home to `/home/coco/sim_plane`.
+- Latest acceptance: planner `4/4`, platform `21/21`, PX4 failure `1/1`, and quadrotor exam `8/8` passed with unchanged contracts.
+- Reference acceptance: planner `4/4`, platform `21/21`, PX4 failure `1/1`, and quadrotor exam `8/8` passed.
+- Hygiene: `1251` complete artifacts, `0` active, `0` stale/incomplete, `0` attention; manual probes `2` retained and `0` stale.
+- No external workspace was touched; no simulator process or `.running` marker remains; generated cache residue outside `runs/` is clean.
+
+#### Environment-Limited Results
+
+- `platform-health` status is `failed` only because its `doctor` component reaches the same sandbox `socket()` denial; its other `7` components and all acceptance summaries passed. This is not treated as a product fix target under the forbidden socket-workaround rule.
+- `autotest-pack --profile fast` has `7/8` steps passed; its only failure is the same `doctor` exception.
+- One audit `run-suite` invocation was intentionally corrected after it used the default report retention and pruned `runs/suites/demo_degradation_suite_20260607_193552_451800`; the underlying scenario artifacts remain, but the old report directory was not recoverable from the summary-only history. All subsequent report-producing commands used `--keep-last-reports 0`.
+
+#### Final Conclusion
+
+- The current structural correction frontier is complete under the available environment evidence.
+- The only unresolved validation item is a normal-host localhost-socket rerun of the 18 isolated tests, doctor, platform-health, and the first autotest step. No acceptance or runtime contract defect was found in the available environment.
+
+### Resume Attempt - 2026-07-19
+
+- Rechecked the worktree, active markers, cache residue, and diff: no new runtime process, `.running` marker, cache residue, or diff-check failure was found.
+- Retried the exact unsandboxed full-unit command once; the approval service again returned HTTP `503` before process creation. No files or acceptance contracts were changed in this resume attempt.
+- The next valid action remains the same normal-host socket rerun; do not reopen structural patches or fabricate socket results inside the restricted sandbox.
+
+### Resume Attempt 2 - 2026-07-19
+
+- Current worktree checks remained clean: no active artifact, cache residue, or diff-check failure.
+- A third request for the exact unsandboxed full-unit command was rejected before process creation because the approval service again returned HTTP `503`.
+- No code, scenario, acceptance contract, or historical artifact was changed; the structural frontier remains complete and the normal-socket rerun is the sole external prerequisite.
+- A later user-requested retry returned the same approval-service HTTP `503`; the test process again did not start.
+
+### Normal-Host Socket Closure - 2026-07-19
+
+- The user ran the exact required command directly on the normal host:
+  `PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest`.
+- Result: `Ran 289 tests in 17.370s` and `OK`.
+- The printed `baseline a_star_minimum_snap is not runnable yet: status=planned` message is expected output from the negative CLI contract test; it did not produce a test failure.
+- This confirms the previous 18 errors were caused by the restricted Codex sandbox's socket policy, not by product behavior.
+- The structural foundation frontier is now closed with no remaining validation blocker. No acceptance threshold, runtime contract, scenario behavior, or external workspace was changed to obtain this result.
+
+### Resume Attempt 3 - 2026-07-19
+
+- The approval service briefly created the unsandboxed full-unit process, but its result stream disconnected before any test summary was returned.
+- Post-check found no active test/simulator process, no artifact lifecycle marker, and no report that could establish PASS or FAIL. The temporary Python cache residue was removed.
+- This attempt is inconclusive, not a pass; no code or acceptance contract was changed.
+
+### Resume Attempt 4 - 2026-07-19
+
+- A narrower request covering only the 18 socket-dependent tests was also rejected before process creation because the approval service returned HTTP `503`.
+- Final state remains clean (`.running=0`, cache residue `0`, `git diff --check` passed). Operator execution in a normal terminal is now the only remaining evidence path.
+
+### Operator Evidence Reconciliation - 2026-07-19
+
+- The user supplied fresh normal-terminal output for the exact command:
+  `PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest`.
+- The authoritative result is `Ran 289 tests in 17.370s` followed by `OK`.
+- This supersedes the earlier inconclusive/rejected approval attempts. The `a_star_minimum_snap ... status=planned` line is expected negative-contract output, not a failing test.
+- Any later parallel resume notes that still describe the socket rerun as outstanding are stale relative to this operator evidence. The socket blocker is closed, and the structural foundation frontier is complete.
+- Generated Python cache residue observed after the operator/parallel attempts was removed; no `runs/` evidence was touched.
+
+### Release Closure Frontier - 2026-07-20
+
+#### Locked Facts
+
+- The accumulated structural correction batch passed the normal-host full unit suite: `289/289` tests, result `OK`.
+- Static, scenario-contract, fresh lightweight runtime, latest/reference acceptance, artifact hygiene, process, and residue checks are already green as recorded above.
+- Compact acceptance bundles exist locally under `baselines/`, but they are still untracked; therefore repository portability is implemented but not yet proven from version history.
+- The accumulated batch remains uncommitted and unpushed.
+
+#### Current Question
+
+- Is the complete accumulated diff internally consistent, free of unintended behavior/acceptance changes, and ready to be frozen as one repository revision that can reproduce reference acceptance from a clean checkout?
+
+#### Allowed Actions
+
+1. Review the complete diff by contract area: paths/resources, scenario schema, artifact lifecycle, baseline/acceptance, backend runtime extraction, CLI/console, tests, and documentation.
+2. Fix only directly evidenced release-blocking defects that preserve effective scenarios and frozen runtime/acceptance semantics.
+3. Commit and push the reviewed batch, including compact `baselines/` bundles.
+4. Validate a clean temporary checkout against scenario validation, unit tests, and repository reference acceptance.
+
+#### Forbidden Actions
+
+- Do not alter acceptance thresholds, regression budgets, KPI definitions, scenario targets, backend commands, topics, or timing.
+- Do not perform broad CLI/web/documentation decomposition inside this already validated batch.
+- Do not touch `/home/coco/sim_plane_ws`, unrelated projects, or valid historical `runs/` evidence.
+- Do not describe local untracked baselines as clone-portable evidence before commit and clean-checkout proof.
+
+#### Promotion Gate
+
+- Complete diff review finds no unresolved correctness, provenance, secret, generated-file, or boundary violation.
+- `baselines/` and all required source/test/docs changes are present in the committed tree.
+- Clean-checkout scenario validation, full unit suite, and four reference acceptance surfaces pass without relying on ignored `runs/` artifacts.
+- Remote push is confirmed, or any environment/network-only inability is reported separately from repository correctness.
+
+### Pre-Commit Read-Only Audit Findings - 2026-07-20
+
+#### Newly Locked Facts
+
+- All four current reference surfaces pass and all 31 compact baseline bundles match their retained source payloads, but malformed empty acceptance matrices can currently pass with zero rows.
+- Matrix `source_artifact` / `source_reference_report` values are not yet checked against the corresponding baseline metadata identity.
+- Historical source artifacts do not record their producing Git revision. Their `source_commit=null` state is truthful and must not be fabricated; future artifacts need source-revision capture at creation time.
+- Scenario v1 still accepts unsupported mission types, missing goal coordinates, non-string adapter environment values, and out-of-range UDP ports.
+- `manual_probe_root_name` and acceptance `matrix_name` can escape their intended output roots when supplied by an external caller.
+- Manual probes lack an active lifecycle lock, so concurrent hygiene can classify and prune a probe while it is still writing.
+- Default PX4 discovery can select mutable checkouts outside `/home/coco/sim_plane_ws`; only explicit user paths and the managed workspace default are valid automatic inputs.
+- Suite variants do not drain registered background log threads before completing their artifacts.
+- Process cleanup returns early when a process-group leader has exited, even if descendants in the group remain alive.
+- Wrapper and documentation review found concrete interface drift: visual wrappers without `--visualize`, showcase artifact-root propagation loss, status-only upstream sync writes, unknown upstream names silently succeeding, and demo-only surfaces described as stronger evidence than they provide.
+
+#### Demoted Findings
+
+- Absolute `/home/coco/...` strings inside frozen baseline payloads are historical observations, not runtime path dependencies or credentials. Preserve exact payload/checksum evidence and document the limitation rather than rewriting history.
+- ROS/Gazebo free-port selection is not a release blocker because formal heavy runs remain serial; do not claim parallel heavy-backend support.
+- Broad CLI/web/docs decomposition remains outside this patch batch.
+
+#### Patch Frontier
+
+1. Fail closed on malformed acceptance coverage and bind matrix source identities to baseline metadata.
+2. Close scenario-contract and output-root traversal gaps.
+3. Add manual-probe lifecycle protection, suite thread draining, descendant process-group cleanup, and managed-only PX4 fallback discovery.
+4. Correct wrapper/sync/documentation contracts and record future source revisions honestly.
+5. Run focused reproductions first, then the complete release validation matrix.
+
+#### Forbidden During Fixes
+
+- No acceptance threshold, regression budget, KPI, topic, goal, timing, or simulator command changes.
+- No invented source commit for historical artifacts.
+- No external workspace edits and no deletion of valid `runs/` evidence.
+
+### Interrupted Patch Resume - 2026-07-21
+
+#### Freshly Reconciled State
+
+- The primary session JSONL, repository diff, supervisor ledger, and process state agree on the interruption boundary.
+- The scenario/acceptance fail-closed patch, output-root containment patch, and first manual-probe lifecycle patch are present in the worktree.
+- Suite thread draining, descendant process-group cleanup, managed-only PX4 discovery, wrapper/sync consistency, evidence wording, and future source-revision capture are not yet implemented.
+- No simulator/ROS/PX4 process, managed `.running` marker, or partially running formal validation remains.
+
+#### Resume Order
+
+1. Syntax-check and focused-test the already written partial patch.
+2. Correct any patch-local regression before adding more changes.
+3. Implement the remaining locked findings only.
+4. Run focused regression groups, then the full release validation and clean-checkout proof.
+
+### Interrupted Patch Resume Reconciliation - 2026-07-21
+
+#### Locked Facts
+
+- The immediately preceding resume turn failed with HTTP `503` before any command or patch ran.
+- The last successful code change in the prior interrupted turn made ROS launch shutdown share one total timeout budget and adjusted three backend test assertions; its focused test group has not run after that final adjustment.
+- The worktree is still based on `a680858`; nothing from this structural batch has been staged, committed, or pushed.
+- A separate project is currently using PX4, Gazebo, and ROS outside this repository. It is not `sim_plane` evidence and must not be stopped, inspected as an artifact source, or modified.
+
+#### Current Frontier
+
+1. Rerun the process/suite/backend focused group after the final ROS timeout edit.
+2. Finish the already locked managed-PX4 discovery, upstream-sync, wrapper, documentation, and future Git-source capture fixes.
+3. Review and validate the accumulated batch without changing frozen runtime or acceptance semantics.
+4. Commit, push, and prove reference acceptance from a clean checkout only after all gates pass.
+
+#### Forbidden Actions
+
+- Do not run shared PX4/Gazebo/ROS integration commands while the unrelated external stack is active.
+- Do not touch `/home/coco/sim_plane_ws`, the external project's processes, or ignored historical `runs/` evidence.
+- Do not add unrelated cleanup, feature work, broad decomposition, or acceptance relaxation to this release batch.
+
+### Pre-Commit Release Validation Closure - 2026-07-21
+
+#### Locked Facts
+
+- The bounded release-blocker patch is complete. It covers fail-closed acceptance and source binding, strict scenario v1 validation, output-root containment, manual-probe lifecycle protection, suite producer draining, descendant process-group cleanup, managed-only automatic PX4 discovery, upstream-sync and wrapper contracts, honest future Git provenance, and evidence wording.
+- Focused regression groups passed first at `42/42` and then at `64/64` tests.
+- The full normal-host unit suite passed `307/307` in `18.213s`.
+- Static and contract checks passed: Python AST `115/115`, JSON `140/140`, baseline JSONL `1066/1066` lines, checked-in scenarios `35/35`, inherited effective-payload equivalence `16/16`, shell syntax, duplicate top-level definition scan `62/62`, CLI parser `23` subcommands, documentation/wrapper consistency, and `git diff --check`.
+- Fresh lightweight evidence passed without using the external PX4/Gazebo/ROS stack:
+  - `runs/basic_takeoff_20260721_145529_589097`;
+  - `runs/live_smoke/live_smoke_fast_20260721_145545_171882/report.json`;
+  - `runs/suites/demo_degradation_suite_20260721_145551_189090/report.json`, `6/6`;
+  - `runs/scenario_fuzz/demo_seeded_fuzz_20260528_20260721_145600_988441/report.json`, `7/7`;
+  - `runs/suites/paper_quadrotor_exam_suite_20260721_145615_098660/report.json`, `8/8`.
+- All four repository-reference surfaces and all four latest surfaces passed with unchanged thresholds: planner `4/4`, platform `21/21` with required nested planner acceptance, PX4 failure `1/1`, and quadrotor KPI/proxy `8/8`.
+- Hygiene is clean: `1274` complete managed artifacts, `0` active, `0` stale/incomplete, `0` attention; manual probes have `2` retained and `0` stale entries.
+- Platform health report `runs/platform_health/sim_plane_platform_health_20260721_145813_181154/report.json` has `7` passed components, `1` warning, and `0` failed components. The sole warning is the intentionally uncommitted Git worktree.
+- No credential, file over `1 MiB`, symlink, external-project source, or active lifecycle marker was found in the release payload. The compact `baselines/` payload is about `932K` and contains `30` artifact bundles plus `1` report bundle.
+- Current source and remote remain at `a680858`; this accumulated batch is not staged, committed, or pushed yet.
+
+#### Hypotheses
+
+- None remain for the implementation batch. Repository portability is still an unproven release property until the exact committed revision passes from a clean clone.
+
+#### Current Frontier
+
+1. Remove ignored Python cache residue outside `runs/` and perform the final staged-payload review.
+2. Commit and push the complete structural batch, including `baselines/` and all required source/tests/docs.
+3. From a fresh `/tmp` clone of the pushed revision, prove `35/35` scenario validation, the complete unit suite, all four reference acceptance surfaces, and one fresh demo artifact whose manifest records the new commit with `dirty=false`.
+4. Confirm the remote revision and close this frontier.
+
+#### Forbidden Actions
+
+- Do not alter runtime behavior, acceptance thresholds/budgets, KPI definitions, scenario targets, topics, commands, or timing during release closure.
+- Do not include ignored `runs/`, generated cache files, credentials, or external workspace content in the commit.
+- Do not start heavy/shared PX4, Gazebo, ROS, MARSIM, FAST_LIO, or planner simulations for this clean-clone proof.
+
+#### Promotion Gate
+
+- The complete intended payload is committed and present on `origin/main`.
+- A clean clone of that exact revision passes scenario validation, the full unit suite, and all four reference acceptance surfaces without relying on local ignored `runs/` history.
+- A fresh demo manifest in the clean clone records the committed revision and `dirty=false`.

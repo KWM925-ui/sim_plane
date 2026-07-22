@@ -1,6 +1,6 @@
 {
   "name": "paper_quadrotor_exam_suite",
-  "description": "Standard paper/project-style quadrotor validation exam. This is an algorithm evaluation surface with fixed scenes and KPI names, not a high-fidelity visual-realism benchmark.",
+  "description": "Lightweight demo-backend quadrotor KPI/proxy exam with fixed scenes and KPI names. It validates evaluation plumbing, not real flight-stack, planner, or high-fidelity simulator performance.",
   "base_overrides": {
     "duration_s": 14.0,
     "realtime_factor": 0.0,

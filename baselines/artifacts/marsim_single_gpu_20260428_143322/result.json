@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "backend": "marsim",
+  "vehicle": "quadrotor",
+  "scenario_name": "marsim_single_gpu",
+  "metrics": {
+    "telemetry_count": 89,
+    "pointcloud_seen": true,
+    "max_pointcloud_width": 19906,
+    "max_altitude_m": 1.012,
+    "max_speed_mps": 0.492,
+    "target_altitude_reached": true,
+    "duration_s": 18.0,
+    "launch_rviz": false,
+    "use_gpu": true
+  },
+  "notes": [
+    "The marsim backend launches the dedicated ROS1 catkin workspace under /home/coco/sim_plane_ws/workspaces/ros1_marsim.",
+    "Live telemetry is derived from /quad_0/lidar_slam/odom and the local sensing cloud on /quad0_pcl_render_node/cloud.",
+    "RViz was disabled for a lighter headless sensor-stack probe.",
+    "The GPU local sensing path was requested for this MARSIM run."
+  ],
+  "written_at_utc": "2026-04-28T14:33:43Z"
+}

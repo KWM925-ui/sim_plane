@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "backend": "px4_jsbsim",
+  "vehicle": "quadrotor",
+  "scenario_name": "px4_jsbsim_quadx_mavsdk_action_visual",
+  "metrics": {
+    "telemetry_count": 225,
+    "mavlink_message_count": 12857,
+    "max_altitude_m": 5.39,
+    "max_speed_mps": 1.245,
+    "target_altitude_reached": true,
+    "ever_armed": true,
+    "mode_changes": 6,
+    "duration_s": 46.0,
+    "algorithm_adapter_name": "mavsdk_action_takeoff",
+    "algorithm_adapter_completed_successfully": true,
+    "algorithm_adapter_connected": true,
+    "algorithm_adapter_armable": true,
+    "algorithm_adapter_arm_commanded": true,
+    "algorithm_adapter_takeoff_commanded": true,
+    "algorithm_adapter_target_altitude_reached": true,
+    "algorithm_adapter_land_commanded": true,
+    "algorithm_adapter_landed": true,
+    "algorithm_adapter_system_address": "udp://127.0.0.1:14580",
+    "headless": false,
+    "launch_qgc": false,
+    "flightgear_viewer": true
+  },
+  "notes": [
+    "The px4_jsbsim backend runs PX4 SITL against the local JSBSim dynamics bridge via sitl_run.sh.",
+    "FlightGear was requested as the 3D viewer for this JSBSim run.",
+    "A repo-local MAVSDK action adapter commanded arm, takeoff, and land through PX4's onboard MAVLink UDP listener.",
+    "The local MAVSDK path on this host connects to PX4's onboard UDP listener on 14580 while the telemetry collector stays on a separate UDP port such as 14540 or 14550."
+  ],
+  "written_at_utc": "2026-04-28T17:06:13Z"
+}

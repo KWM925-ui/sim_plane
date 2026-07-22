@@ -2,7 +2,6 @@ import json
 from collections import OrderedDict
 
 from sim_plane.adapters import available_adapters
-from sim_plane.backends import available_backends
 
 
 DEFAULT_CONTROL_SCENARIO = "scenarios/px4_sih_quadx_external_command_template.json"
@@ -30,6 +29,9 @@ def collect_platform_doctor_report():
 
 
 def collect_backend_rows():
+    # Keep adapter-only inventory usable even when an optional backend import is unavailable.
+    from sim_plane.backends import available_backends
+
     rows = []
     for name, backend_cls in sorted(available_backends().items()):
         backend = backend_cls()

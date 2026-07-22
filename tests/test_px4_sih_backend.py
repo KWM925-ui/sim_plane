@@ -11,10 +11,38 @@ from sim_plane.backends.px4_sih import (
     parse_px4_log_event,
     update_state_from_message,
 )
+from sim_plane.backends.px4_common import PX4_CANDIDATES, resolve_px4_dir
 from sim_plane.runner import apply_runtime_options
 
 
 class PX4SIHBackendTest(unittest.TestCase):
+    def test_automatic_px4_discovery_only_uses_managed_workspace(self):
+        self.assertEqual(
+            PX4_CANDIDATES,
+            [Path("/home/coco/sim_plane_ws/src/core/PX4-Autopilot")],
+        )
+
+    def test_explicit_and_environment_px4_paths_remain_supported(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            explicit = root / "explicit"
+            environment = root / "environment"
+            for candidate in (explicit, environment):
+                (candidate / "ROMFS" / "px4fmu_common" / "init.d-posix").mkdir(parents=True)
+                (candidate / "ROMFS" / "px4fmu_common" / "init.d-posix" / "rcS").write_text(
+                    "",
+                    encoding="utf-8",
+                )
+                (candidate / "Tools").mkdir()
+
+            with mock.patch("sim_plane.backends.px4_common.PX4_CANDIDATES", []), mock.patch.dict(
+                "os.environ",
+                {"PX4_AUTOPILOT_DIR": str(environment)},
+                clear=True,
+            ):
+                self.assertEqual(resolve_px4_dir(explicit), explicit.resolve())
+                self.assertEqual(resolve_px4_dir(), environment.resolve())
+
     def test_px4_root_detection_and_runtime_config(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             px4_root = Path(tmpdir) / "PX4-Autopilot"
@@ -72,7 +100,7 @@ class PX4SIHBackendTest(unittest.TestCase):
 
     def test_validate_environment_reports_missing_px4(self):
         backend = PX4SIHBackend()
-        with mock.patch("sim_plane.backends.px4_sih.PX4_CANDIDATES", []):
+        with mock.patch("sim_plane.backends.px4_common.PX4_CANDIDATES", []):
             with mock.patch.dict("os.environ", {}, clear=True):
                 issues = backend.validate_environment({"backend_options": {}, "vehicle": "quadrotor"})
         self.assertTrue(any("PX4-Autopilot checkout not found" in issue for issue in issues))
@@ -218,6 +246,7 @@ class PX4SIHBackendTest(unittest.TestCase):
 
         self.assertEqual(result["status"], "passed")
         collect_mock.assert_called_once_with(adapter_handle, timeout_s=1.0, request_stop=True)
+        self.assertFalse(any(key.startswith("_sim_plane_internal") for key in scenario))
 
 
 if __name__ == "__main__":

@@ -40,7 +40,7 @@ Convenience scripts:
 
 Both shapes write run artifacts under:
 
-- `/home/coco/sim_plane/runs`
+- `runs/`
 
 Derived planner-on-estimator surfaces:
 
@@ -55,7 +55,7 @@ python3 -m sim_plane run scenarios/ego_planner_swarm_fast_lio_marsim_visual.json
 
 The runner uses the repo-local launch file:
 
-- `/home/coco/sim_plane/sim_plane/ros/fast_lio_marsim.launch`
+- `sim_plane/ros/fast_lio_marsim.launch`
 
 Why it exists:
 
@@ -107,7 +107,7 @@ On `2026-04-28` local time, the following were validated on this host:
 
 Both planner-on-estimator surfaces reuse the repo-local adapter:
 
-- `/home/coco/sim_plane/scripts/ros_align_odometry.py`
+- `scripts/ros_align_odometry.py`
 
 It:
 

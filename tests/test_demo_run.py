@@ -40,6 +40,8 @@ class DemoRunTest(unittest.TestCase):
             self.assertTrue((artifact_dir / "scenario.json").exists())
             self.assertTrue((artifact_dir / "telemetry.jsonl").exists())
             self.assertTrue((artifact_dir / "result.json").exists())
+            self.assertTrue((artifact_dir / ".complete").exists())
+            self.assertFalse((artifact_dir / ".running").exists())
 
             result = json.loads((artifact_dir / "result.json").read_text(encoding="utf-8"))
             self.assertEqual(result["status"], "passed")

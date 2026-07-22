@@ -27,6 +27,8 @@
   走共享 runner 的 JSON 场景定义。
 - `configs/`
   上游仓库清单、平台验收矩阵、planner 验收矩阵。
+- `baselines/`
+  跟随 git 保存的精简验收基线，只保留验收需要的结果、事件、来源身份和 SHA-256 校验；完整运行日志仍留在被忽略的 `runs/`。
 - `docs/`
   文档目录。现在中文操作文档也统一放这里。
 - `runs/`
@@ -56,25 +58,32 @@
 ### 3.1 严格基线产物
 
 - `runs/<artifact_name>/`
-  完整共享 runner 产物，至少包含：
+  完整共享 runner 产物。受管运行开始时持有 `.artifact.lock` 并写入 `.running`，正常完成后原子切换为 `.complete`；读取端据此区分正在运行、已完成和异常中断。产物至少包含：
   - `manifest.json`
   - `result.json`
   - `events.jsonl`
 
-### 3.2 验收报告
+### 3.2 场景合同
+
+- 所有仓库内 scenario 都声明 `schema_version: 1`。
+- `sim_plane/scenario_contract.py` 会在 backend 启动前拒绝未知字段、错误类型和越界值。
+- 重复的 visual/headless 场景可以通过 `extends` 继承；对象递归合并，列表整体替换，循环继承会直接报错。
+- 平台相对路径统一解析到完整 checkout 的仓库根或 `SIM_PLANE_HOME`，平台代码不会全局修改 cwd；editable install 可提供任意目录入口，普通 wheel 不是自包含运行形态。
+
+### 3.3 验收报告
 
 - `runs/acceptance/`
   planner 验收报告
 - `runs/platform_acceptance/`
   平台顶层验收报告
 - `runs/platform_health/`
-  全平台总健康报告，聚合 git、doctor、卫生检查、latest acceptance、suite/fuzz/flight-log/autotest 摘要和下一阶段候选计划
+  全平台总健康报告，聚合 git、doctor、卫生检查、latest acceptance、suite/fuzz/flight-log/autotest 摘要和客观能力边界
 - `runs/live_smoke/`
-  `live-smoke` 的 fast/default 启动体检报告
+  `live-smoke` 的 fast/default 启动体检报告；`fast` 只运行内置 demo，`default` 才按矩阵包含更真实的 backend
 - `runs/suites/`
   `run-suite` 功能套件报告，包括退化测试、任务族测试、参数扫描和 KPI 排名
 - `runs/quadrotor_exam_acceptance/`
-  论文级四旋翼考试卷的 latest/reference 验收报告
+  内置 demo-backend 四旋翼 KPI/proxy 的 latest/reference 验收报告
 - `runs/px4_failure_injection_acceptance/`
   PX4-native 故障注入验收报告
 - `runs/algorithm_ingress/`
@@ -91,7 +100,7 @@
 - `runs/console_commands/`
   dashboard console 按钮触发命令时保留的 `output.log` 和 `record.json`
 
-### 3.3 手工探针产物
+### 3.4 手工探针产物
 
 - `runs/manual_probes/`
   暂未纳入严格基线、但已经做过标准化复现的探针算法产物
@@ -110,7 +119,7 @@ python3 -m sim_plane platform-acceptance
 python3 -m sim_plane platform-acceptance --latest --artifact-root runs
 ```
 
-`platform-health` 是进入维护工作的总入口。它不重新跑重仿真，也不放宽任何验收语义；它读取现有报告和 artifact，把当前状态、风险边界、下一阶段候选计划汇总到：
+`platform-health` 是进入维护工作的总入口。它不重新跑重仿真，也不放宽任何验收语义；它读取现有报告和 artifact，把当前状态与客观风险边界汇总到：
 
 ```text
 runs/platform_health/
@@ -183,15 +192,15 @@ python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
 PX4 SIH 路径仍只使用真实支持的参数/命令，不把 demo 里的 wind 或 dropout
 伪装成 PX4 物理故障。
 
-### 4.4.1 标准论文 / 项目实验闭环
+### 4.4.1 轻量 KPI / 报告回归闭环
 
-标准四旋翼实验闭环入口：
+内置 demo-backend 四旋翼 KPI/proxy 入口：
 
 ```bash
 python3 -m sim_plane quadrotor-exam --artifact-root runs
 ```
 
-标准四旋翼实验回归验收入口：
+对应的回归验收入口：
 
 ```bash
 python3 -m sim_plane quadrotor-exam-acceptance --latest --artifact-root runs
@@ -214,7 +223,7 @@ configs/paper_quadrotor_exam_suite.json
 - `failure_motor_proxy`
 - `planner_compare`
 
-每个场景都会产出统一 `kpi_*` 指标，报告里额外有 `exam.success_rate` 和关键 KPI 汇总，便于做论文表格、项目验收表和版本对比。
+每个场景都会产出统一 `kpi_*` 指标，报告里额外有 `exam.success_rate` 和关键 KPI 汇总。默认 base scenario 是内置 `basic_takeoff` demo，因此它证明固定任务、KPI 和报告机制可重复，不证明 PX4、真实规划器、传感器或高保真物理性能；真实算法结论必须换成对应真实 backend 的 scenario/suite。
 
 `quadrotor-exam-acceptance` 不重新跑仿真，而是读取最新 suite report 并和冻结 reference report 对比。它检查成功率、场景全集、每个场景状态，以及轨迹长度、速度、加速度、控制平滑度、安全违规、最终误差、恢复时间等 KPI 是否退化。
 

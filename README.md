@@ -12,10 +12,16 @@ The repository now has a working platform surface with:
 - a shared backend interface,
 - a built-in demo backend,
 - artifact output for each run,
+- version-controlled compact acceptance evidence under `baselines/`, with
+  source identity and checksums instead of a hidden dependency on ignored
+  local `runs/`,
+- versioned scenario contracts with pre-launch validation and explicit
+  `extends` inheritance,
+- managed artifact lifecycle markers and atomic metadata/report writes,
 - and a lightweight local web dashboard for visualization,
 - a top-level `platform-health` entrypoint that aggregates git state,
   readiness, artifact hygiene, latest acceptance, latest professional test
-  reports, objective boundaries, and next-stage priorities,
+  reports, and objective capability boundaries,
 - a validated legacy `EGO-Planner` ROS1 backend path,
 - a validated scene-backed `EGO-Planner + MARSIM` ROS1 planner path,
 - a validated scene-backed `EGO-Planner-Swarm + MARSIM` ROS1 planner path,
@@ -96,8 +102,8 @@ current local health and latest-vs-reference acceptance snapshots.
 - `python3 -m sim_plane artifact-hygiene` now classifies `runs/` into complete artifacts, reserved report roots, retained manual probes, and safe-to-prune stale probe directories so artifact hygiene stops depending on manual inspection,
 - `python3 -m sim_plane platform-acceptance` and `python3 -m sim_plane platform-acceptance --latest --artifact-root runs` now validate that strict top-level platform baseline while nesting the four-row planner acceptance gate underneath it,
 - each platform acceptance run now writes durable reports under `runs/platform_acceptance/`, including timestamped report directories, stable `latest_reference.json` / `latest_latest.json` snapshots, append-only `history_reference.jsonl` / `history_latest.jsonl`, and compact `latest_reference_delta.json` / `latest_latest_delta.json` compare snapshots,
-- the default stable `SUPER` probe now runs through `./scripts/run_super_benchmark.sh` with the cleaner `dense` profile, auto-selects a free ROS master port, and has retained canonical evidence at `runs/manual_probes/super_benchmark_dense_20260429_153853` with `click_goal_seen=true`, `pos_cmd_seen=true`, `planner_warn_count=3`, and `intensity_warn_count=0`,
-- the rerun `visPlanner` tracking probe now also auto-selects a free ROS master port and has retained canonical evidence at `runs/manual_probes/visplanner_tracking_20260429_153921` with both tracker and target command streams present, `tracker_exec_traj=true`, and `warn_count=5`,
+- the default stable `SUPER` probe now runs through `./scripts/run_super_benchmark.sh` with the cleaner `dense` profile, auto-selects a free ROS master port, and the current machine retains evidence at `runs/manual_probes/super_benchmark_dense_20260429_153853` with `click_goal_seen=true`, `pos_cmd_seen=true`, `planner_warn_count=3`, and `intensity_warn_count=0` (the ignored `runs/` evidence is not distributed by git),
+- the rerun `visPlanner` tracking probe now also auto-selects a free ROS master port and the current machine retains evidence at `runs/manual_probes/visplanner_tracking_20260429_153921` with both tracker and target command streams present, `tracker_exec_traj=true`, and `warn_count=5` (a fresh clone must rerun the probe),
 - `python3 -m sim_plane list-adapters` reports the generic adapter surface, including `external_command`, `mavsdk_action_takeoff`, `mavsdk_failure_injection`, and `ros_command`,
 - `python3 -m sim_plane list-backends` is the source of truth for current
   machine readiness. Historical validation evidence above means the surface has
@@ -260,15 +266,16 @@ python3 -m sim_plane run-suite scenarios/basic_takeoff.json \
   --suite configs/demo_degradation_suite.json
 ```
 
-Run the standard paper/project-style quadrotor exam:
+Run the lightweight quadrotor KPI/proxy exam on the built-in demo backend:
 
 ```bash
 python3 -m sim_plane quadrotor-exam --artifact-root runs
 ```
 
 The exam writes a normal suite report under `runs/suites/` and adds a compact
-`exam` summary with success rate and fixed KPI names for repeatable
-paper/project tables.
+`exam` summary with success rate and fixed KPI names. Its default scenario is
+`basic_takeoff` on the deterministic demo backend, so it proves the task/KPI/
+report pipeline, not real PX4, planner, sensor, or high-fidelity performance.
 
 Validate the latest quadrotor exam against the frozen reference report:
 
@@ -537,6 +544,12 @@ Install an editable command if you want the `sim-plane` shell entrypoint:
 python3 -m pip install -e .
 sim-plane run scenarios/basic_takeoff.json --visualize
 ```
+
+This is a workspace application: commands may be launched from any directory
+only when the editable install still points to a complete checkout, or when
+`SIM_PLANE_HOME` names that checkout. A normal wheel is not a self-contained
+runtime because `configs/`, `scenarios/`, `scripts/`, and `baselines/` are
+repository resources rather than installed package data.
 
 There is also a convenience script:
 
@@ -908,9 +921,9 @@ The platform wrapper for this path now disables FAST_LIO's default upstream
 `PCD/scans.pcd` dump so run artifacts stay under `runs/` instead of polluting
 the managed checkout.
 
-## MVP Target
+## Historical MVP Acceptance Target
 
-The first acceptable version should:
+The original first-version acceptance target was to:
 
 - start with one command,
 - run at least one vehicle backend on this machine,
@@ -918,3 +931,7 @@ The first acceptable version should:
 - replay named scenarios,
 - record evaluation results,
 - and stay light enough that the host remains usable.
+
+The current platform has passed that historical target. Current capabilities
+and commands are documented in the sections above; this list is retained only
+as design history.

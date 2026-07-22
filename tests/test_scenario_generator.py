@@ -10,6 +10,7 @@ from sim_plane.scenario_generator import (
     build_custom_algorithm_scenario,
     write_scenario_file,
 )
+from sim_plane.paths import get_platform_paths
 
 
 class ScenarioGeneratorTest(unittest.TestCase):
@@ -20,7 +21,10 @@ class ScenarioGeneratorTest(unittest.TestCase):
             name="my_control_case",
         )
 
-        self.assertEqual(output_path, Path("/home/coco/sim_plane/scenarios/my_control_case.json"))
+        self.assertEqual(
+            output_path,
+            get_platform_paths().scenarios / "my_control_case.json",
+        )
         self.assertEqual(scenario["backend"], "px4_sih")
         self.assertEqual(scenario["algorithm_adapter"]["type"], "external_command")
         self.assertEqual(scenario["algorithm_adapter"]["command"], ["python3", "my_controller.py"])
@@ -43,6 +47,30 @@ class ScenarioGeneratorTest(unittest.TestCase):
         self.assertEqual(adapter["required_published_topics"], ["/cmd"])
         self.assertTrue(scenario["backend_options"]["launch_rviz"])
         self.assertTrue(scenario["backend_options"]["fast_lio_launch_rviz"])
+
+    def test_relative_algorithm_workdir_is_resolved_from_platform_root(self):
+        scenario, _ = build_custom_algorithm_scenario(
+            adapter="external_command",
+            command="python3 my_controller.py",
+            workdir="examples/user_algorithms",
+        )
+
+        self.assertEqual(
+            scenario["algorithm_adapter"]["workdir"],
+            str(get_platform_paths().home / "examples/user_algorithms"),
+        )
+
+    def test_px4_generators_use_backend_headless_contract(self):
+        for backend in ("px4_jsbsim", "px4_gazebo_classic"):
+            scenario, _ = build_custom_algorithm_scenario(
+                adapter="external_command",
+                command="python3 my_controller.py",
+                backend=backend,
+            )
+
+            self.assertTrue(scenario["backend_options"]["headless"])
+            self.assertNotIn("launch_flightgear", scenario["backend_options"])
+            self.assertNotIn("gazebo_gui", scenario["backend_options"])
 
     def test_write_scenario_file_refuses_overwrite_without_force(self):
         with tempfile.TemporaryDirectory() as tmpdir:

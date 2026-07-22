@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "kind": "sim_plane_acceptance_artifact",
+  "source_artifact": "runs/px4_jsbsim_quadx_mavsdk_action_20260428_161256",
+  "source_commit": null,
+  "source_commit_recorded": false,
+  "frozen_at_commit": "a68085851f33ab4d113e1b56de83ab1b754dcfcb",
+  "source_written_at_utc": "2026-04-28T16:13:50Z",
+  "files": {
+    "manifest.json": "0eda2503a86962d66c926020eb3e5346042699ac36046741b204192cac9cba8d",
+    "result.json": "70fda6f2060e1e47d7a0b483d629d87ea3f6222abdda4153a7cb68fcd023f0bc",
+    "events.jsonl": "9e057e3864d588f297877e938f4cdbb0c8c56db9040991f735304c209fe2226c"
+  }
+}

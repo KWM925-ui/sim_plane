@@ -62,13 +62,13 @@ Single-drone simulation plus RViz:
 
 Both scripts write run artifacts under:
 
-- `/home/coco/sim_plane/runs`
+- `runs/`
 
 ## Scene-Backed Composition On MARSIM
 
 The repository now also carries a repo-local planner-on-scene wrapper at:
 
-- `/home/coco/sim_plane/sim_plane/ros/ego_planner_marsim.launch`
+- `sim_plane/ros/ego_planner_marsim.launch`
 
 Why this wrapper exists:
 

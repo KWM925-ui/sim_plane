@@ -1,11 +1,12 @@
 from pathlib import Path
 
+from sim_plane.paths import get_platform_paths, resolve_platform_path
 from sim_plane.runner import run_scenario
 from sim_plane.scenario import load_scenario
 from sim_plane.scenario_generator import build_custom_algorithm_scenario, write_scenario_file
 
 
-DEFAULT_INGRESS_REPORT_ROOT = Path("runs") / "algorithm_ingress"
+DEFAULT_INGRESS_REPORT_ROOT = get_platform_paths().runs / "algorithm_ingress"
 
 
 def run_algorithm_ingress_check(
@@ -21,6 +22,7 @@ def run_algorithm_ingress_check(
     report_root=DEFAULT_INGRESS_REPORT_ROOT,
     runtime_options=None,
 ):
+    report_root = resolve_platform_path(report_root)
     scenario, source = resolve_ingress_scenario(
         scenario_path=scenario_path,
         adapter=adapter,
@@ -73,7 +75,7 @@ def resolve_ingress_scenario(
 
 
 def write_temp_scenario(scenario, report_root):
-    root = Path(report_root)
+    root = resolve_platform_path(report_root)
     root.mkdir(parents=True, exist_ok=True)
     path = root / "latest_ingress_check_scenario.json"
     return write_scenario_file(scenario, path, force=True)

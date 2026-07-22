@@ -1,26 +1,34 @@
 import json
 from pathlib import Path
 
-from sim_plane.artifacts import read_jsonl, utc_timestamp
-from sim_plane.planner_acceptance import (
-    _resolve_artifact_root,
+from sim_plane.acceptance_common import (
     append_history_entry,
     build_acceptance_report_dir,
+    evaluate_metric_regression_budgets,
     load_previous_acceptance_report,
+    load_reference_result,
+    merge_metric_regression_budgets,
     prune_acceptance_reports,
     resolve_artifact_dir,
+    resolve_artifact_root,
+    validate_matrix_rows,
+)
+from sim_plane.artifacts import read_jsonl, utc_timestamp
+from sim_plane.io_utils import atomic_write_json, atomic_write_text, report_write_lock
+from sim_plane.paths import get_platform_paths, resolve_platform_path
+from sim_plane.planner_acceptance import (
     validate_acceptance_matrix,
 )
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = get_platform_paths().home
 DEFAULT_MATRIX_PATH = REPO_ROOT / "configs" / "platform_acceptance_matrix.json"
 DEFAULT_PLATFORM_REPORT_ROOT = REPO_ROOT / "runs" / "platform_acceptance"
 DEFAULT_PLATFORM_KEEP_LAST = 5
 
 
 def load_platform_matrix(path=None):
-    matrix_path = Path(path) if path is not None else DEFAULT_MATRIX_PATH
+    matrix_path = resolve_platform_path(path) if path is not None else DEFAULT_MATRIX_PATH
     payload = json.loads(matrix_path.read_text(encoding="utf-8"))
     payload["_matrix_path"] = matrix_path
     return payload
@@ -29,13 +37,13 @@ def load_platform_matrix(path=None):
 def validate_platform_matrix(path=None, artifact_root=None, use_latest=False):
     matrix = load_platform_matrix(path)
     matrix_path = matrix["_matrix_path"]
-    artifact_root_path = _resolve_artifact_root(matrix_path, artifact_root)
+    artifact_root_path = resolve_artifact_root(matrix_path, artifact_root)
     required_event_levels = set(matrix.get("required_event_levels", ["info"]))
     default_metric_regression_budgets = matrix.get("metric_regression_budgets", {})
     rows = []
-    issues = []
+    row_specs, issues = validate_matrix_rows(matrix, "platform acceptance matrix")
 
-    for row_spec in matrix.get("rows", []):
+    for row_spec in row_specs:
         row_report = validate_platform_row(
             row_spec,
             matrix_path=matrix_path,
@@ -49,6 +57,8 @@ def validate_platform_matrix(path=None, artifact_root=None, use_latest=False):
 
     planner_report = None
     planner_matrix = matrix.get("planner_acceptance_matrix")
+    if matrix.get("require_planner_acceptance") and not planner_matrix:
+        issues.append("platform acceptance matrix requires planner_acceptance_matrix")
     if planner_matrix:
         planner_matrix_path = resolve_matrix_relative_path(matrix_path, planner_matrix)
         planner_report = validate_acceptance_matrix(
@@ -89,6 +99,8 @@ def validate_platform_row(
         matrix_path=matrix_path,
         artifact_root=artifact_root,
         use_latest=use_latest,
+        expected_backend=row_spec["backend"],
+        expected_vehicle=row_spec.get("expected_vehicle", "quadrotor"),
     )
     reference_artifact_dir, _ = resolve_artifact_dir(
         {
@@ -98,6 +110,8 @@ def validate_platform_row(
         matrix_path=matrix_path,
         artifact_root=artifact_root,
         use_latest=False,
+        expected_backend=row_spec["backend"],
+        expected_vehicle=row_spec.get("expected_vehicle", "quadrotor"),
     )
     metric_regression_budgets = merge_metric_regression_budgets(
         default_metric_regression_budgets,
@@ -140,11 +154,13 @@ def validate_platform_row(
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     result = json.loads(result_path.read_text(encoding="utf-8"))
     events = read_jsonl(events_path)
-    reference_result, reference_issues = load_platform_reference_result(
+    reference_result, reference_issues = load_reference_result(
         reference_artifact_dir=reference_artifact_dir,
         backend=row_spec["backend"],
         scenario_name=row_spec["scenario_name"],
         expected_vehicle=row_spec.get("expected_vehicle", "quadrotor"),
+        require_baseline_metadata=bool(row_spec.get("source_artifact")),
+        expected_source_artifact=row_spec.get("source_artifact"),
     )
     report["issues"].extend(reference_issues)
     metrics = result.get("metrics", {})
@@ -239,98 +255,6 @@ def validate_platform_row(
     return report
 
 
-def merge_metric_regression_budgets(default_budgets, row_budgets):
-    merged = {}
-    for source in (default_budgets or {}, row_budgets or {}):
-        for metric_name, budget in source.items():
-            existing = merged.get(metric_name, {})
-            merged[metric_name] = {**existing, **budget}
-    return merged
-
-
-def load_platform_reference_result(reference_artifact_dir, backend, scenario_name, expected_vehicle):
-    issues = []
-    if reference_artifact_dir is None:
-        return None, ["reference artifact directory could not be resolved"]
-
-    result_path = reference_artifact_dir / "result.json"
-    if not result_path.exists():
-        return None, ["missing reference result.json"]
-
-    try:
-        reference_result = json.loads(result_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return None, ["reference result.json is not valid JSON"]
-
-    if reference_result.get("backend") != backend:
-        issues.append(
-            "reference backend mismatch: expected {0}, got {1}".format(
-                backend, reference_result.get("backend")
-            )
-        )
-    if reference_result.get("scenario_name") != scenario_name:
-        issues.append(
-            "reference scenario_name mismatch: expected {0}, got {1}".format(
-                scenario_name, reference_result.get("scenario_name")
-            )
-        )
-    if reference_result.get("vehicle") != expected_vehicle:
-        issues.append(
-            "reference vehicle mismatch: expected {0}, got {1}".format(
-                expected_vehicle, reference_result.get("vehicle")
-            )
-        )
-    if reference_result.get("status") != "passed":
-        issues.append("reference result status is not passed")
-
-    return reference_result, issues
-
-
-def evaluate_metric_regression_budgets(metrics, reference_metrics, metric_regression_budgets):
-    regressions = {}
-    issues = []
-    for metric_name, budget in (metric_regression_budgets or {}).items():
-        current_value = metrics.get(metric_name)
-        reference_value = reference_metrics.get(metric_name)
-        if current_value is None and reference_value is None:
-            continue
-        if reference_value is None:
-            issues.append("reference metric {0} is missing".format(metric_name))
-            continue
-        if current_value is None:
-            issues.append("metric {0} is missing".format(metric_name))
-            continue
-        if not isinstance(current_value, (int, float)) or not isinstance(reference_value, (int, float)):
-            issues.append("metric regression budget for {0} requires numeric metrics".format(metric_name))
-            continue
-
-        regression = round(current_value - reference_value, 3)
-        regressions[metric_name] = regression
-        max_drop = budget.get("max_drop")
-        if max_drop is not None:
-            drop = round(reference_value - current_value, 3)
-            if drop > max_drop:
-                issues.append(
-                    "metric {0} regressed by {1} beyond allowed drop {2}".format(
-                        metric_name,
-                        drop,
-                        max_drop,
-                    )
-                )
-        max_increase = budget.get("max_increase")
-        if max_increase is not None:
-            increase = round(current_value - reference_value, 3)
-            if increase > max_increase:
-                issues.append(
-                    "metric {0} increased by {1} beyond allowed {2}".format(
-                        metric_name,
-                        increase,
-                        max_increase,
-                    )
-                )
-    return regressions, issues
-
-
 def resolve_matrix_relative_path(matrix_path, child_path):
     path = Path(child_path)
     if path.is_absolute():
@@ -410,8 +334,18 @@ def write_platform_acceptance_report(
     report_root=None,
     keep_last=DEFAULT_PLATFORM_KEEP_LAST,
 ):
-    report_root_path = Path(report_root) if report_root is not None else DEFAULT_PLATFORM_REPORT_ROOT
+    report_root_path = resolve_platform_path(report_root) if report_root is not None else DEFAULT_PLATFORM_REPORT_ROOT
     report_root_path.mkdir(parents=True, exist_ok=True)
+    with report_write_lock(report_root_path):
+        return _write_platform_acceptance_report_locked(
+            report,
+            report_root_path,
+            keep_last,
+        )
+
+
+def _write_platform_acceptance_report_locked(report, report_root_path, keep_last):
+    report_root_path = Path(report_root_path)
     matrix_name = report.get("matrix_name", "platform_acceptance")
     selection_mode = report.get("selection_mode", "reference")
     report_dir = build_acceptance_report_dir(
@@ -441,10 +375,10 @@ def write_platform_acceptance_report(
     text_report = format_platform_acceptance_report(payload) + "\n"
     delta_text = format_platform_acceptance_delta(delta) + "\n"
 
-    json_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    text_path.write_text(text_report, encoding="utf-8")
-    delta_json_path.write_text(json.dumps(delta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    delta_text_path.write_text(delta_text, encoding="utf-8")
+    atomic_write_json(json_path, payload)
+    atomic_write_text(text_path, text_report)
+    atomic_write_json(delta_json_path, delta)
+    atomic_write_text(delta_text_path, delta_text)
 
     append_history_entry(
         history_jsonl_path,
@@ -475,40 +409,35 @@ def write_platform_acceptance_report(
         selection_mode=selection_mode,
         keep_last=keep_last,
     )
-    manifest_path.write_text(
-        json.dumps(
-            {
-                "created_at_utc": payload["written_at_utc"],
-                "matrix_name": matrix_name,
-                "selection_mode": selection_mode,
-                "status": payload.get("status"),
-                "report_dir": str(report_dir),
-                "files": {
-                    "report_json": "report.json",
-                    "report_text": "report.txt",
-                    "delta_json": "delta.json",
-                    "delta_text": "delta.txt",
-                },
-                "latest_files": {
-                    "report_json": str(latest_json_path),
-                    "report_text": str(latest_text_path),
-                    "delta_json": str(latest_delta_json_path),
-                    "delta_text": str(latest_delta_text_path),
-                },
-                "history_file": str(history_jsonl_path),
-                "keep_last": keep_last,
-                "pruned_report_dirs": pruned_report_dirs,
+    atomic_write_json(
+        manifest_path,
+        {
+            "created_at_utc": payload["written_at_utc"],
+            "matrix_name": matrix_name,
+            "selection_mode": selection_mode,
+            "status": payload.get("status"),
+            "report_dir": str(report_dir),
+            "files": {
+                "report_json": "report.json",
+                "report_text": "report.txt",
+                "delta_json": "delta.json",
+                "delta_text": "delta.txt",
             },
-            indent=2,
-            ensure_ascii=False,
-        )
-        + "\n",
-        encoding="utf-8",
+            "latest_files": {
+                "report_json": str(latest_json_path),
+                "report_text": str(latest_text_path),
+                "delta_json": str(latest_delta_json_path),
+                "delta_text": str(latest_delta_text_path),
+            },
+            "history_file": str(history_jsonl_path),
+            "keep_last": keep_last,
+            "pruned_report_dirs": pruned_report_dirs,
+        },
     )
-    latest_json_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    latest_text_path.write_text(text_report, encoding="utf-8")
-    latest_delta_json_path.write_text(json.dumps(delta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    latest_delta_text_path.write_text(delta_text, encoding="utf-8")
+    atomic_write_json(latest_json_path, payload)
+    atomic_write_text(latest_text_path, text_report)
+    atomic_write_json(latest_delta_json_path, delta)
+    atomic_write_text(latest_delta_text_path, delta_text)
 
     return {
         "report_root": str(report_root_path),

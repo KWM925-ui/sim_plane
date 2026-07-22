@@ -2,6 +2,13 @@ import math
 import time
 
 
+def compute_goal_distance_m(goal, sample):
+    dx = float(sample["position"]["x_m"]) - float(goal["x"])
+    dy = float(sample["position"]["y_m"]) - float(goal["y"])
+    dz = float(sample["altitude_m"]) - float(goal["z"])
+    return (dx * dx + dy * dy + dz * dz) ** 0.5
+
+
 def update_goal_reach_state(
     *,
     goal_distance_m,

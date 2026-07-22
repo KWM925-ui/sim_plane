@@ -1,0 +1,14 @@
+{"ts_utc": "2026-04-28T14:35:43Z", "level": "info", "message": "run started", "details": {"backend": "marsim", "scenario": "marsim_single_gpu_visual"}}
+{"ts_utc": "2026-04-28T14:35:43Z", "level": "info", "message": "marsim launch plan", "details": {"workspace_dir": "/home/coco/sim_plane_ws/workspaces/ros1_marsim", "launch": "test_interface single_drone_avia.launch", "launch_rviz": true, "use_gpu": true, "odom_topic": "/quad_0/lidar_slam/odom", "pointcloud_topic": "/quad0_pcl_render_node/cloud", "ros_log_dir": "/home/coco/sim_plane/runs/marsim_single_gpu_visual_20260428_143543/ros_logs"}}
+{"ts_utc": "2026-04-28T14:35:43Z", "level": "info", "message": "launching roslaunch", "details": {"label": "marsim", "command": "roslaunch test_interface single_drone_avia.launch launch_rviz:=true use_gpu_:=true", "cwd": "/home/coco/sim_plane_ws/workspaces/ros1_marsim"}}
+{"ts_utc": "2026-04-28T14:35:45Z", "level": "info", "message": "launching ros telemetry probe", "details": {"command": "python3 /home/coco/sim_plane/scripts/ros_telemetry_probe.py --odom-topic /quad_0/lidar_slam/odom --pointcloud-topic /quad0_pcl_render_node/cloud --sample-hz 5.0 --target-altitude-m 1.0"}}
+{"ts_utc": "2026-04-28T14:35:45Z", "level": "info", "message": "ros odometry received", "details": {"odom_topic": "/quad_0/lidar_slam/odom", "position": {"x_m": 0.0, "y_m": 0.0, "z_m": -0.944}, "altitude_m": 0.944}}
+{"ts_utc": "2026-04-28T14:35:45Z", "level": "info", "message": "local cloud stream detected", "details": {"pointcloud_topic": "/quad0_pcl_render_node/cloud", "pointcloud_width": 19620}}
+{"ts_utc": "2026-04-28T14:36:03Z", "level": "info", "message": "stopping process", "details": {"label": "ros_probe", "pid": 89875, "signal": "SIGINT"}}
+{"ts_utc": "2026-04-28T14:36:04Z", "level": "info", "message": "pre-stopping RViz node", "details": {"nodes": ["/rvizvisualisation"]}}
+{"ts_utc": "2026-04-28T14:36:04Z", "level": "info", "message": "marsim_stderr log", "details": {"line": "[WARN] [1777386964.524302486]: Shutdown request received.", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:36:04Z", "level": "info", "message": "marsim_stderr log", "details": {"line": "[WARN] [1777386964.524333133]: Reason given for shutdown: [user request]", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:36:05Z", "level": "info", "message": "stopping process", "details": {"label": "marsim", "pid": 89774, "signal": "SIGINT"}}
+{"ts_utc": "2026-04-28T14:36:20Z", "level": "info", "message": "marsim_stdout log", "details": {"line": "\u001b[1m[map_pub-1] process has finished cleanly", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:36:20Z", "level": "info", "message": "marsim_stdout log", "details": {"line": "\u001b[1m[map_pub1-2] process has finished cleanly", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:36:20Z", "level": "info", "message": "marsim_stderr log", "details": {"line": "\u001b[31m[rvizvisualisation-7] escalating to SIGTERM\u001b[0m", "stream": "stderr"}}

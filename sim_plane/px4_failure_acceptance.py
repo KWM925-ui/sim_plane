@@ -2,31 +2,32 @@ import json
 from pathlib import Path
 
 from sim_plane.artifacts import read_jsonl, utc_timestamp
-from sim_plane.planner_acceptance import (
-    _resolve_artifact_root,
-    append_history_entry,
-    build_acceptance_report_dir,
-    load_previous_acceptance_report,
-    prune_acceptance_reports,
-    resolve_artifact_dir,
-)
 from sim_plane.acceptance_common import (
+    append_history_entry,
     build_acceptance_delta,
+    build_acceptance_report_dir,
     evaluate_metric_regression_budgets,
     format_delta_lines,
+    load_previous_acceptance_report,
     load_reference_result,
     merge_metric_regression_budgets,
+    prune_acceptance_reports,
+    resolve_artifact_dir,
+    resolve_artifact_root,
+    validate_matrix_rows,
 )
+from sim_plane.io_utils import atomic_write_json, atomic_write_text, report_write_lock
+from sim_plane.paths import get_platform_paths, resolve_platform_path
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = get_platform_paths().home
 DEFAULT_MATRIX_PATH = REPO_ROOT / "configs" / "px4_failure_injection_acceptance_matrix.json"
 DEFAULT_REPORT_ROOT = REPO_ROOT / "runs" / "px4_failure_injection_acceptance"
 DEFAULT_KEEP_LAST = 5
 
 
 def load_matrix(path=None):
-    matrix_path = Path(path) if path is not None else DEFAULT_MATRIX_PATH
+    matrix_path = resolve_platform_path(path) if path is not None else DEFAULT_MATRIX_PATH
     payload = json.loads(matrix_path.read_text(encoding="utf-8"))
     payload["_matrix_path"] = matrix_path
     return payload
@@ -35,12 +36,12 @@ def load_matrix(path=None):
 def validate_matrix(path=None, artifact_root=None, use_latest=False):
     matrix = load_matrix(path)
     matrix_path = matrix["_matrix_path"]
-    artifact_root_path = _resolve_artifact_root(matrix_path, artifact_root)
+    artifact_root_path = resolve_artifact_root(matrix_path, artifact_root)
     required_event_levels = set(matrix.get("required_event_levels", ["info"]))
     default_metric_regression_budgets = matrix.get("metric_regression_budgets", {})
     rows = []
-    issues = []
-    for row_spec in matrix.get("rows", []):
+    row_specs, issues = validate_matrix_rows(matrix, "PX4 failure acceptance matrix")
+    for row_spec in row_specs:
         row_report = validate_row(
             row_spec=row_spec,
             matrix_path=matrix_path,
@@ -78,6 +79,8 @@ def validate_row(
         matrix_path=matrix_path,
         artifact_root=artifact_root,
         use_latest=use_latest,
+        expected_backend=row_spec["backend"],
+        expected_vehicle=row_spec.get("expected_vehicle", "quadrotor"),
     )
     reference_artifact_dir, _ = resolve_artifact_dir(
         {
@@ -87,6 +90,8 @@ def validate_row(
         matrix_path=matrix_path,
         artifact_root=artifact_root,
         use_latest=False,
+        expected_backend=row_spec["backend"],
+        expected_vehicle=row_spec.get("expected_vehicle", "quadrotor"),
     )
     metric_regression_budgets = merge_metric_regression_budgets(
         default_metric_regression_budgets,
@@ -130,6 +135,8 @@ def validate_row(
         reference_artifact_dir=reference_artifact_dir,
         backend=row_spec["backend"],
         scenario_name=row_spec["scenario_name"],
+        require_baseline_metadata=bool(row_spec.get("source_artifact")),
+        expected_source_artifact=row_spec.get("source_artifact"),
     )
     report["issues"].extend(reference_issues)
     metrics = result.get("metrics", {})
@@ -262,8 +269,14 @@ def format_report(report):
 
 
 def write_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST):
-    report_root_path = Path(report_root) if report_root is not None else DEFAULT_REPORT_ROOT
+    report_root_path = resolve_platform_path(report_root) if report_root is not None else DEFAULT_REPORT_ROOT
     report_root_path.mkdir(parents=True, exist_ok=True)
+    with report_write_lock(report_root_path):
+        return _write_report_locked(report, report_root_path, keep_last)
+
+
+def _write_report_locked(report, report_root_path, keep_last):
+    report_root_path = Path(report_root_path)
     matrix_name = report.get("matrix_name", "px4_failure_injection_acceptance")
     selection_mode = report.get("selection_mode", "reference")
     report_dir = build_acceptance_report_dir(
@@ -303,10 +316,10 @@ def write_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST):
     text_report = format_report(payload) + "\n"
     delta_text = "\n".join(format_delta_lines(delta)) + "\n"
 
-    json_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    text_path.write_text(text_report, encoding="utf-8")
-    delta_json_path.write_text(json.dumps(delta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    delta_text_path.write_text(delta_text, encoding="utf-8")
+    atomic_write_json(json_path, payload)
+    atomic_write_text(text_path, text_report)
+    atomic_write_json(delta_json_path, delta)
+    atomic_write_text(delta_text_path, delta_text)
 
     append_history_entry(
         history_jsonl_path,
@@ -324,27 +337,22 @@ def write_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST):
         },
     )
 
-    latest_json_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    latest_text_path.write_text(text_report, encoding="utf-8")
-    latest_delta_json_path.write_text(json.dumps(delta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    latest_delta_text_path.write_text(delta_text, encoding="utf-8")
-    manifest_path.write_text(
-        json.dumps(
-            {
-                "matrix_name": matrix_name,
-                "selection_mode": selection_mode,
-                "report_files": {
-                    "json": json_path.name,
-                    "text": text_path.name,
-                    "delta_json": delta_json_path.name,
-                    "delta_text": delta_text_path.name,
-                },
+    atomic_write_json(latest_json_path, payload)
+    atomic_write_text(latest_text_path, text_report)
+    atomic_write_json(latest_delta_json_path, delta)
+    atomic_write_text(latest_delta_text_path, delta_text)
+    atomic_write_json(
+        manifest_path,
+        {
+            "matrix_name": matrix_name,
+            "selection_mode": selection_mode,
+            "report_files": {
+                "json": json_path.name,
+                "text": text_path.name,
+                "delta_json": delta_json_path.name,
+                "delta_text": delta_text_path.name,
             },
-            indent=2,
-            ensure_ascii=False,
-        )
-        + "\n",
-        encoding="utf-8",
+        },
     )
 
     pruned_report_dirs = prune_acceptance_reports(

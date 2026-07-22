@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "name": "fast_lio_marsim_ros_command_template",
   "description": "Generic ROS planner/perception ingress on top of FAST_LIO plus MARSIM. The repo-local sample node subscribes estimator odom plus clouds and publishes PositionCommand into the shared MARSIM control chain.",
   "backend": "fast_lio_marsim",

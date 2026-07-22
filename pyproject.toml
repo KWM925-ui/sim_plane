@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "sim-plane"
 version = "0.1.0"
-description = "Lightweight UAV algorithm simulation platform with a local visualization dashboard."
+description = "Workspace-based UAV algorithm simulation and evidence platform."
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
@@ -23,4 +23,4 @@ include-package-data = true
 include = ["sim_plane*"]
 
 [tool.setuptools.package-data]
-sim_plane = ["static/*"]
+sim_plane = ["static/*", "ros/*.launch"]

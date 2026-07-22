@@ -1,0 +1,15 @@
+{
+  "created_at_utc": "2026-04-28T16:03:45Z",
+  "backend": "px4_sih",
+  "scenario_name": "px4_sih_quadx_mavsdk_action",
+  "vehicle": "quadrotor",
+  "artifact_dir": "runs/px4_sih_quadx_mavsdk_action_20260428_160345",
+  "files": {
+    "scenario": "scenario.json",
+    "telemetry": "telemetry.jsonl",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "backend_stdout": "backend_stdout.log",
+    "backend_stderr": "backend_stderr.log"
+  }
+}

@@ -1,25 +1,28 @@
 import json
 from pathlib import Path
 
-from sim_plane.acceptance_common import evaluate_metric_regression_budgets
-from sim_plane.artifacts import utc_timestamp
-from sim_plane.planner_acceptance import (
+from sim_plane.acceptance_common import (
     append_history_entry,
     build_acceptance_report_dir,
+    evaluate_metric_regression_budgets,
     load_previous_acceptance_report,
     parse_artifact_timestamp,
     prune_acceptance_reports,
 )
+from sim_plane.artifacts import utc_timestamp
+from sim_plane.baseline_store import verify_report_baseline
+from sim_plane.io_utils import atomic_write_json, atomic_write_text, report_write_lock
+from sim_plane.paths import get_platform_paths, resolve_platform_path
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = get_platform_paths().home
 DEFAULT_MATRIX_PATH = REPO_ROOT / "configs" / "quadrotor_exam_acceptance_matrix.json"
 DEFAULT_REPORT_ROOT = REPO_ROOT / "runs" / "quadrotor_exam_acceptance"
 DEFAULT_KEEP_LAST = 10
 
 
 def load_matrix(path=None):
-    matrix_path = Path(path) if path is not None else DEFAULT_MATRIX_PATH
+    matrix_path = resolve_platform_path(path) if path is not None else DEFAULT_MATRIX_PATH
     payload = json.loads(matrix_path.read_text(encoding="utf-8"))
     payload["_matrix_path"] = matrix_path
     return payload
@@ -42,6 +45,21 @@ def validate_matrix(path=None, artifact_root=None, use_latest=False):
     issues = []
     issues.extend(current_load_issues)
     issues.extend("reference {0}".format(issue) for issue in reference_load_issues)
+    baseline_metadata_path = (
+        reference_report_path.parent / "baseline.json"
+        if reference_report_path is not None
+        else None
+    )
+    if reference_report_path is not None and (
+        matrix.get("source_reference_report") or baseline_metadata_path.exists()
+    ):
+        issues.extend(
+            "reference {0}".format(issue)
+            for issue in verify_report_baseline(
+                reference_report_path,
+                expected_source_report=matrix.get("source_reference_report"),
+            )
+        )
 
     if current_report is not None:
         issues.extend(validate_suite_identity(current_report, suite_name))
@@ -66,7 +84,7 @@ def validate_matrix(path=None, artifact_root=None, use_latest=False):
         "selection_mode": "latest" if use_latest else "reference",
         "report_path": str(current_report_path) if current_report_path is not None else None,
         "reference_report_path": str(reference_report_path) if reference_report_path is not None else None,
-        "artifact_root": str(Path(artifact_root)) if artifact_root is not None else str(REPO_ROOT / "runs"),
+        "artifact_root": str(resolve_platform_path(artifact_root)) if artifact_root is not None else str(REPO_ROOT / "runs"),
         "status": "passed" if not issues else "failed",
         "issues": issues,
         "summary": build_summary(current_report),
@@ -79,7 +97,7 @@ def resolve_suite_report_path(matrix, matrix_path, artifact_root=None, use_lates
     if use_latest:
         suite_name = matrix.get("suite_name", "paper_quadrotor_exam_suite")
         if artifact_root is not None:
-            suites_root = Path(artifact_root) / "suites"
+            suites_root = resolve_platform_path(artifact_root) / "suites"
             fallback = suites_root / "latest_{0}.json".format(suite_name)
             return resolve_latest_suite_report(suites_root, suite_name, fallback)
         latest_report = matrix.get("latest_report")
@@ -321,8 +339,14 @@ def format_report(report):
 
 
 def write_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST):
-    report_root_path = Path(report_root) if report_root is not None else DEFAULT_REPORT_ROOT
+    report_root_path = resolve_platform_path(report_root) if report_root is not None else DEFAULT_REPORT_ROOT
     report_root_path.mkdir(parents=True, exist_ok=True)
+    with report_write_lock(report_root_path):
+        return _write_report_locked(report, report_root_path, keep_last)
+
+
+def _write_report_locked(report, report_root_path, keep_last):
+    report_root_path = Path(report_root_path)
     matrix_name = report.get("matrix_name", "quadrotor_exam_acceptance")
     selection_mode = report.get("selection_mode", "reference")
     report_dir = build_acceptance_report_dir(report_root_path, matrix_name, selection_mode)
@@ -348,10 +372,10 @@ def write_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST):
     text_report = format_report(payload) + "\n"
     delta_text = format_delta(delta) + "\n"
 
-    json_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    text_path.write_text(text_report, encoding="utf-8")
-    delta_json_path.write_text(json.dumps(delta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    delta_text_path.write_text(delta_text, encoding="utf-8")
+    atomic_write_json(json_path, payload)
+    atomic_write_text(text_path, text_report)
+    atomic_write_json(delta_json_path, delta)
+    atomic_write_text(delta_text_path, delta_text)
     append_history_entry(
         history_jsonl_path,
         {
@@ -373,40 +397,35 @@ def write_report(report, report_root=None, keep_last=DEFAULT_KEEP_LAST):
         selection_mode=selection_mode,
         keep_last=keep_last,
     )
-    manifest_path.write_text(
-        json.dumps(
-            {
-                "created_at_utc": payload["written_at_utc"],
-                "matrix_name": matrix_name,
-                "selection_mode": selection_mode,
-                "status": payload.get("status"),
-                "report_dir": str(report_dir),
-                "files": {
-                    "report_json": "report.json",
-                    "report_text": "report.txt",
-                    "delta_json": "delta.json",
-                    "delta_text": "delta.txt",
-                },
-                "latest_files": {
-                    "report_json": str(latest_json_path),
-                    "report_text": str(latest_text_path),
-                    "delta_json": str(latest_delta_json_path),
-                    "delta_text": str(latest_delta_text_path),
-                },
-                "history_file": str(history_jsonl_path),
-                "keep_last": keep_last,
-                "pruned_report_dirs": pruned_report_dirs,
+    atomic_write_json(
+        manifest_path,
+        {
+            "created_at_utc": payload["written_at_utc"],
+            "matrix_name": matrix_name,
+            "selection_mode": selection_mode,
+            "status": payload.get("status"),
+            "report_dir": str(report_dir),
+            "files": {
+                "report_json": "report.json",
+                "report_text": "report.txt",
+                "delta_json": "delta.json",
+                "delta_text": "delta.txt",
             },
-            indent=2,
-            ensure_ascii=False,
-        )
-        + "\n",
-        encoding="utf-8",
+            "latest_files": {
+                "report_json": str(latest_json_path),
+                "report_text": str(latest_text_path),
+                "delta_json": str(latest_delta_json_path),
+                "delta_text": str(latest_delta_text_path),
+            },
+            "history_file": str(history_jsonl_path),
+            "keep_last": keep_last,
+            "pruned_report_dirs": pruned_report_dirs,
+        },
     )
-    latest_json_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    latest_text_path.write_text(text_report, encoding="utf-8")
-    latest_delta_json_path.write_text(json.dumps(delta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    latest_delta_text_path.write_text(delta_text, encoding="utf-8")
+    atomic_write_json(latest_json_path, payload)
+    atomic_write_text(latest_text_path, text_report)
+    atomic_write_json(latest_delta_json_path, delta)
+    atomic_write_text(latest_delta_text_path, delta_text)
     return {
         "report_root": str(report_root_path),
         "report_dir": str(report_dir),

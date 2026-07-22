@@ -1,0 +1,85 @@
+{"ts_utc": "2026-04-28T14:18:41Z", "level": "info", "message": "run started", "details": {"backend": "ego_planner_swarm", "scenario": "ego_planner_swarm_single"}}
+{"ts_utc": "2026-04-28T14:18:41Z", "level": "info", "message": "ego_planner_swarm launch plan", "details": {"workspace_dir": "/home/coco/sim_plane_ws/workspaces/ros1_ego_swarm", "launch": "ego_planner single_run_in_sim.launch", "launch_rviz": false, "odom_topic": "/drone_0_visual_slam/odom", "command_topic": "/drone_0_planning/pos_cmd", "ros_log_dir": "runs/ego_planner_swarm_single_20260428_141841/ros_logs"}}
+{"ts_utc": "2026-04-28T14:18:41Z", "level": "info", "message": "launching roslaunch", "details": {"label": "ego_swarm", "command": "roslaunch ego_planner single_run_in_sim.launch", "cwd": "/home/coco/sim_plane_ws/workspaces/ros1_ego_swarm"}}
+{"ts_utc": "2026-04-28T14:18:42Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from INIT to WAIT_TARGET", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:42Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385922.613241837]: Finished generate random map", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:18:42Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385922.658626558]: Global Pointcloud received..", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:18:42Z", "level": "info", "message": "launching ros telemetry probe", "details": {"command": "python3 /home/coco/sim_plane/scripts/ros_telemetry_probe.py --odom-topic /drone_0_visual_slam/odom --command-topic /drone_0_planning/pos_cmd --sample-hz 5.0 --target-altitude-m 1.0"}}
+{"ts_utc": "2026-04-28T14:18:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385923.123783625]: [Traj server]: ready.", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:18:43Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: WAIT_TARGET", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:43Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385923.280051160]: Waiting for trigger from [n3ctrl] from RC", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:18:43Z", "level": "info", "message": "planner trigger", "details": {"line": "[TRIG]: from WAIT_TARGET to GEN_NEW_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:43Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from GEN_NEW_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:43Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:43Z", "level": "info", "message": "ros odometry received", "details": {"odom_topic": "/drone_0_visual_slam/odom", "position": {"x_m": -14.887, "y_m": -0.018, "z_m": -0.101}, "altitude_m": 0.101}}
+{"ts_utc": "2026-04-28T14:18:43Z", "level": "info", "message": "planner command stream detected", "details": {"command_topic": "/drone_0_planning/pos_cmd", "count": 8}}
+{"ts_utc": "2026-04-28T14:18:44Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:44Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:44Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:45Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:45Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:45Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:45Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:45Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:45Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:45Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:46Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:46Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:47Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:47Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:47Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:48Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:48Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:48Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:49Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:49Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:49Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:49Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:50Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:50Z", "level": "info", "message": "ego_swarm_stderr log", "details": {"line": "[WARN] [1777385930.151188690]: base_point and control point are too close!", "stream": "stderr"}}
+{"ts_utc": "2026-04-28T14:18:50Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:50Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:50Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:51Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:51Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:51Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:52Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:52Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:52Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:52Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:52Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:52Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:52Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:53Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:53Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:53Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:54Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:54Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:54Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:54Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:55Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:55Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:55Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:55Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:56Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:56Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:56Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:57Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:57Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:57Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:58Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:58Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:58Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:59Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:59Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:18:59Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:00Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:00Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:00Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:00Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:00Z", "level": "info", "message": "stopping process", "details": {"label": "ros_probe", "pid": 74312, "signal": "SIGINT"}}
+{"ts_utc": "2026-04-28T14:19:01Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: state: EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:01Z", "level": "info", "message": "stopping process", "details": {"label": "ego_swarm", "pid": 74212, "signal": "SIGINT"}}
+{"ts_utc": "2026-04-28T14:19:01Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from EXEC_TRAJ to REPLAN_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:01Z", "level": "info", "message": "fsm transition", "details": {"line": "[FSM]: from REPLAN_TRAJ to EXEC_TRAJ", "stream": "stdout"}}
+{"ts_utc": "2026-04-28T14:19:01Z", "level": "info", "message": "planner safety transition", "details": {"line": "[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ", "stream": "stdout"}}

@@ -1,10 +1,11 @@
 import json
-from pathlib import Path
+
+from sim_plane.paths import get_platform_paths, resolve_platform_path
 
 from sim_plane.run_suite import DEFAULT_SUITE_REPORT_ROOT, format_suite_report, run_suite, write_suite_report
 
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = get_platform_paths().home
 DEFAULT_EXAM_SUITE = REPO_ROOT / "configs" / "paper_quadrotor_exam_suite.json"
 
 
@@ -16,8 +17,8 @@ def run_quadrotor_exam(
     keep_last=10,
     runtime_options=None,
 ):
-    scenario = Path(scenario_path) if scenario_path else REPO_ROOT / "scenarios" / "basic_takeoff.json"
-    suite = Path(suite_path) if suite_path else DEFAULT_EXAM_SUITE
+    scenario = resolve_platform_path(scenario_path) if scenario_path else REPO_ROOT / "scenarios" / "basic_takeoff.json"
+    suite = resolve_platform_path(suite_path) if suite_path else DEFAULT_EXAM_SUITE
     report = run_suite(
         scenario_path=scenario,
         suite_path=suite,
@@ -72,8 +73,8 @@ def build_exam_summary(report):
         "success_rate": round(passed / total, 6) if total else 0.0,
         "metrics": metrics,
         "notes": [
-            "This is a standard algorithm-validation exam surface, not a high-fidelity visual simulator.",
-            "Use it for paper/project repeatability: fixed scenes, fixed KPI names, and retained artifacts.",
+            "The default exam is a lightweight demo-backend KPI/proxy surface, not real flight-stack or high-fidelity algorithm evidence.",
+            "Use it to regression-test fixed scenes, KPI names, and report plumbing; use explicit real-backend suites for algorithm claims.",
         ],
     }
 

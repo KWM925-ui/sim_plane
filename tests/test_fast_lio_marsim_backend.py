@@ -70,11 +70,16 @@ class FastLIOMARSIMBackendTest(unittest.TestCase):
         process = mock.Mock()
         process.pid = 5678
         process.poll.return_value = None
-        with mock.patch("sim_plane.backends.fast_lio_marsim.os.killpg") as killpg:
+        with mock.patch("sim_plane.backends.fast_lio_marsim.os.killpg") as killpg, mock.patch(
+            "sim_plane.backends.ros_runtime.process_group_exists", return_value=True
+        ), mock.patch(
+            "sim_plane.backends.ros_runtime.wait_for_process_group_exit", return_value=True
+        ):
             stopped = stop_roslaunch(process, sink, "fast_lio", wait_timeout_s=4.0)
         self.assertTrue(stopped)
         killpg.assert_called_once()
-        process.wait.assert_called_once_with(timeout=4.0)
+        process.wait.assert_called_once()
+        self.assertLessEqual(process.wait.call_args.kwargs["timeout"], 4.0)
 
     def test_shutdown_ros_nodes_targets_live_nodes_only(self):
         sink = mock.Mock()
